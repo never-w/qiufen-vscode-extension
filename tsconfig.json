@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "ES2020",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "sourceMap": true,
+    "rootDir": "./",
+    "strict": true /* enable all strict type-checking options */,
+    "jsx": "react", // react18 用 react-jsx，18之前的版本用 react
+    "esModuleInterop": true
+    /* Additional Checks */
+    // "noImplicitReturns": true, /* Report error when not all code paths in function return a value. */
+    // "noFallthroughCasesInSwitch": true, /* Report errors for fallthrough cases in switch statement. */
+    // "noUnusedParameters": true,  /* Report errors on unused parameters. */
+  },
+  "exclude": ["src/test"]
+}
