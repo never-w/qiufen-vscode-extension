@@ -1,26 +1,24 @@
 import * as vscode from "vscode"
 import * as path from "path"
 
-import { getOperationsBySchema, genGQLStrInGroup, TypedOperation } from "@fruits-chain/qiufen-helpers"
-// import fs from "fs"
+import { getOperationsBySchema, TypedOperation } from "@fruits-chain/qiufen-helpers"
 import getSchema from "./utils/getSchema"
 
 export function activate(context: vscode.ExtensionContext) {
   let currentPanel: vscode.WebviewPanel | undefined = undefined
 
   context.subscriptions.push(
-    vscode.commands.registerCommand("catCoding.start", async () => {
+    vscode.commands.registerCommand("gqlDoc.start", async () => {
       const endpointUrl = "http://192.168.10.233:9406/graphql"
       const schema = await getSchema(endpointUrl)
       const operations = getOperationsBySchema(schema)
-      // const gqlStr = genGQLStrInGroup("库存调整", operations.slice(0, 5))
 
       const columnToShowIn = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined
 
       if (currentPanel) {
         currentPanel.reveal(columnToShowIn)
       } else {
-        currentPanel = vscode.window.createWebviewPanel("catCoding", "Gql Doc", columnToShowIn!, {
+        currentPanel = vscode.window.createWebviewPanel("gqlDoc", "Gql Doc", columnToShowIn!, {
           retainContextWhenHidden: true, // 保证 Webview 所在页面进入后台时不被释放
           enableScripts: true,
         })

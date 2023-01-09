@@ -9,6 +9,10 @@ declare namespace NodeJS {
   }
 }
 
+interface VscodeGlobal {
+  acquireVsCodeApi: () => void
+}
+
 declare module "*.avif" {
   const src: string
   export default src

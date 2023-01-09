@@ -2,10 +2,6 @@ import { TypedOperation } from "@fruits-chain/qiufen-helpers"
 import { Uri } from "vscode"
 import create from "zustand"
 
-interface VscodeGlobal {
-  acquireVsCodeApi: () => void
-}
-
 interface MessageEvent {
   operations: TypedOperation[]
   vscode: any
@@ -18,7 +14,7 @@ interface BearState extends MessageEvent {
   captureMessage: () => void
 }
 
-export const useBearStore = create<BearState>((set, get) => {
+const useBearStore = create<BearState>((set, get) => {
   return {
     operations: [],
     topBackUri: {} as Uri,
@@ -39,4 +35,4 @@ export const useBearStore = create<BearState>((set, get) => {
   }
 })
 
-// export default useBearStore
+export default useBearStore

@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useMemo, useState } from "react"
+import React, { memo, useMemo, useState } from "react"
 import { Input, Collapse, Tooltip, Space, message } from "antd"
 import { CopyOutlined, SearchOutlined } from "@ant-design/icons"
 import { useThrottleFn } from "@fruits-chain/hooks-laba"
@@ -11,7 +11,7 @@ import type { TypedOperation } from "@fruits-chain/qiufen-helpers"
 import type { FC } from "react"
 import "../../assets/images/collapse-all.png"
 import "../../assets/images/back-top.png"
-import { useBearStore } from "../../stores"
+import useBearStore from "@/webview/stores"
 
 export const copy = (selector: string) => {
   const clipboard = new ClipboardJS(selector)
@@ -183,7 +183,7 @@ const DocSidebar: FC<IProps> = ({ keyword, onKeywordChange, operations, onSelect
       <Tooltip title="Back to top">
         <div
           className={classnames(styles.topBtn, {
-            [styles.show]: top > 800,
+            [styles.show]: top > 700,
           })}
           onClick={() => {
             document.getElementById("sideBar")?.scrollTo(0, 0)

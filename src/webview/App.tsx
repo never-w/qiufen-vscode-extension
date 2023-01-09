@@ -1,8 +1,8 @@
-import { Spin } from "antd"
 import React from "react"
+import { Spin } from "antd"
 import { FC, useEffect } from "react"
-import DocSidebar from "../components/side-bar/index"
-import { useBearStore } from "../stores"
+import DocSidebar from "@/webview/components/side-bar/index"
+import useBearStore from "./stores"
 
 interface IProps {}
 

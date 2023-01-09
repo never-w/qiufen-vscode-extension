@@ -1,41 +1,39 @@
-//@ts-check
-
-"use strict"
-
 const path = require("path")
 const { DefinePlugin } = require("webpack")
 const { CleanWebpackPlugin } = require("clean-webpack-plugin")
+
 //@ts-check
 /** @typedef {import('webpack').Configuration} WebpackConfig **/
 
 /** @type WebpackConfig */
 const extensionConfig = {
-  target: "node", // VS Code extensions run in a Node.js-context 📖 -> https://webpack.js.org/configuration/node/
-  mode: "none", // this leaves the source code as close as possible to the original (when packaging we set this to 'production')
+  target: "node",
+  mode: "none",
   entry: {
     extension: "./src/extension.ts",
     webview: {
-      import: "./webview/index.tsx",
+      import: "./src/webview/index.tsx",
       library: {
         type: "this",
       },
     },
   },
   output: {
-    // the bundle is stored in the 'dist' folder (check package.json), 📖 -> https://webpack.js.org/configuration/output/
     path: path.resolve(__dirname, "dist"),
     filename: "[name].js",
     libraryTarget: "umd",
   },
   externals: {
-    vscode: "commonjs vscode", // the vscode-module is created on-the-fly and must be excluded. Add other modules that cannot be webpack'ed, 📖 -> https://webpack.js.org/configuration/externals/
-    // modules added here also need to be added in the .vscodeignore file
+    vscode: "commonjs vscode",
   },
   resolve: {
-    // support reading TypeScript and JavaScript files, 📖 -> https://github.com/TypeStrong/ts-loader
+    alias: {
+      "@": path.resolve(__dirname, "src"), // 这样配置后 @ 可以指向 src 目录
+    },
     extensions: [".ts", ".tsx", ".js", ".jsx", ".css"],
   },
   plugins: [
+    // 解决react开发的嵌套webview缺失node环境下的process.env
     new DefinePlugin({
       "process.env": {
         NODE_ENV: JSON.stringify(process.env.NODE_ENV),
@@ -82,4 +80,5 @@ const extensionConfig = {
     level: "log", // enables logging required for problem matchers
   },
 }
+
 module.exports = [extensionConfig]
