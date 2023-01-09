@@ -1,0 +1,126 @@
+@primary-color: #0ba5f0;
+@success-color: #52c41a;
+@warning-color: #faad14;
+@error-color: #f5222d;
+@text-color: #111111;
+
+@header-height: 56px;
+@space-small: 8px;
+@space-middle: 16px;
+@space-large: 24px;
+@sidebar-width: 320px;
+
+@header-zIndex: 1000;
+
+.sidebar {
+  position: sticky;
+  top: @header-height + @space-large;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  width: @sidebar-width;
+  height: calc(100vh - @header-height - @space-large * 2);
+  margin-right: @space-large;
+  overflow: hidden;
+  border-radius: 4px;
+  :global {
+    .ant-collapse-borderless {
+      background-color: #fff;
+    }
+  }
+}
+.main {
+  overflow: auto;
+  // 让滚动条隐藏
+  &::-webkit-scrollbar {
+    width: 0px;
+  }
+}
+.operationItem {
+  // border-top: 1px solid #eee;
+  padding: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  &:hover {
+    .active;
+    border-radius: 4px;
+  }
+  // &:last-of-type {
+  //   border-bottom: 1px solid #eee;
+  // }
+}
+.active {
+  color: #0065fe;
+  background-color: #eaf2ff;
+}
+.topBtn {
+  position: absolute;
+  bottom: 40px;
+  left: @sidebar-width - 30px * 2;
+  color: #666;
+  font-size: 30px;
+  border-radius: 20px;
+  transform: scale(0);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.show {
+  display: inline-block;
+  transform: scale(1);
+  opacity: 1;
+}
+.operationList {
+  position: relative;
+}
+.copyBtn {
+  position: absolute;
+  top: -35px;
+  right: 0;
+  cursor: pointer;
+  &:hover {
+    color: #0065fe;
+  }
+}
+.deprecated {
+  text-decoration: line-through;
+}
+.warning {
+  color: @warning-color;
+}
+
+.icon_color {
+  color: #0065fe;
+}
+
+.search {
+  border-radius: 4px;
+}
+
+.collapse_active {
+  :global {
+    .ant-collapse-item {
+      border-bottom: none;
+    }
+    .ant-collapse-header {
+      color: #0065fe !important;
+    }
+  }
+}
+
+.collapse_box {
+  :global {
+    .ant-collapse-item {
+      border-bottom: none !important;
+    }
+  }
+}
+
+.active_color {
+  color: #0065fe !important;
+}
+
+.wrapper_search {
+  padding: 16px;
+  background-color: #fff;
+}

@@ -20,7 +20,7 @@ export function activate(context: vscode.ExtensionContext) {
       if (currentPanel) {
         currentPanel.reveal(columnToShowIn)
       } else {
-        currentPanel = vscode.window.createWebviewPanel("catCoding", "React App", columnToShowIn!, {
+        currentPanel = vscode.window.createWebviewPanel("catCoding", "Gql Doc", columnToShowIn!, {
           retainContextWhenHidden: true, // 保证 Webview 所在页面进入后台时不被释放
           enableScripts: true,
         })
@@ -29,8 +29,17 @@ export function activate(context: vscode.ExtensionContext) {
         // 获取磁盘上的资源路径且，获取在webview中使用的特殊URI
         const srcUrl = currentPanel.webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, "dist", "webview.js")))
 
+        currentPanel.webview.onDidReceiveMessage(
+          (message) => {
+            if (message.data) {
+              currentPanel!.webview.postMessage(operations)
+            }
+          },
+          undefined,
+          context.subscriptions
+        )
+
         currentPanel.webview.html = getWebviewContent(srcUrl)
-        currentPanel!.webview.postMessage(operations)
 
         // 当前面板被关闭后重置
         currentPanel.onDidDispose(
@@ -62,11 +71,3 @@ function getWebviewContent(srcUrl: vscode.Uri) {
           `
   return renderHtml
 }
-
-// currentPanel.webview.onDidReceiveMessage(
-//   (message) => {
-//     console.log(message, "==============================received")
-//   },
-//   undefined,
-//   context.subscriptions
-// )

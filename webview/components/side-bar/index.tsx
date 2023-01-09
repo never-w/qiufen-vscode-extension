@@ -1,16 +1,28 @@
 import React, { memo, useMemo, useState } from "react"
-import { Input, Collapse, Tooltip, Space } from "antd"
+import { Input, Collapse, Tooltip, Space, message } from "antd"
 import { CopyOutlined, SearchOutlined } from "@ant-design/icons"
 import { useThrottleFn } from "@fruits-chain/hooks-laba"
 import classnames from "classnames"
+import ClipboardJS from "clipboard"
 import { genGQLStrInGroup, groupOperations } from "@fruits-chain/qiufen-helpers"
-import { copy } from "../content/operation-doc"
 import styles from "./index.module.less"
 import type { CollapseProps } from "antd"
 import type { TypedOperation } from "@fruits-chain/qiufen-helpers"
 import type { FC } from "react"
 import collapseAll from "../../assets/images/collapse-all.png"
 import backTop from "../../assets/images/back-top.png"
+
+export const copy = (selector: string) => {
+  const clipboard = new ClipboardJS(selector)
+  clipboard.on("success", () => {
+    message.success("success")
+    clipboard.destroy()
+  })
+  clipboard.on("error", () => {
+    message.error("failed")
+    clipboard.destroy()
+  })
+}
 
 export interface IProps {
   operations: TypedOperation[]
@@ -67,6 +79,7 @@ const DocSidebar: FC<IProps> = ({ keyword, onKeywordChange, operations, onSelect
           )
         })
       }
+
       if (!operationList.length) {
         return null
       }
@@ -161,7 +174,8 @@ const DocSidebar: FC<IProps> = ({ keyword, onKeywordChange, operations, onSelect
             setActiveKey([])
           }}
         >
-          <img src={collapseAll} width={32} height={32} />
+          <p>折叠</p>
+          {/* <img src={collapseAll} width={32} height={32} /> */}
         </div>
       </Tooltip>
       <Tooltip title="Back to top">
@@ -173,7 +187,8 @@ const DocSidebar: FC<IProps> = ({ keyword, onKeywordChange, operations, onSelect
             document.getElementById("sideBar")?.scrollTo(0, 0)
           }}
         >
-          <img src={backTop} width={32} height={32} />
+          {/* <img src={backTop} width={32} height={32} /> */}
+          <p>返回顶部</p>
         </div>
       </Tooltip>
     </div>
