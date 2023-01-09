@@ -1,23 +1,17 @@
-import { TypedOperation } from "@fruits-chain/qiufen-helpers"
 import { Spin } from "antd"
 import React from "react"
-import { FC, useState, useEffect } from "react"
-// import styles from "./index.module.less"
+import { FC, useEffect } from "react"
 import DocSidebar from "../components/side-bar/index"
+import { useBearStore } from "../stores"
 
 interface IProps {}
 
 const App: FC<IProps> = () => {
-  const [operations, setOperations] = useState<TypedOperation[]>([])
+  const operations = useBearStore((state) => state.operations)
+  const handleCaptureMessage = useBearStore((state) => state.captureMessage)
 
   useEffect(() => {
-    const vscode = (window as any).acquireVsCodeApi() as any
-    vscode.postMessage({ data: true })
-
-    window.addEventListener("message", (evt) => {
-      console.log(evt.data)
-      setOperations(evt.data)
-    })
+    handleCaptureMessage()
   }, [])
 
   return (

@@ -1,7 +1,7 @@
 import * as vscode from "vscode"
 import * as path from "path"
 
-import { getOperationsBySchema, genGQLStrInGroup } from "@fruits-chain/qiufen-helpers"
+import { getOperationsBySchema, genGQLStrInGroup, TypedOperation } from "@fruits-chain/qiufen-helpers"
 // import fs from "fs"
 import getSchema from "./utils/getSchema"
 
@@ -13,7 +13,7 @@ export function activate(context: vscode.ExtensionContext) {
       const endpointUrl = "http://192.168.10.233:9406/graphql"
       const schema = await getSchema(endpointUrl)
       const operations = getOperationsBySchema(schema)
-      const gqlStr = genGQLStrInGroup("库存调整", operations.slice(0, 5))
+      // const gqlStr = genGQLStrInGroup("库存调整", operations.slice(0, 5))
 
       const columnToShowIn = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined
 
@@ -24,15 +24,26 @@ export function activate(context: vscode.ExtensionContext) {
           retainContextWhenHidden: true, // 保证 Webview 所在页面进入后台时不被释放
           enableScripts: true,
         })
-        currentPanel.iconPath = vscode.Uri.file(path.join(context.extensionPath, "logo192.png"))
+        currentPanel.iconPath = vscode.Uri.file(path.join(context.extensionPath, "assets/logo", "qiufen-logo.png"))
 
         // 获取磁盘上的资源路径且，获取在webview中使用的特殊URI
         const srcUrl = currentPanel.webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, "dist", "webview.js")))
 
+        // 接受webview发送的信息，且再向webview发送信息，这样做为了解决它们两者通信有时不得行的bug
         currentPanel.webview.onDidReceiveMessage(
           (message) => {
-            if (message.data) {
-              currentPanel!.webview.postMessage(operations)
+            const messageObj = {
+              operations: [] as TypedOperation[],
+              topBackUri: {} as vscode.Uri,
+              collapseAllUri: {} as vscode.Uri,
+            }
+
+            if (message) {
+              messageObj.operations = operations
+              messageObj.topBackUri = currentPanel!.webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, "dist/images", "back-top.png")))
+              messageObj.collapseAllUri = currentPanel!.webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, "dist/images", "collapse-all.png")))
+
+              currentPanel!.webview.postMessage(messageObj)
             }
           },
           undefined,

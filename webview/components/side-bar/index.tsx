@@ -1,4 +1,4 @@
-import React, { memo, useMemo, useState } from "react"
+import React, { memo, useEffect, useMemo, useState } from "react"
 import { Input, Collapse, Tooltip, Space, message } from "antd"
 import { CopyOutlined, SearchOutlined } from "@ant-design/icons"
 import { useThrottleFn } from "@fruits-chain/hooks-laba"
@@ -9,8 +9,9 @@ import styles from "./index.module.less"
 import type { CollapseProps } from "antd"
 import type { TypedOperation } from "@fruits-chain/qiufen-helpers"
 import type { FC } from "react"
-import collapseAll from "../../assets/images/collapse-all.png"
-import backTop from "../../assets/images/back-top.png"
+import "../../assets/images/collapse-all.png"
+import "../../assets/images/back-top.png"
+import { useBearStore } from "../../stores"
 
 export const copy = (selector: string) => {
   const clipboard = new ClipboardJS(selector)
@@ -33,6 +34,8 @@ export interface IProps {
 }
 
 const DocSidebar: FC<IProps> = ({ keyword, onKeywordChange, operations, onSelect, selectedOperationId }) => {
+  const topBackUri = useBearStore((state) => state.topBackUri)
+  const collapseAllUri = useBearStore((state) => state.collapseAllUri)
   const [top, setTop] = useState(0)
 
   const onScroll = useThrottleFn(
@@ -174,8 +177,7 @@ const DocSidebar: FC<IProps> = ({ keyword, onKeywordChange, operations, onSelect
             setActiveKey([])
           }}
         >
-          <p>折叠</p>
-          {/* <img src={collapseAll} width={32} height={32} /> */}
+          <img src={collapseAllUri.scheme + "://" + collapseAllUri.authority + collapseAllUri.path} alt="全部收集图片" />
         </div>
       </Tooltip>
       <Tooltip title="Back to top">
@@ -187,8 +189,7 @@ const DocSidebar: FC<IProps> = ({ keyword, onKeywordChange, operations, onSelect
             document.getElementById("sideBar")?.scrollTo(0, 0)
           }}
         >
-          {/* <img src={backTop} width={32} height={32} /> */}
-          <p>返回顶部</p>
+          <img src={topBackUri.scheme + "://" + topBackUri.authority + topBackUri.path} alt="返回顶部图片" />
         </div>
       </Tooltip>
     </div>
