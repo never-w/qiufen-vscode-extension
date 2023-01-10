@@ -59,6 +59,12 @@ const extensionConfig = {
           "style-loader",
           "css-loader",
           "less-loader",
+          {
+            loader: "style-resources-loader",
+            options: {
+              patterns: ["./src/webview/styles/*.less"],
+            },
+          },
         ],
       },
       {
