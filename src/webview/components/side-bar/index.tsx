@@ -1,4 +1,4 @@
-import React, { memo, useMemo, useState } from "react"
+import React, { memo, useEffect, useMemo, useState } from "react"
 import { Input, Collapse, Tooltip, Space, message } from "antd"
 import { CopyOutlined, SearchOutlined } from "@ant-design/icons"
 import { useThrottleFn } from "@fruits-chain/hooks-laba"
@@ -9,8 +9,8 @@ import styles from "./index.module.less"
 import type { CollapseProps } from "antd"
 import type { TypedOperation } from "@fruits-chain/qiufen-helpers"
 import type { FC } from "react"
-import "../../assets/images/collapse-all.png"
-import "../../assets/images/back-top.png"
+import "@/webview/assets/images/collapse-all.png"
+import "@/webview/assets/images/back-top.png"
 import useBearStore from "@/webview/stores"
 
 export const copy = (selector: string) => {
@@ -37,6 +37,7 @@ const DocSidebar: FC<IProps> = ({ keyword, onKeywordChange, operations, onSelect
   const topBackUri = useBearStore((state) => state.topBackUri)
   const collapseAllUri = useBearStore((state) => state.collapseAllUri)
   const [top, setTop] = useState(0)
+  const [isFocus, setIsFocus] = useState(false)
 
   const onScroll = useThrottleFn(
     (evt) => {
@@ -44,22 +45,23 @@ const DocSidebar: FC<IProps> = ({ keyword, onKeywordChange, operations, onSelect
     },
     { wait: 100 }
   )
+
   const groupedOperations = useMemo(() => {
     return groupOperations(operations)
   }, [operations])
 
-  const defaultActiveKey = useMemo(() => {
+  const [activeKey, setActiveKey] = useState([""])
+  const [activeItemKey, setActiveItemKey] = useState("")
+  useEffect(() => {
     const activeKey: CollapseProps["defaultActiveKey"] = []
-    // use [].some to break in advance
     Object.entries(groupedOperations).some(([groupName, items]) => {
       if (items.some((item) => item.operationType + item.name === selectedOperationId)) {
         activeKey.push(groupName)
       }
     })
-    return activeKey
-  }, [])
-
-  const [activeKey, setActiveKey] = useState(defaultActiveKey)
+    setActiveKey(activeKey as string[])
+    setActiveItemKey(selectedOperationId)
+  }, [selectedOperationId])
 
   const contentJSX = useMemo(() => {
     return Object.entries(groupedOperations).map(([groupName, operationData]) => {
@@ -106,10 +108,11 @@ const DocSidebar: FC<IProps> = ({ keyword, onKeywordChange, operations, onSelect
                 <div
                   key={index}
                   className={classnames(styles.operationItem, {
-                    [styles.active]: operation.operationType + operation.name === selectedOperationId,
+                    [styles.active]: operation.operationType + operation.name === activeItemKey,
                   })}
                   onClick={() => {
                     onSelect(operation)
+                    setActiveItemKey(operation.operationType + operation.name)
                   }}
                 >
                   <div
@@ -129,9 +132,7 @@ const DocSidebar: FC<IProps> = ({ keyword, onKeywordChange, operations, onSelect
         </Collapse.Panel>
       )
     })
-  }, [groupedOperations, keyword, onSelect, selectedOperationId, activeKey])
-
-  const [isFocus, setIsFocus] = useState(false)
+  }, [groupedOperations, keyword, onSelect, activeItemKey, activeKey])
 
   return (
     <div className={styles.sidebar}>
