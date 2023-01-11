@@ -1,11 +1,18 @@
 import * as vscode from "vscode"
 import * as path from "path"
-
+import { TodoListWebView } from "./viewsContainers"
 import { getOperationsBySchema, TypedOperation } from "@fruits-chain/qiufen-helpers"
 import getSchema from "./utils/getSchema"
 
+const executeCommand = () => {
+  vscode.commands.executeCommand("gqlDoc.start")
+}
+
 export function activate(context: vscode.ExtensionContext) {
   let currentPanel: vscode.WebviewPanel | undefined = undefined
+
+  const todolistWebview = new TodoListWebView(executeCommand)
+  context.subscriptions.push(vscode.window.registerWebviewViewProvider(TodoListWebView.viewId, todolistWebview))
 
   context.subscriptions.push(
     vscode.commands.registerCommand("gqlDoc.start", async () => {
@@ -16,7 +23,9 @@ export function activate(context: vscode.ExtensionContext) {
       const columnToShowIn = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined
 
       if (currentPanel) {
-        currentPanel.reveal(columnToShowIn)
+        // currentPanel.reveal(columnToShowIn)
+        currentPanel.dispose()
+        executeCommand()
       } else {
         currentPanel = vscode.window.createWebviewPanel("gqlDoc", "Gql Doc", columnToShowIn!, {
           retainContextWhenHidden: true, // 保证 Webview 所在页面进入后台时不被释放

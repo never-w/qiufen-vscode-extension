@@ -10,7 +10,8 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:gqlDoc.start"
+    "onCommand:gqlDoc.start",
+    "onView:gql-util"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -20,7 +21,25 @@
         "title": "Start new gql doc",
         "category": "gqlDoc"
       }
-    ]
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "gql-doc",
+          "title": "Gql工具",
+          "icon": "assets/logo/qiufen-logo.svg"
+        }
+      ]
+    },
+    "views": {
+      "gql-doc": [
+        {
+          "id": "gql-util",
+          "name": "列表",
+          "type": "webview"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "yarn run package",

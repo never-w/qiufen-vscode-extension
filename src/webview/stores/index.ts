@@ -12,6 +12,7 @@ interface MessageEvent {
 interface BearState extends MessageEvent {
   collapseAllUri: Uri
   captureMessage: () => void
+  setOperations: (data: TypedOperation[]) => void
 }
 
 const useBearStore = create<BearState>((set, get) => {
@@ -31,6 +32,9 @@ const useBearStore = create<BearState>((set, get) => {
         set({ topBackUri: data.topBackUri })
         set({ collapseAllUri: data.collapseAllUri })
       })
+    },
+    setOperations(data: TypedOperation[]) {
+      set({ operations: data })
     },
   }
 })
