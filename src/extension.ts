@@ -1,8 +1,7 @@
 import * as vscode from "vscode"
 import * as path from "path"
 import { TodoListWebView } from "./viewsContainers"
-import { getOperationsBySchema, TypedOperation } from "@fruits-chain/qiufen-helpers"
-import getSchema from "./utils/getSchema"
+import fetchOperations from "./utils/fetchOperations"
 
 const executeCommand = () => {
   vscode.commands.executeCommand("gqlDoc.start")
@@ -16,9 +15,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(
     vscode.commands.registerCommand("gqlDoc.start", async () => {
-      const endpointUrl = "http://192.168.10.233:9406/graphql"
-      const schema = await getSchema(endpointUrl)
-      const operations = getOperationsBySchema(schema)
+      const operations = await fetchOperations()
 
       const columnToShowIn = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined
 
@@ -35,31 +32,28 @@ export function activate(context: vscode.ExtensionContext) {
 
         // 获取磁盘上的资源路径且，获取在webview中使用的特殊URI
         const srcUrl = currentPanel.webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, "dist", "webview.js")))
+        const topBackUri = currentPanel!.webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, "dist/images", "back-top.png")))
+        const collapseAllUri = currentPanel!.webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, "dist/images", "collapse-all.png")))
 
         // 接受webview发送的信息，且再向webview发送信息，这样做为了解决它们两者通信有时不得行的bug
         currentPanel.webview.onDidReceiveMessage(
           (message) => {
-            const messageObj = {
-              operations: [] as TypedOperation[],
-              topBackUri: {} as vscode.Uri,
-              collapseAllUri: {} as vscode.Uri,
-            }
-
             if (message) {
-              messageObj.operations = operations
-              messageObj.topBackUri = currentPanel!.webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, "dist/images", "back-top.png")))
-              messageObj.collapseAllUri = currentPanel!.webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, "dist/images", "collapse-all.png")))
+              const messageObj = {
+                operations,
+                topBackUri,
+                collapseAllUri,
+              }
 
               currentPanel!.webview.postMessage(messageObj)
             } else {
-              const endpointUrl = "http://192.168.10.233:9406/graphql"
-              getSchema(endpointUrl).then((schema) => {
-                const operations = getOperationsBySchema(schema)
+              fetchOperations().then((operationsRes) => {
                 const obj = {
-                  operations: operations,
-                  topBackUri: currentPanel!.webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, "dist/images", "back-top.png"))),
-                  collapseAllUri: currentPanel!.webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, "dist/images", "collapse-all.png"))),
+                  operations: operationsRes,
+                  topBackUri,
+                  collapseAllUri,
                 }
+
                 currentPanel!.webview.postMessage(obj)
               })
             }
