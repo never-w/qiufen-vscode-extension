@@ -51,6 +51,17 @@ export function activate(context: vscode.ExtensionContext) {
               messageObj.collapseAllUri = currentPanel!.webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, "dist/images", "collapse-all.png")))
 
               currentPanel!.webview.postMessage(messageObj)
+            } else {
+              const endpointUrl = "http://192.168.10.233:9406/graphql"
+              getSchema(endpointUrl).then((schema) => {
+                const operations = getOperationsBySchema(schema)
+                const obj = {
+                  operations: operations,
+                  topBackUri: currentPanel!.webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, "dist/images", "back-top.png"))),
+                  collapseAllUri: currentPanel!.webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, "dist/images", "collapse-all.png"))),
+                }
+                currentPanel!.webview.postMessage(obj)
+              })
             }
           },
           undefined,

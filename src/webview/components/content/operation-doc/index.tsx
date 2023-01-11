@@ -179,14 +179,14 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
   }, [operation.args])
   const argsColumns: ColumnsType<ArgColumnRecord> = useMemo(() => {
     return columnGen("arguments")
-  }, [])
+  }, [operation])
 
   const objectFieldsTreeData = useMemo(() => {
     return getObjectFieldsTreeData([operation])
-  }, [])
+  }, [operation])
   const objectFieldsColumns: ColumnsType<ArgColumnRecord> = useMemo(() => {
     return columnGen("return")
-  }, [])
+  }, [operation])
 
   const gqlStr = useMemo(() => {
     return genGQLStr(operation)

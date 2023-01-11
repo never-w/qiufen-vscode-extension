@@ -12,7 +12,8 @@ interface MessageEvent {
 interface BearState extends MessageEvent {
   collapseAllUri: Uri
   captureMessage: () => void
-  setOperations: (data: TypedOperation[]) => void
+  setOperations: () => any
+  set: any
 }
 
 const useBearStore = create<BearState>((set, get) => {
@@ -28,13 +29,17 @@ const useBearStore = create<BearState>((set, get) => {
       // 接受插件发送过来的信息
       window.addEventListener("message", (evt) => {
         const data = evt.data as MessageEvent
-        set({ operations: data.operations })
-        set({ topBackUri: data.topBackUri })
-        set({ collapseAllUri: data.collapseAllUri })
+        set({ operations: data.operations, topBackUri: data.topBackUri, collapseAllUri: data.collapseAllUri })
       })
     },
-    setOperations(data: TypedOperation[]) {
-      set({ operations: data })
+    set,
+    setOperations() {
+      return new Promise((resolve) => {
+        window.addEventListener("message", (evt) => {
+          const data = evt.data as MessageEvent
+          resolve(data)
+        })
+      })
     },
   }
 })
