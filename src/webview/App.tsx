@@ -12,6 +12,9 @@ const App: FC<IProps> = () => {
   const { operations, captureMessage: handleCaptureMessage, vscode, setOperations, set } = useBearStore((state) => state)
   const [operationData, setOperationData] = useState<TypedOperation | null>(null)
   const [keyword, setKeyword] = useState<string>("")
+  const [loading, setLoading] = useState(false)
+  const [activeItemKey, setActiveItemKey] = useState("")
+  const selectedOperationId = !!activeItemKey ? activeItemKey : operations[0]?.operationType + operations[0]?.name
 
   const onSelect = useCallback((operation: TypedOperation) => {
     setOperationData(operation)
@@ -22,10 +25,11 @@ const App: FC<IProps> = () => {
   }, [])
 
   useEffect(() => {
-    setOperationData(operations[0])
+    const operationResult = operations.find((operationItm) => {
+      return operationItm?.operationType + operationItm?.name === selectedOperationId
+    })
+    setOperationData(operationResult!)
   }, [operations])
-
-  const [loading, setLoading] = useState(false)
 
   return (
     <>
@@ -43,13 +47,15 @@ const App: FC<IProps> = () => {
       <Spin spinning={loading || !operations.length}>
         <div style={{ display: "flex", flexDirection: "row" }}>
           <DocSidebar
+            activeItemKey={activeItemKey}
+            setActiveItemKey={setActiveItemKey}
             operations={operations}
             keyword={keyword}
-            selectedOperationId={operations[0]?.operationType + operations[0]?.name}
+            selectedOperationId={selectedOperationId}
             onSelect={onSelect}
             onKeywordChange={setKeyword}
           />
-          <Content key={operations[0]?.operationType + operations[0]?.name} operation={operationData!} />
+          <Content key={selectedOperationId} operation={operationData!} />
         </div>
       </Spin>
     </>

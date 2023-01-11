@@ -31,9 +31,11 @@ export interface IProps {
   selectedOperationId: string
   onKeywordChange: (keyword: string) => void
   onSelect: (operation: TypedOperation) => void
+  activeItemKey: string
+  setActiveItemKey: (data: string) => void
 }
 
-const DocSidebar: FC<IProps> = ({ keyword, onKeywordChange, operations, onSelect, selectedOperationId }) => {
+const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, operations, onSelect, selectedOperationId, setActiveItemKey }) => {
   const topBackUri = useBearStore((state) => state.topBackUri)
   const collapseAllUri = useBearStore((state) => state.collapseAllUri)
   const [top, setTop] = useState(0)
@@ -51,7 +53,7 @@ const DocSidebar: FC<IProps> = ({ keyword, onKeywordChange, operations, onSelect
   }, [operations])
 
   const [activeKey, setActiveKey] = useState([""])
-  const [activeItemKey, setActiveItemKey] = useState("")
+
   useEffect(() => {
     const activeKey: CollapseProps["defaultActiveKey"] = []
     Object.entries(groupedOperations).some(([groupName, items]) => {
