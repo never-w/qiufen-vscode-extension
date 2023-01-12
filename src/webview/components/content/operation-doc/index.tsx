@@ -8,6 +8,7 @@ import styles from "./index.module.less"
 import type { TypedOperation, ArgTypeDef, ObjectFieldTypeDef } from "@fruits-chain/qiufen-helpers"
 import type { ColumnsType } from "antd/lib/table"
 import type { FC } from "react"
+import useBearStore from "@/webview/stores"
 
 interface IProps {
   operation: TypedOperation
@@ -172,6 +173,7 @@ export const copy = (selector: string) => {
 }
 
 const OperationDoc: FC<IProps> = ({ operation }) => {
+  const { IpAddress } = useBearStore((ste) => ste)
   const [mode, { toggle: toggleMode }] = useToggle<"TABLE", "EDITOR">("TABLE", "EDITOR")
 
   const argsTreeData = useMemo(() => {
@@ -191,8 +193,6 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
   const gqlStr = useMemo(() => {
     return genGQLStr(operation)
   }, [operation])
-
-  const handleDebug = () => {}
 
   return (
     <Space id={operation.name} className={styles.operationDoc} direction="vertical">
@@ -222,10 +222,12 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
             </Space>
           </Tooltip>
           <Tooltip title="Debug">
-            <Space className={styles.copyBtn} onClick={handleDebug}>
-              <PlayCircleOutlined />
-              <span className={styles.text}>Debug</span>
-            </Space>
+            <a href={`http://${IpAddress}:9400/playground?operationName=pageProductionStockAdjustment&operationType=query`}>
+              <Space className={styles.copyBtn}>
+                <PlayCircleOutlined />
+                <span className={styles.text}>Debug</span>
+              </Space>
+            </a>
           </Tooltip>
           <Switch
             size="default"

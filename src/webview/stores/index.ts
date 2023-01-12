@@ -5,6 +5,7 @@ import create, { SetState } from "zustand"
 interface MessageEvent {
   operations: TypedOperation[]
   vscode: any
+  IpAddress: string
 }
 
 interface BearState extends MessageEvent {
@@ -16,6 +17,7 @@ interface BearState extends MessageEvent {
 const useBearStore = create<BearState>((set, get) => {
   return {
     operations: [],
+    IpAddress: "",
     vscode: (window as unknown as VscodeGlobal).acquireVsCodeApi(),
     captureMessage() {
       return new Promise((resolve) => {

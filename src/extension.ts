@@ -2,19 +2,23 @@ import * as vscode from "vscode"
 import * as path from "path"
 import { TodoListWebView } from "./viewsContainers"
 import fetchOperations from "./utils/fetchOperations"
+import getIpAddress from "./utils/getIpAddress"
 
-const executeCommand = () => {
-  vscode.commands.executeCommand("gqlDoc.start")
+const executeCommand = (code: string) => {
+  vscode.commands.executeCommand(code)
 }
 
 export function activate(context: vscode.ExtensionContext) {
   let currentPanel: vscode.WebviewPanel | undefined = undefined
 
-  const todolistWebview = new TodoListWebView(executeCommand)
-  context.subscriptions.push(vscode.window.registerWebviewViewProvider(TodoListWebView.viewId, todolistWebview))
-
+  // const todolistWebview = new TodoListWebView(() => {
+  //   executeCommand("gqlDoc.start")
+  // })
+  // context.subscriptions.push(vscode.window.registerWebviewViewProvider(TodoListWebView.viewId, todolistWebview))
   context.subscriptions.push(
     vscode.commands.registerCommand("gqlDoc.start", async () => {
+      console.log(vscode.workspace.getConfiguration("gql-util.config"), "=========") // 获取 setting 配置数据
+
       const operations = await fetchOperations()
 
       const columnToShowIn = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined
@@ -22,7 +26,7 @@ export function activate(context: vscode.ExtensionContext) {
       if (currentPanel) {
         // currentPanel.reveal(columnToShowIn)
         currentPanel.dispose()
-        executeCommand()
+        executeCommand("gqlDoc.start")
       } else {
         currentPanel = vscode.window.createWebviewPanel("gqlDoc", "Gql Doc", columnToShowIn!, {
           retainContextWhenHidden: true, // 保证 Webview 所在页面进入后台时不被释放
@@ -39,6 +43,7 @@ export function activate(context: vscode.ExtensionContext) {
             if (message) {
               const messageObj = {
                 operations,
+                IpAddress: getIpAddress(),
               }
 
               currentPanel!.webview.postMessage(messageObj)
@@ -46,6 +51,7 @@ export function activate(context: vscode.ExtensionContext) {
               fetchOperations().then((operationsRes) => {
                 const obj = {
                   operations: operationsRes,
+                  IpAddress: getIpAddress(),
                 }
 
                 currentPanel!.webview.postMessage(obj)
@@ -67,6 +73,9 @@ export function activate(context: vscode.ExtensionContext) {
           context.subscriptions
         )
       }
+    }),
+    vscode.commands.registerCommand("gqlDoc.settings", () => {
+      vscode.commands.executeCommand("workbench.action.openSettings", "gql-util")
     })
   )
 }
@@ -78,7 +87,7 @@ function getWebviewContent(srcUrl: vscode.Uri) {
            <head>
              <meta charset="utf-8" />
              <meta name="viewport" content="width=device-width,initial-scale=1" />
-            <script defer="defer" src="${srcUrl}"></script>
+            <script sandbox="allow-scripts allow-modals allow-forms allow-same-origin" defer="defer" src="${srcUrl}"></script>
           </head>
           <body>
              <noscript>You need to enable JavaScript to run this app.</noscript>

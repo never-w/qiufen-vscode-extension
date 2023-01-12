@@ -10,8 +10,7 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:gqlDoc.start",
-    "onView:gql-util"
+    "*"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -20,6 +19,11 @@
         "command": "gqlDoc.start",
         "title": "Start new gql doc",
         "category": "gqlDoc"
+      },
+      {
+        "command": "gqlDoc.settings",
+        "title": "Settings gql util",
+        "category": "settings gql util"
       }
     ],
     "viewsContainers": {
@@ -36,9 +40,33 @@
         {
           "id": "gql-util",
           "name": "列表",
-          "type": "webview"
+          "visibility": "visible"
+        },
+        {
+          "id": "gql-settings",
+          "visibility": "visible",
+          "name": "Settings"
         }
       ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "gql-settings",
+        "contents": "[🛠 打开配置页](command:gqlDoc.settings)"
+      },
+      {
+        "view": "gql-util",
+        "contents": "[🏠️ 拉取Gql Doc](command:gqlDoc.start)"
+      }
+    ],
+    "configuration": {
+      "properties": {
+        "gql-util.config": {
+          "type": "object",
+          "default": {},
+          "description": "配置需要监控的股票代码（建议通过界面新增）"
+        }
+      }
     }
   },
   "scripts": {
