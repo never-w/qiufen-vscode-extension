@@ -9,7 +9,6 @@ import styles from "./index.module.less"
 import type { CollapseProps } from "antd"
 import type { TypedOperation } from "@fruits-chain/qiufen-helpers"
 import type { FC } from "react"
-import useBearStore from "@/webview/stores"
 
 export const copy = (selector: string) => {
   const clipboard = new ClipboardJS(selector)
@@ -35,7 +34,6 @@ export interface IProps {
 }
 
 const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, operations, onSelect, selectedOperationId, setActiveItemKey, onBtnClick }) => {
-  const { topBackUri, collapseAllUri, reloadUri } = useBearStore((state) => state)
   const [top, setTop] = useState(0)
   const [isFocus, setIsFocus] = useState(false)
 
@@ -170,7 +168,7 @@ const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, opera
       </div>
       <Tooltip title="reload doc">
         <div onClick={onBtnClick} style={{ bottom: 150 }} className={classnames(styles.topBtn, styles.show)}>
-          <img src={reloadUri.scheme + "://" + reloadUri.authority + reloadUri.path} alt="刷新文档" />
+          <img src="https://raw.githubusercontent.com/never-w/picb/main/reload.png" alt="刷新文档" />
         </div>
       </Tooltip>
       <Tooltip title="Collapse all">
@@ -183,7 +181,7 @@ const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, opera
             setActiveKey([])
           }}
         >
-          <img src={collapseAllUri.scheme + "://" + collapseAllUri.authority + collapseAllUri.path} alt="全部收集图片" />
+          <img src="https://raw.githubusercontent.com/never-w/picb/main/collapse-all.png" alt="全部收集图片" />
         </div>
       </Tooltip>
       <Tooltip title="Back to top">
@@ -195,7 +193,7 @@ const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, opera
             document.getElementById("sideBar")?.scrollTo(0, 0)
           }}
         >
-          <img src={topBackUri.scheme + "://" + topBackUri.authority + topBackUri.path} alt="返回顶部图片" />
+          <img src="https://raw.githubusercontent.com/never-w/picb/main/back-top.png" alt="返回顶部图片" />
         </div>
       </Tooltip>
     </div>

@@ -5,13 +5,9 @@ import create, { SetState } from "zustand"
 interface MessageEvent {
   operations: TypedOperation[]
   vscode: any
-  topBackUri: Uri
-  collapseAllUri: Uri
-  reloadUri: Uri
 }
 
 interface BearState extends MessageEvent {
-  collapseAllUri: Uri
   captureMessage: () => Promise<boolean>
   reloadOperations: () => Promise<boolean>
   setState: SetState<BearState>
@@ -20,9 +16,6 @@ interface BearState extends MessageEvent {
 const useBearStore = create<BearState>((set, get) => {
   return {
     operations: [],
-    topBackUri: {} as Uri,
-    collapseAllUri: {} as Uri,
-    reloadUri: {} as Uri,
     vscode: (window as unknown as VscodeGlobal).acquireVsCodeApi(),
     captureMessage() {
       return new Promise((resolve) => {

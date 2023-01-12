@@ -32,9 +32,6 @@ export function activate(context: vscode.ExtensionContext) {
 
         // 获取磁盘上的资源路径且，获取在webview中使用的特殊URI
         const srcUrl = currentPanel.webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, "dist", "webview.js")))
-        const topBackUri = currentPanel!.webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, "dist/images", "back-top.png")))
-        const collapseAllUri = currentPanel!.webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, "dist/images", "collapse-all.png")))
-        const reloadUri = currentPanel!.webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, "dist/images", "reload.png")))
 
         // 接受webview发送的信息，且再向webview发送信息，这样做为了解决它们两者通信有时不得行的bug
         currentPanel.webview.onDidReceiveMessage(
@@ -42,9 +39,6 @@ export function activate(context: vscode.ExtensionContext) {
             if (message) {
               const messageObj = {
                 operations,
-                topBackUri,
-                collapseAllUri,
-                reloadUri,
               }
 
               currentPanel!.webview.postMessage(messageObj)
@@ -52,9 +46,6 @@ export function activate(context: vscode.ExtensionContext) {
               fetchOperations().then((operationsRes) => {
                 const obj = {
                   operations: operationsRes,
-                  topBackUri,
-                  collapseAllUri,
-                  reloadUri,
                 }
 
                 currentPanel!.webview.postMessage(obj)
