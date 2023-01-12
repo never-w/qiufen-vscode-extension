@@ -9,8 +9,6 @@ import styles from "./index.module.less"
 import type { CollapseProps } from "antd"
 import type { TypedOperation } from "@fruits-chain/qiufen-helpers"
 import type { FC } from "react"
-import "@/webview/assets/images/collapse-all.png"
-import "@/webview/assets/images/back-top.png"
 import useBearStore from "@/webview/stores"
 
 export const copy = (selector: string) => {
@@ -33,11 +31,11 @@ export interface IProps {
   onSelect: (operation: TypedOperation) => void
   activeItemKey: string
   setActiveItemKey: (data: string) => void
+  onBtnClick: () => void
 }
 
-const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, operations, onSelect, selectedOperationId, setActiveItemKey }) => {
-  const topBackUri = useBearStore((state) => state.topBackUri)
-  const collapseAllUri = useBearStore((state) => state.collapseAllUri)
+const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, operations, onSelect, selectedOperationId, setActiveItemKey, onBtnClick }) => {
+  const { topBackUri, collapseAllUri, reloadUri } = useBearStore((state) => state)
   const [top, setTop] = useState(0)
   const [isFocus, setIsFocus] = useState(false)
 
@@ -45,7 +43,7 @@ const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, opera
     (evt) => {
       setTop(evt.nativeEvent.target.scrollTop)
     },
-    { wait: 100 }
+    { wait: 300 }
   )
 
   const groupedOperations = useMemo(() => {
@@ -170,6 +168,11 @@ const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, opera
           {contentJSX}
         </Collapse>
       </div>
+      <Tooltip title="reload doc">
+        <div onClick={onBtnClick} style={{ bottom: 150 }} className={classnames(styles.topBtn, styles.show)}>
+          <img src={reloadUri.scheme + "://" + reloadUri.authority + reloadUri.path} alt="刷新文档" />
+        </div>
+      </Tooltip>
       <Tooltip title="Collapse all">
         <div
           style={{ bottom: 100 }}

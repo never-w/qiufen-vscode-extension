@@ -13,6 +13,8 @@ interface VscodeGlobal {
   acquireVsCodeApi: () => void
 }
 
+declare module "framer-motion"
+
 declare module "*.avif" {
   const src: string
   export default src
