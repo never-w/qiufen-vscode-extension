@@ -1,7 +1,9 @@
 {
-  "name": "hello",
-  "displayName": "tmp-code-gen",
+  "name": "gql-doc",
+  "displayName": "gqlDoc",
   "description": "",
+  "author": "never-w",
+  "publisher": "never-w",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.74.0"
@@ -39,7 +41,7 @@
       "gql-doc": [
         {
           "id": "gql-util",
-          "name": "列表",
+          "name": "功能",
           "visibility": "visible"
         },
         {
@@ -51,20 +53,78 @@
     },
     "viewsWelcome": [
       {
-        "view": "gql-settings",
-        "contents": "[🛠 打开配置页](command:gqlDoc.settings)"
-      },
-      {
         "view": "gql-util",
         "contents": "[🏠️ 拉取Gql Doc](command:gqlDoc.start)"
+      },
+      {
+        "view": "gql-settings",
+        "contents": "[🛠 打开配置页](command:gqlDoc.settings)"
       }
     ],
     "configuration": {
       "properties": {
-        "gql-util.config": {
+        "gql-doc.port": {
+          "type": "number",
+          "default": 9400,
+          "description": "service port"
+        },
+        "gql-doc.url": {
+          "type": "string",
+          "default": "",
+          "description": "backend service url"
+        },
+        "gql-doc.localSchemaFile": {
+          "type": "string",
+          "default": "",
+          "description": "local graphql schema file path"
+        },
+        "gql-doc.schemaPolicy": {
+          "type": "string",
+          "default": "remote",
+          "description": "use either local schema or remote schema, if unset, remote will be used.  value: 'local' | 'remote'"
+        },
+        "gql-doc.mock": {
           "type": "object",
-          "default": {},
-          "description": "配置需要监控的股票代码（建议通过界面新增）"
+          "default": {
+            "enable": true,
+            "mockDirectiveDefaultEnableValue": false,
+            "context": {
+              "Random": true
+            },
+            "scalarMap": {
+              "Int": "() => Random.integer(0, 100)",
+              "String": "() => Random.ctitle(2, 4)",
+              "ID": "() => Random.id()",
+              "Boolean": "() => Random.boolean()",
+              "BigDecimal": "() => Random.integer(0, 1000000)",
+              "Float": "() => Random.float(0, 100)",
+              "Date": "() => Random.date()",
+              "DateTime": "() => Random.datetime()",
+              "Long": "() => Random.integer(0, 10000)",
+              "NumberOrBoolOrStringOrNull": "() => null",
+              "NumberOrString": "() => null"
+            },
+            "resolvers": {
+              "Query": {}
+            }
+          },
+          "description": "mock config"
+        },
+        "gql-doc.Authorization": {
+          "type": "string",
+          "default": "",
+          "description": "app token"
+        },
+        "gql-doc.playground": {
+          "type": "object",
+          "default": {
+            "headers": {
+              "appversioncode": 33,
+              "app-version": 33,
+              "platform": ""
+            }
+          },
+          "description": " playground config/request headers"
         }
       }
     }
@@ -83,7 +143,6 @@
   "devDependencies": {
     "@types/glob": "^8.0.0",
     "@types/mocha": "^10.0.1",
-    "@types/node": "16.x",
     "@types/react": "^17.0.2",
     "@types/react-dom": "^17.0.2",
     "@types/vscode": "^1.74.0",
@@ -115,6 +174,7 @@
     "antd": "^5.1.2",
     "classnames": "^2.3.2",
     "clipboard": "^2.0.11",
+    "cosmiconfig": "^8.0.0",
     "graphql": "^16.6.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",

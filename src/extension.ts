@@ -1,6 +1,7 @@
 import * as vscode from "vscode"
 import * as path from "path"
-import { TodoListWebView } from "./viewsContainers"
+import fs from "fs"
+// import { TodoListWebView } from "./viewsContainers"
 import fetchOperations from "./utils/fetchOperations"
 import getIpAddress from "./utils/getIpAddress"
 
@@ -10,6 +11,7 @@ const executeCommand = (code: string) => {
 
 export function activate(context: vscode.ExtensionContext) {
   let currentPanel: vscode.WebviewPanel | undefined = undefined
+  const workspaceRootPath = vscode.workspace.workspaceFolders?.[0].uri.path // 工作区根目录
 
   // const todolistWebview = new TodoListWebView(() => {
   //   executeCommand("gqlDoc.start")
@@ -17,7 +19,9 @@ export function activate(context: vscode.ExtensionContext) {
   // context.subscriptions.push(vscode.window.registerWebviewViewProvider(TodoListWebView.viewId, todolistWebview))
   context.subscriptions.push(
     vscode.commands.registerCommand("gqlDoc.start", async () => {
-      console.log(vscode.workspace.getConfiguration("gql-util.config"), "=========") // 获取 setting 配置数据
+      console.log(require(path.resolve("/c:Users/changDesktop/test-tmp/qiufen.config.js")))
+
+      // console.log(vscode.workspace.getConfiguration("gql-doc"), "=========") // 获取 setting 配置数据
 
       const operations = await fetchOperations()
 
@@ -75,7 +79,7 @@ export function activate(context: vscode.ExtensionContext) {
       }
     }),
     vscode.commands.registerCommand("gqlDoc.settings", () => {
-      vscode.commands.executeCommand("workbench.action.openSettings", "gql-util")
+      vscode.commands.executeCommand("workbench.action.openSettings", "@ext:never-w.gql-doc")
     })
   )
 }
