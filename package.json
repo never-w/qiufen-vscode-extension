@@ -26,6 +26,11 @@
         "command": "gqlDoc.settings",
         "title": "Settings gql util",
         "category": "settings gql util"
+      },
+      {
+        "command": "gqlDoc.mock",
+        "title": "mock gql util",
+        "category": "mock gql util"
       }
     ],
     "viewsContainers": {
@@ -54,7 +59,11 @@
     "viewsWelcome": [
       {
         "view": "gql-util",
-        "contents": "[🏠️ 拉取Gql Doc](command:gqlDoc.start)"
+        "contents": "[🏠️ Start Gql Doc](command:gqlDoc.start)"
+      },
+      {
+        "view": "gql-util",
+        "contents": "[🧰 Mock](command:gqlDoc.mock)"
       },
       {
         "view": "gql-settings",
@@ -63,68 +72,10 @@
     ],
     "configuration": {
       "properties": {
-        "gql-doc.port": {
-          "type": "number",
-          "default": 9400,
-          "description": "service port"
-        },
-        "gql-doc.url": {
+        "gql-doc.endpointUrl": {
           "type": "string",
-          "default": "",
-          "description": "backend service url"
-        },
-        "gql-doc.localSchemaFile": {
-          "type": "string",
-          "default": "",
-          "description": "local graphql schema file path"
-        },
-        "gql-doc.schemaPolicy": {
-          "type": "string",
-          "default": "remote",
-          "description": "use either local schema or remote schema, if unset, remote will be used.  value: 'local' | 'remote'"
-        },
-        "gql-doc.mock": {
-          "type": "object",
-          "default": {
-            "enable": true,
-            "mockDirectiveDefaultEnableValue": false,
-            "context": {
-              "Random": true
-            },
-            "scalarMap": {
-              "Int": "() => Random.integer(0, 100)",
-              "String": "() => Random.ctitle(2, 4)",
-              "ID": "() => Random.id()",
-              "Boolean": "() => Random.boolean()",
-              "BigDecimal": "() => Random.integer(0, 1000000)",
-              "Float": "() => Random.float(0, 100)",
-              "Date": "() => Random.date()",
-              "DateTime": "() => Random.datetime()",
-              "Long": "() => Random.integer(0, 10000)",
-              "NumberOrBoolOrStringOrNull": "() => null",
-              "NumberOrString": "() => null"
-            },
-            "resolvers": {
-              "Query": {}
-            }
-          },
-          "description": "mock config"
-        },
-        "gql-doc.Authorization": {
-          "type": "string",
-          "default": "",
-          "description": "app token"
-        },
-        "gql-doc.playground": {
-          "type": "object",
-          "default": {
-            "headers": {
-              "appversioncode": 33,
-              "app-version": 33,
-              "platform": ""
-            }
-          },
-          "description": " playground config/request headers"
+          "default": "http://192.168.10.233:9406/graphql",
+          "description": "backend service endpointUrl"
         }
       }
     }

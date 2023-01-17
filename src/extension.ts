@@ -1,7 +1,5 @@
 import * as vscode from "vscode"
 import * as path from "path"
-import fs from "fs"
-// import { TodoListWebView } from "./viewsContainers"
 import fetchOperations from "./utils/fetchOperations"
 import getIpAddress from "./utils/getIpAddress"
 
@@ -11,19 +9,12 @@ const executeCommand = (code: string) => {
 
 export function activate(context: vscode.ExtensionContext) {
   let currentPanel: vscode.WebviewPanel | undefined = undefined
-  const workspaceRootPath = vscode.workspace.workspaceFolders?.[0].uri.path // 工作区根目录
+  // const workspaceRootPath = vscode.workspace.workspaceFolders?.[0].uri.path // 工作区根目录
 
-  // const todolistWebview = new TodoListWebView(() => {
-  //   executeCommand("gqlDoc.start")
-  // })
-  // context.subscriptions.push(vscode.window.registerWebviewViewProvider(TodoListWebView.viewId, todolistWebview))
   context.subscriptions.push(
     vscode.commands.registerCommand("gqlDoc.start", async () => {
-      console.log(require(path.resolve("/c:Users/changDesktop/test-tmp/qiufen.config.js")))
-
-      // console.log(vscode.workspace.getConfiguration("gql-doc"), "=========") // 获取 setting 配置数据
-
-      const operations = await fetchOperations()
+      const settings = vscode.workspace.getConfiguration("gql-doc")
+      const operations = await fetchOperations(settings.endpointUrl)
 
       const columnToShowIn = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined
 
@@ -52,7 +43,7 @@ export function activate(context: vscode.ExtensionContext) {
 
               currentPanel!.webview.postMessage(messageObj)
             } else {
-              fetchOperations().then((operationsRes) => {
+              fetchOperations(settings.endpointUrl).then((operationsRes) => {
                 const obj = {
                   operations: operationsRes,
                   IpAddress: getIpAddress(),
@@ -80,6 +71,11 @@ export function activate(context: vscode.ExtensionContext) {
     }),
     vscode.commands.registerCommand("gqlDoc.settings", () => {
       vscode.commands.executeCommand("workbench.action.openSettings", "@ext:never-w.gql-doc")
+    }),
+    vscode.commands.registerCommand("gqlDoc.mock", () => {
+      const terminal = vscode.window.createTerminal()
+      terminal.show()
+      terminal.sendText("yarn qiufen start")
     })
   )
 }
