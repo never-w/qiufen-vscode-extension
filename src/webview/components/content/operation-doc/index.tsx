@@ -222,7 +222,7 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
             </Space>
           </Tooltip>
           <Tooltip title="Debug">
-            <a href={`http://${IpAddress}:9400/playground?operationName=pageProductionStockAdjustment&operationType=query`}>
+            <a href={`http://${IpAddress}:9400/playground?operationName=${encodeURIComponent(operation.name)}&operationType=${encodeURIComponent(operation.operationType)}`}>
               <Space className={styles.copyBtn}>
                 <PlayCircleOutlined />
                 <span className={styles.text}>Debug</span>

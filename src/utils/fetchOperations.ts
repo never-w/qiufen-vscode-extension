@@ -6,6 +6,12 @@ import { GraphQLSchema } from "graphql"
 
 export default async function fetchOperations(endpointUrl: string) {
   let schema: GraphQLSchema
+
+  if (!endpointUrl) {
+    vscode.window.showErrorMessage("gql-doc 请配置schema地址！！！")
+    return
+  }
+
   try {
     schema = await loadSchema(endpointUrl, {
       loaders: [new UrlLoader()],
@@ -13,6 +19,7 @@ export default async function fetchOperations(endpointUrl: string) {
   } catch (error: any) {
     vscode.window.showErrorMessage("gql-doc schema地址配置错误或者网络出错啦！！！")
   }
+
   const operations = getOperationsBySchema(schema!)
   return operations
 }
