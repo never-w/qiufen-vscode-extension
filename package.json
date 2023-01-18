@@ -1,7 +1,7 @@
 {
   "name": "gql-doc",
   "displayName": "gqlDoc",
-  "description": "",
+  "description": "Graphql Graphql-tool Graphql-Doc shema",
   "author": "never-w",
   "publisher": "never-w",
   "version": "0.0.1",
@@ -81,7 +81,7 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "yarn run package",
+    "vscode:prepublish": "yarn run package --mode production",
     "compile": "webpack",
     "watch": "webpack --watch",
     "package": "webpack --mode production --devtool hidden-source-map",

@@ -36,7 +36,7 @@ const extensionConfig = {
     // 解决react开发的嵌套webview缺失node环境下的process.env
     new DefinePlugin({
       "process.env": {
-        NODE_ENV: JSON.stringify(process.env.NODE_ENV),
+        NODE_ENV: JSON.stringify((process.env.NODE_ENV = "production")),
       },
     }),
     new CleanWebpackPlugin(),
