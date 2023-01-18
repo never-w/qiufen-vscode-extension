@@ -1,7 +1,7 @@
 {
   "name": "gql-doc",
-  "displayName": "gqlDoc",
-  "description": "Graphql Graphql-tool Graphql-Doc shema",
+  "displayName": "gql doc",
+  "description": "Graphql Graphql-tool Graphql-Doc schema",
   "author": "never-w",
   "publisher": "never-w",
   "version": "0.0.1",
@@ -14,6 +14,7 @@
   "activationEvents": [
     "*"
   ],
+  "icon": "assets/logo/qiufen-logo.png",
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
@@ -81,7 +82,7 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "yarn run package --mode production",
+    "vscode:prepublish": "yarn run package",
     "compile": "webpack",
     "watch": "webpack --watch",
     "package": "webpack --mode production --devtool hidden-source-map",
