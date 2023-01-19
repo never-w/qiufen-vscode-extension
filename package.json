@@ -4,9 +4,13 @@
   "description": "Graphql Graphql-tool Graphql-Doc schema",
   "author": "never-w",
   "publisher": "never-w",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "engines": {
-    "vscode": "^1.6.0"
+    "vscode": "^1.62.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/never-w/vscode-extension.git"
   },
   "categories": [
     "Other"
@@ -93,7 +97,7 @@
     "@types/mocha": "^10.0.1",
     "@types/react": "^17.0.2",
     "@types/react-dom": "^17.0.2",
-    "@types/vscode": "^1.74.0",
+    "@types/vscode": "^1.62.0",
     "@typescript-eslint/eslint-plugin": "^5.45.0",
     "@typescript-eslint/parser": "^5.45.0",
     "@vscode/test-electron": "^2.2.0",
@@ -119,6 +123,7 @@
     "@fruits-chain/qiufen-helpers": "^1.0.1",
     "@graphql-tools/load": "^7.8.8",
     "@graphql-tools/url-loader": "^7.16.29",
+    "@types/vscode": "1.62.0",
     "antd": "^5.1.2",
     "classnames": "^2.3.2",
     "clipboard": "^2.0.11",
@@ -126,6 +131,7 @@
     "graphql": "^16.6.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
+    "vsce": "^2.5.0",
     "zustand": "3.7.2"
   }
 }
