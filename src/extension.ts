@@ -3,12 +3,9 @@ import * as path from "path"
 import fetchOperations from "./utils/fetchOperations"
 import getIpAddress from "./utils/getIpAddress"
 
-const executeCommand = (code: string) => {
-  vscode.commands.executeCommand(code)
-}
-
 export function activate(context: vscode.ExtensionContext) {
   let currentPanel: vscode.WebviewPanel | undefined = undefined
+  let processId: number | undefined
   // const workspaceRootPath = vscode.workspace.workspaceFolders?.[0].uri.path // 工作区根目录
 
   context.subscriptions.push(
@@ -72,10 +69,27 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand("gqlDoc.settings", () => {
       vscode.commands.executeCommand("workbench.action.openSettings", "@ext:never-w.gql-doc")
     }),
-    vscode.commands.registerCommand("gqlDoc.mock", () => {
-      const terminal = vscode.window.createTerminal()
-      terminal.show()
-      terminal.sendText("yarn qiufen start")
+    vscode.commands.registerCommand("gqlDoc.mock", async () => {
+      if (!!processId) {
+        vscode.window.showWarningMessage("Mock终端已存在！！！")
+        return
+      } else {
+        const terminal = vscode.window.createTerminal()
+        terminal.show()
+        terminal.sendText("yarn qiufen start")
+        const res = await terminal.processId
+        processId = res
+      }
+
+      vscode.window.onDidCloseTerminal(async (e) => {
+        let terminalNum
+        const res = await e.processId
+        terminalNum = res
+
+        if (terminalNum === processId) {
+          processId = undefined
+        }
+      })
     })
   )
 }

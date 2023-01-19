@@ -6,7 +6,7 @@
   "publisher": "never-w",
   "version": "0.0.1",
   "engines": {
-    "vscode": "^1.74.0"
+    "vscode": "^1.6.0"
   },
   "categories": [
     "Other"
@@ -64,18 +64,14 @@
       },
       {
         "view": "gql-util",
-        "contents": "[🧰 Mock](command:gqlDoc.mock)"
-      },
-      {
-        "view": "gql-settings",
-        "contents": "[🛠 打开配置页](command:gqlDoc.settings)"
+        "contents": "[🧰 Start Mock](command:gqlDoc.mock)"
       }
     ],
     "configuration": {
       "properties": {
         "gql-doc.endpointUrl": {
           "type": "string",
-          "default": "http://192.168.10.233:9406/graphql",
+          "default": "",
           "description": "backend service endpointUrl"
         }
       }
