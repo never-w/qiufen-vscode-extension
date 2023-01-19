@@ -9,7 +9,7 @@ import Content from "./components/content"
 interface IProps {}
 
 const App: FC<IProps> = () => {
-  const { operations, captureMessage: handleCaptureMessage, vscode, reloadOperations, setState } = useBearStore((state) => state)
+  const { operations, captureMessage: handleCaptureMessage, vscode, reloadOperations, isDisplaySidebar } = useBearStore((state) => state)
   const [operationData, setOperationData] = useState<TypedOperation | null>(null)
   const [keyword, setKeyword] = useState<string>("")
   const [loading, setLoading] = useState(false)
@@ -44,16 +44,18 @@ const App: FC<IProps> = () => {
     <>
       <Spin spinning={loading}>
         <div style={{ display: "flex", flexDirection: "row" }}>
-          <DocSidebar
-            onBtnClick={onBtnClick}
-            activeItemKey={activeItemKey}
-            setActiveItemKey={setActiveItemKey}
-            operations={operations}
-            keyword={keyword}
-            selectedOperationId={selectedOperationId}
-            onSelect={onSelect}
-            onKeywordChange={setKeyword}
-          />
+          <div style={{ display: isDisplaySidebar ? "block" : "none" }}>
+            <DocSidebar
+              onBtnClick={onBtnClick}
+              activeItemKey={activeItemKey}
+              setActiveItemKey={setActiveItemKey}
+              operations={operations}
+              keyword={keyword}
+              selectedOperationId={selectedOperationId}
+              onSelect={onSelect}
+              onKeywordChange={setKeyword}
+            />
+          </div>
           <Content key={selectedOperationId} operation={operationData!} />
         </div>
       </Spin>

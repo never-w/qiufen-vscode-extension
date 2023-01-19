@@ -1,6 +1,6 @@
 import React, { useMemo } from "react"
-import { message, Space, Table, Tooltip, Switch, Divider, Tag } from "antd"
-import { CopyOutlined, PlayCircleOutlined } from "@ant-design/icons"
+import { message, Space, Table, Tooltip, Switch, Divider, Tag, Button } from "antd"
+import { CopyOutlined, PlayCircleOutlined, MenuFoldOutlined } from "@ant-design/icons"
 import ClipboardJS from "clipboard"
 import { genGQLStr } from "@fruits-chain/qiufen-helpers"
 import { useToggle } from "@fruits-chain/hooks-laba"
@@ -173,7 +173,7 @@ export const copy = (selector: string) => {
 }
 
 const OperationDoc: FC<IProps> = ({ operation }) => {
-  const { IpAddress } = useBearStore((ste) => ste)
+  const { IpAddress, isDisplaySidebar, setState } = useBearStore((ste) => ste)
   const [mode, { toggle: toggleMode }] = useToggle<"TABLE", "EDITOR">("TABLE", "EDITOR")
 
   const argsTreeData = useMemo(() => {
@@ -208,6 +208,19 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
           </span>
         </Space>
         <Space size={88}>
+          <Tooltip title="Hide Sidebar">
+            <Button
+              type="text"
+              onClick={() => {
+                setState({ isDisplaySidebar: !isDisplaySidebar })
+              }}
+            >
+              <Space id="sidebar" data-clipboard-text={gqlStr} className={styles.copyBtn}>
+                <MenuFoldOutlined />
+                <span className={styles.text}>Hide Sidebar</span>
+              </Space>
+            </Button>
+          </Tooltip>
           <Tooltip title="Copy GQL">
             <Space
               id="copy"

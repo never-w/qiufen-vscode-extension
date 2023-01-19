@@ -19,9 +19,9 @@ export function activate(context: vscode.ExtensionContext) {
       const columnToShowIn = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined
 
       if (currentPanel) {
-        // currentPanel.reveal(columnToShowIn)
-        currentPanel.dispose()
-        executeCommand("gqlDoc.start")
+        currentPanel.reveal(columnToShowIn)
+        // currentPanel.dispose()
+        // executeCommand("gqlDoc.start")
       } else {
         currentPanel = vscode.window.createWebviewPanel("gqlDoc", "Gql Doc", columnToShowIn!, {
           retainContextWhenHidden: true, // 保证 Webview 所在页面进入后台时不被释放
