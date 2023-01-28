@@ -4,7 +4,7 @@
   "description": "Graphql Graphql-tool Graphql-Doc schema",
   "author": "never-w",
   "publisher": "never-w",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "engines": {
     "vscode": "^1.62.0"
   },
