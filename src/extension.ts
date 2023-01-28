@@ -3,13 +3,16 @@ import * as path from "path"
 import fetchOperations from "./utils/fetchOperations"
 import getIpAddress from "./utils/getIpAddress"
 
+let myStatusBarItem: vscode.StatusBarItem
+
 export function activate(context: vscode.ExtensionContext) {
   let currentPanel: vscode.WebviewPanel | undefined = undefined
   let processId: number | undefined
+  const myCommandId = "gqlDoc.start"
   const workspaceRootPath = vscode.workspace.workspaceFolders?.[0].uri.fsPath // 工作区根目录
 
   context.subscriptions.push(
-    vscode.commands.registerCommand("gqlDoc.start", async () => {
+    vscode.commands.registerCommand(myCommandId, async () => {
       const qiufenConfigPath = path.join(workspaceRootPath!, "qiufen.config.js")
       const searchedFor = eval("require")(qiufenConfigPath)
       const port = searchedFor.port
@@ -97,6 +100,17 @@ export function activate(context: vscode.ExtensionContext) {
       })
     })
   )
+
+  myStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100)
+  myStatusBarItem.command = myCommandId
+  context.subscriptions.push(myStatusBarItem)
+  myStatusBarItem.text = `$(megaphone) Start Gql Doc`
+  myStatusBarItem.show()
+}
+
+function updateStatusBarItem() {
+  myStatusBarItem.text = `$(megaphone) Start Gql Doc`
+  myStatusBarItem.show()
 }
 
 function getWebviewContent(srcUrl: vscode.Uri) {
