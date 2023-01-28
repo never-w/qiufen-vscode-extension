@@ -6,12 +6,14 @@ import getIpAddress from "./utils/getIpAddress"
 export function activate(context: vscode.ExtensionContext) {
   let currentPanel: vscode.WebviewPanel | undefined = undefined
   let processId: number | undefined
-  // const workspaceRootPath = vscode.workspace.workspaceFolders?.[0].uri.path // 工作区根目录
+  const workspaceRootPath = vscode.workspace.workspaceFolders?.[0].uri.fsPath // 工作区根目录
 
   context.subscriptions.push(
     vscode.commands.registerCommand("gqlDoc.start", async () => {
-      const settings = vscode.workspace.getConfiguration("gql-doc")
-      const operations = await fetchOperations(settings.endpointUrl)
+      const qiufenConfigPath = path.join(workspaceRootPath!, "qiufen.config.js")
+      const searchedFor = eval("require")(qiufenConfigPath)
+      // const settings = vscode.workspace.getConfiguration("gql-doc")
+      const operations = await fetchOperations(searchedFor.endpoint.url)
 
       const columnToShowIn = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined
 
@@ -40,7 +42,7 @@ export function activate(context: vscode.ExtensionContext) {
 
               currentPanel!.webview.postMessage(messageObj)
             } else {
-              fetchOperations(settings.endpointUrl).then((operationsRes) => {
+              fetchOperations(searchedFor.endpoint.url).then((operationsRes) => {
                 const obj = {
                   operations: operationsRes,
                   IpAddress: getIpAddress(),

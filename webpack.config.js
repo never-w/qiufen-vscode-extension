@@ -8,7 +8,7 @@ const { CleanWebpackPlugin } = require("clean-webpack-plugin")
 /** @type WebpackConfig */
 const extensionConfig = {
   target: "node",
-  mode: "none",
+  mode: "production",
   entry: {
     extension: "./src/extension.ts",
     webview: {
@@ -18,10 +18,11 @@ const extensionConfig = {
       },
     },
   },
+  externals: {},
   output: {
     path: path.resolve(__dirname, "dist"),
     filename: "[name].js",
-    libraryTarget: "umd",
+    libraryTarget: "commonjs-module",
   },
   externals: {
     vscode: "commonjs vscode",

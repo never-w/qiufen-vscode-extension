@@ -70,16 +70,7 @@
         "view": "gql-util",
         "contents": "[🧰 Start Mock](command:gqlDoc.mock)"
       }
-    ],
-    "configuration": {
-      "properties": {
-        "gql-doc.endpointUrl": {
-          "type": "string",
-          "default": "",
-          "description": "backend service endpointUrl"
-        }
-      }
-    }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "yarn run package",
