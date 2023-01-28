@@ -12,6 +12,7 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand("gqlDoc.start", async () => {
       const qiufenConfigPath = path.join(workspaceRootPath!, "qiufen.config.js")
       const searchedFor = eval("require")(qiufenConfigPath)
+      const port = searchedFor.port
       // const settings = vscode.workspace.getConfiguration("gql-doc")
       const operations = await fetchOperations(searchedFor.endpoint.url)
 
@@ -36,6 +37,7 @@ export function activate(context: vscode.ExtensionContext) {
           (message) => {
             if (message) {
               const messageObj = {
+                port,
                 operations,
                 IpAddress: getIpAddress(),
               }
@@ -44,6 +46,7 @@ export function activate(context: vscode.ExtensionContext) {
             } else {
               fetchOperations(searchedFor.endpoint.url).then((operationsRes) => {
                 const obj = {
+                  port,
                   operations: operationsRes,
                   IpAddress: getIpAddress(),
                 }

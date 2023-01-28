@@ -173,7 +173,7 @@ export const copy = (selector: string) => {
 }
 
 const OperationDoc: FC<IProps> = ({ operation }) => {
-  const { IpAddress, isDisplaySidebar, setState } = useBearStore((ste) => ste)
+  const { IpAddress, isDisplaySidebar, setState, port } = useBearStore((ste) => ste)
   const [mode, { toggle: toggleMode }] = useToggle<"TABLE", "EDITOR">("TABLE", "EDITOR")
 
   const argsTreeData = useMemo(() => {
@@ -235,7 +235,7 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
             </Space>
           </Tooltip>
           <Tooltip title="Debug">
-            <a href={`http://${IpAddress}:9400/playground?operationName=${encodeURIComponent(operation.name)}&operationType=${encodeURIComponent(operation.operationType)}`}>
+            <a href={`http://${IpAddress}:${port}/playground?operationName=${encodeURIComponent(operation.name)}&operationType=${encodeURIComponent(operation.operationType)}`}>
               <Space className={styles.copyBtn}>
                 <PlayCircleOutlined />
                 <span className={styles.text}>Debug</span>

@@ -7,6 +7,7 @@ interface MessageEvent {
   vscode: any
   IpAddress: string
   isDisplaySidebar: boolean
+  port: number
 }
 
 interface BearState extends MessageEvent {
@@ -17,6 +18,7 @@ interface BearState extends MessageEvent {
 
 const useBearStore = create<BearState>((set, get) => {
   return {
+    port: 2121,
     operations: [],
     IpAddress: "",
     isDisplaySidebar: true,
