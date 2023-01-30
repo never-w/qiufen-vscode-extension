@@ -3,14 +3,16 @@ import * as path from "path"
 import fetchOperations from "./utils/fetchOperations"
 import getIpAddress from "./utils/getIpAddress"
 
+let processId: number | undefined
 let myStatusBarItem: vscode.StatusBarItem
+let currentPanel: vscode.WebviewPanel | undefined = undefined
+const gqlDocStartCommandId = "gqlDoc.start"
+const gqlDocCloseCommandId = "gqlDoc.close"
+const gqlDocSettingCommandId = "gqlDoc.settings"
+const gqlDocMockCommandId = "gqlDoc.mock"
 
 export function activate(context: vscode.ExtensionContext) {
-  let currentPanel: vscode.WebviewPanel | undefined = undefined
-  let processId: number | undefined
-  const gqlDocStartCommandId = "gqlDoc.start"
   const workspaceRootPath = vscode.workspace.workspaceFolders?.[0].uri.fsPath // 工作区根目录
-
   context.subscriptions.push(
     vscode.commands.registerCommand(gqlDocStartCommandId, async () => {
       const qiufenConfigPath = path.join(workspaceRootPath!, "qiufen.config.js")
@@ -23,8 +25,6 @@ export function activate(context: vscode.ExtensionContext) {
 
       if (currentPanel) {
         currentPanel.reveal(columnToShowIn)
-        // currentPanel.dispose()
-        // executeCommand("gqlDoc.start")
       } else {
         currentPanel = vscode.window.createWebviewPanel("gqlDoc", "Gql Doc", columnToShowIn!, {
           retainContextWhenHidden: true, // 保证 Webview 所在页面进入后台时不被释放
@@ -68,16 +68,25 @@ export function activate(context: vscode.ExtensionContext) {
         currentPanel.onDidDispose(
           () => {
             currentPanel = undefined
+            updateStatusBarItem(gqlDocStartCommandId, `$(target) Start Gql Doc`)
           },
           null,
           context.subscriptions
         )
       }
+
+      updateStatusBarItem(gqlDocCloseCommandId, `$(target) Close Gql Doc`, "yellow")
     }),
-    vscode.commands.registerCommand("gqlDoc.settings", () => {
+    vscode.commands.registerCommand(gqlDocCloseCommandId, () => {
+      if (currentPanel) {
+        currentPanel?.dispose()
+        updateStatusBarItem(gqlDocStartCommandId, `$(target) Start Gql Doc`)
+      }
+    }),
+    vscode.commands.registerCommand(gqlDocSettingCommandId, () => {
       vscode.commands.executeCommand("workbench.action.openSettings", "@ext:never-w.gql-doc")
     }),
-    vscode.commands.registerCommand("gqlDoc.mock", async () => {
+    vscode.commands.registerCommand(gqlDocMockCommandId, async () => {
       if (!!processId) {
         vscode.window.showWarningMessage("Mock终端已存在！！！")
         return
@@ -102,17 +111,21 @@ export function activate(context: vscode.ExtensionContext) {
   )
 
   myStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100)
-  myStatusBarItem.command = gqlDocStartCommandId
   context.subscriptions.push(myStatusBarItem)
-  myStatusBarItem.text = `$(target) Start Gql Doc`
+  updateStatusBarItem(gqlDocStartCommandId, `$(target) Start Gql Doc`)
   myStatusBarItem.show()
 }
 
-// function updateStatusBarItem() {
-//   myStatusBarItem.text = `$(megaphone) Start Gql Doc`
-//   myStatusBarItem.show()
-// }
+export function deactivate(context: vscode.ExtensionContext) {}
 
+/** 底部bar更新函数 */
+function updateStatusBarItem(commandId: string, text: string, color?: string) {
+  myStatusBarItem.command = commandId
+  myStatusBarItem.text = text
+  myStatusBarItem.color = color
+}
+
+/** webview函数 */
 function getWebviewContent(srcUrl: vscode.Uri) {
   const renderHtml = `
           <!DOCTYPE html>

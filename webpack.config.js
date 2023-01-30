@@ -8,7 +8,7 @@ const { CleanWebpackPlugin } = require("clean-webpack-plugin")
 /** @type WebpackConfig */
 const extensionConfig = {
   target: "node",
-  mode: "production",
+  mode: "development",
   entry: {
     extension: "./src/extension.ts",
     webview: {

@@ -28,6 +28,11 @@
         "category": "gqlDoc"
       },
       {
+        "command": "gqlDoc.close",
+        "title": "Close gql doc",
+        "category": "gqlDoc"
+      },
+      {
         "command": "gqlDoc.mock",
         "title": "mock gql util",
         "category": "mock gql util"
