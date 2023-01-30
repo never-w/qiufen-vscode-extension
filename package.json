@@ -34,8 +34,8 @@
       },
       {
         "command": "gqlDoc.mock",
-        "title": "mock gql util",
-        "category": "mock gql util"
+        "title": "Mock gql util",
+        "category": "gqlDoc"
       }
     ],
     "viewsContainers": {

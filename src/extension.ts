@@ -45,7 +45,8 @@ export function activate(context: vscode.ExtensionContext) {
 
       if (currentPanel) {
         currentPanel.reveal(columnToShowIn)
-      } else {
+      }
+      if (!currentPanel) {
         currentPanel = vscode.window.createWebviewPanel("gqlDoc", "Gql Doc", columnToShowIn!, {
           retainContextWhenHidden: true, // 保证 Webview 所在页面进入后台时不被释放
           enableScripts: true,
@@ -97,15 +98,20 @@ export function activate(context: vscode.ExtensionContext) {
 
       updateStatusBarItem(gqlDocCloseCommandId, `$(target) Close Gql Doc`, "yellow")
     }),
+
+    // 关闭gql doc命令注册
     vscode.commands.registerCommand(gqlDocCloseCommandId, () => {
       if (currentPanel) {
         currentPanel?.dispose()
         updateStatusBarItem(gqlDocStartCommandId, `$(target) Start Gql Doc`)
       }
     }),
+
     // vscode.commands.registerCommand(gqlDocSettingCommandId, () => {
     //   vscode.commands.executeCommand("workbench.action.openSettings", "@ext:never-w.gql-doc")
     // }),
+
+    // Mock gql doc命令注册
     vscode.commands.registerCommand(gqlDocMockCommandId, async () => {
       if (!!processId) {
         vscode.window.showWarningMessage("Mock终端已存在！！！")
@@ -130,6 +136,7 @@ export function activate(context: vscode.ExtensionContext) {
     })
   )
 
+  // 设置底部bar图标
   myStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100)
   context.subscriptions.push(myStatusBarItem)
   updateStatusBarItem(gqlDocStartCommandId, `$(target) Start Gql Doc`)
