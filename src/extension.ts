@@ -8,11 +8,11 @@ let myStatusBarItem: vscode.StatusBarItem
 export function activate(context: vscode.ExtensionContext) {
   let currentPanel: vscode.WebviewPanel | undefined = undefined
   let processId: number | undefined
-  const myCommandId = "gqlDoc.start"
+  const gqlDocStartCommandId = "gqlDoc.start"
   const workspaceRootPath = vscode.workspace.workspaceFolders?.[0].uri.fsPath // 工作区根目录
 
   context.subscriptions.push(
-    vscode.commands.registerCommand(myCommandId, async () => {
+    vscode.commands.registerCommand(gqlDocStartCommandId, async () => {
       const qiufenConfigPath = path.join(workspaceRootPath!, "qiufen.config.js")
       const searchedFor = eval("require")(qiufenConfigPath)
       const port = searchedFor.port
@@ -102,16 +102,16 @@ export function activate(context: vscode.ExtensionContext) {
   )
 
   myStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100)
-  myStatusBarItem.command = myCommandId
+  myStatusBarItem.command = gqlDocStartCommandId
   context.subscriptions.push(myStatusBarItem)
-  myStatusBarItem.text = `$(megaphone) Start Gql Doc`
+  myStatusBarItem.text = `$(target) Start Gql Doc`
   myStatusBarItem.show()
 }
 
-function updateStatusBarItem() {
-  myStatusBarItem.text = `$(megaphone) Start Gql Doc`
-  myStatusBarItem.show()
-}
+// function updateStatusBarItem() {
+//   myStatusBarItem.text = `$(megaphone) Start Gql Doc`
+//   myStatusBarItem.show()
+// }
 
 function getWebviewContent(srcUrl: vscode.Uri) {
   const renderHtml = `

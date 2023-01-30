@@ -24,13 +24,8 @@
     "commands": [
       {
         "command": "gqlDoc.start",
-        "title": "Start new gql doc",
+        "title": "Start gql doc",
         "category": "gqlDoc"
-      },
-      {
-        "command": "gqlDoc.settings",
-        "title": "Settings gql util",
-        "category": "settings gql util"
       },
       {
         "command": "gqlDoc.mock",

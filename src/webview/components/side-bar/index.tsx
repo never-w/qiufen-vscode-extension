@@ -168,7 +168,7 @@ const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, opera
       </div>
       <Tooltip title="reload doc">
         <div onClick={onBtnClick} style={{ bottom: 150 }} className={classnames(styles.topBtn, styles.show)}>
-          <img src="https://raw.githubusercontent.com/never-w/picb/main/reload.png" alt="刷新文档" />
+          <img src="https://pic.imgdb.cn/item/63d72e6eface21e9ef36b62f.png" alt="刷新文档" />
         </div>
       </Tooltip>
       <Tooltip title="Collapse all">
@@ -181,7 +181,7 @@ const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, opera
             setActiveKey([])
           }}
         >
-          <img src="https://raw.githubusercontent.com/never-w/picb/main/collapse-all.png" alt="全部收集图片" />
+          <img src="https://pic.imgdb.cn/item/63d72e52face21e9ef367a25.png" alt="全部收集图片" />
         </div>
       </Tooltip>
       <Tooltip title="Back to top">
@@ -193,7 +193,7 @@ const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, opera
             document.getElementById("sideBar")?.scrollTo(0, 0)
           }}
         >
-          <img src="https://raw.githubusercontent.com/never-w/picb/main/back-top.png" alt="返回顶部图片" />
+          <img src="https://pic.imgdb.cn/item/63d72e7fface21e9ef36d8ed.png" alt="返回顶部图片" />
         </div>
       </Tooltip>
     </div>
