@@ -70,7 +70,21 @@
         "view": "gql-util",
         "contents": "[🧰 Start Mock](command:gqlDoc.mock)"
       }
-    ]
+    ],
+    "configuration": {
+      "properties": {
+        "gql-doc.endpointUrl": {
+          "type": "string",
+          "default": "",
+          "description": "backend service endpointUrl"
+        },
+        "gql-doc.port": {
+          "type": "number",
+          "default": 9400,
+          "description": "backend service port"
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "yarn run package",
@@ -85,6 +99,7 @@
   },
   "devDependencies": {
     "@types/glob": "^8.0.0",
+    "@types/lodash": "^4.14.191",
     "@types/mocha": "^10.0.1",
     "@types/react": "^17.0.2",
     "@types/react-dom": "^17.0.2",
@@ -120,6 +135,7 @@
     "clipboard": "^2.0.11",
     "cosmiconfig": "^8.0.0",
     "graphql": "^16.6.0",
+    "lodash": "^4.17.21",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "vsce": "^2.5.0",

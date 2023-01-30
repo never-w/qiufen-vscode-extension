@@ -1,5 +1,6 @@
 import * as vscode from "vscode"
 import * as path from "path"
+import fs from "fs"
 import fetchOperations from "./utils/fetchOperations"
 import getIpAddress from "./utils/getIpAddress"
 
@@ -8,19 +9,38 @@ let myStatusBarItem: vscode.StatusBarItem
 let currentPanel: vscode.WebviewPanel | undefined = undefined
 const gqlDocStartCommandId = "gqlDoc.start"
 const gqlDocCloseCommandId = "gqlDoc.close"
-const gqlDocSettingCommandId = "gqlDoc.settings"
+// const gqlDocSettingCommandId = "gqlDoc.settings"
 const gqlDocMockCommandId = "gqlDoc.mock"
+const workspaceRootPath = vscode.workspace.workspaceFolders?.[0].uri.fsPath // 工作区根目录
 
 export function activate(context: vscode.ExtensionContext) {
-  const workspaceRootPath = vscode.workspace.workspaceFolders?.[0].uri.fsPath // 工作区根目录
   context.subscriptions.push(
     vscode.commands.registerCommand(gqlDocStartCommandId, async () => {
+      const jsonSettings = vscode.workspace.getConfiguration("gql-doc")
       const qiufenConfigPath = path.join(workspaceRootPath!, "qiufen.config.js")
-      const searchedFor = eval("require")(qiufenConfigPath)
-      const port = searchedFor.port
-      // const settings = vscode.workspace.getConfiguration("gql-doc")
-      const operations = await fetchOperations(searchedFor.endpoint.url)
+      const isExistConfigFile = fs.existsSync(qiufenConfigPath)
+      let qiufenConfig
+      let port: number
+      let url: string
+      if (isExistConfigFile) {
+        /** 去除require缓存 */
+        delete eval("require.cache")[qiufenConfigPath]
+        qiufenConfig = eval("require")(qiufenConfigPath) as GraphqlKitConfig
+        port = qiufenConfig.port
+        url = qiufenConfig.endpoint.url
+      } else {
+        port = jsonSettings?.port
+        url = jsonSettings?.endpointUrl
+      }
 
+      if (!port) {
+        return vscode.window.showErrorMessage("请在项目根目录 .vscode/settings.json 中配置port！！！")
+      }
+      if (!url) {
+        return vscode.window.showErrorMessage("请在项目根目录 .vscode/settings.json 中配置schema地址！！！")
+      }
+
+      const operations = await fetchOperations(url)
       const columnToShowIn = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined
 
       if (currentPanel) {
@@ -47,7 +67,7 @@ export function activate(context: vscode.ExtensionContext) {
 
               currentPanel!.webview.postMessage(messageObj)
             } else {
-              fetchOperations(searchedFor.endpoint.url).then((operationsRes) => {
+              fetchOperations(url).then((operationsRes) => {
                 const obj = {
                   port,
                   operations: operationsRes,
@@ -83,9 +103,9 @@ export function activate(context: vscode.ExtensionContext) {
         updateStatusBarItem(gqlDocStartCommandId, `$(target) Start Gql Doc`)
       }
     }),
-    vscode.commands.registerCommand(gqlDocSettingCommandId, () => {
-      vscode.commands.executeCommand("workbench.action.openSettings", "@ext:never-w.gql-doc")
-    }),
+    // vscode.commands.registerCommand(gqlDocSettingCommandId, () => {
+    //   vscode.commands.executeCommand("workbench.action.openSettings", "@ext:never-w.gql-doc")
+    // }),
     vscode.commands.registerCommand(gqlDocMockCommandId, async () => {
       if (!!processId) {
         vscode.window.showWarningMessage("Mock终端已存在！！！")

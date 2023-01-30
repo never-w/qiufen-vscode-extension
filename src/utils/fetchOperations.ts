@@ -4,7 +4,7 @@ import { loadSchema } from "@graphql-tools/load"
 import { getOperationsBySchema } from "@fruits-chain/qiufen-helpers"
 import { GraphQLSchema } from "graphql"
 
-export default async function fetchOperations(endpointUrl: string) {
+export default async function fetchOperations(endpointUrl = "") {
   let schema: GraphQLSchema
 
   if (!endpointUrl) {
@@ -16,10 +16,9 @@ export default async function fetchOperations(endpointUrl: string) {
     schema = await loadSchema(endpointUrl, {
       loaders: [new UrlLoader()],
     })
-  } catch (error: any) {
-    vscode.window.showErrorMessage("gql-doc schema地址配置错误或者网络出错啦！！！")
+    const operations = getOperationsBySchema(schema)
+    return operations
+  } catch {
+    vscode.window.showErrorMessage("gql-doc 网络出错啦或者schema地址配置错误！！！")
   }
-
-  const operations = getOperationsBySchema(schema!)
-  return operations
 }
