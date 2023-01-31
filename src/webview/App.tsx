@@ -41,7 +41,7 @@ const App: FC<IProps> = () => {
   }
 
   return (
-    <>
+    <div>
       <Spin spinning={loading}>
         <div style={{ display: "flex", flexDirection: "row" }}>
           <div style={{ display: isDisplaySidebar ? "block" : "none" }}>
@@ -59,7 +59,7 @@ const App: FC<IProps> = () => {
           <Content key={selectedOperationId} operation={operationData!} />
         </div>
       </Spin>
-    </>
+    </div>
   )
 }
 

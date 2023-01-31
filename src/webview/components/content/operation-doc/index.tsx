@@ -4,6 +4,8 @@ import { CopyOutlined, PlayCircleOutlined, MenuFoldOutlined } from "@ant-design/
 import ClipboardJS from "clipboard"
 import { genGQLStr } from "@fruits-chain/qiufen-helpers"
 import { useToggle } from "@fruits-chain/hooks-laba"
+import AceEditor from "react-ace"
+import obj2str from "stringify-object"
 import styles from "./index.module.less"
 import type { TypedOperation, ArgTypeDef, ObjectFieldTypeDef } from "@fruits-chain/qiufen-helpers"
 import type { ColumnsType } from "antd/lib/table"
@@ -257,11 +259,29 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
         <>
           <Divider className={styles.divider} />
           <div className={styles.paramsText}>Params: </div>
-          <Table columns={argsColumns} defaultExpandAllRows className={styles.table} dataSource={argsTreeData} pagination={false} bordered />
+          {mode === "TABLE" ? (
+            <Table columns={argsColumns} defaultExpandAllRows className={styles.table} dataSource={argsTreeData} pagination={false} bordered />
+          ) : (
+            <AceEditor theme="tomorrow" mode="javascript" width="100%" readOnly maxLines={Infinity} value={obj2str(operation.argsExample)} />
+          )}
         </>
       )}
       <div>Response: </div>
-      <Table columns={objectFieldsColumns} defaultExpandAllRows className={styles.table} dataSource={objectFieldsTreeData} pagination={false} bordered />
+      {mode === "TABLE" ? (
+        <Table columns={objectFieldsColumns} defaultExpandAllRows className={styles.table} dataSource={objectFieldsTreeData} pagination={false} bordered />
+      ) : (
+        <AceEditor
+          theme="tomorrow"
+          mode="javascript"
+          width="100%"
+          readOnly
+          maxLines={Infinity}
+          value={obj2str(operation.outputExample)}
+          editorProps={{
+            $blockScrolling: false,
+          }}
+        />
+      )}
     </Space>
   )
 }

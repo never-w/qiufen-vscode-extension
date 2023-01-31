@@ -137,7 +137,7 @@ export function activate(context: vscode.ExtensionContext) {
   )
 
   // 设置底部bar图标
-  myStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100)
+  myStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left)
   context.subscriptions.push(myStatusBarItem)
   updateStatusBarItem(gqlDocStartCommandId, `$(target) Start Gql Doc`)
   myStatusBarItem.show()
