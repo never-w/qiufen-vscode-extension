@@ -126,6 +126,17 @@
     "webpack-cli": "^5.0.0"
   },
   "dependencies": {
+    "@fruits-chain/qiufen-site": "^1.0.1",
+    "@graphql-tools/stitch": "^8.4.3",
+    "body-parser": "^1.19.1",
+    "chalk": "4.1.2",
+    "dayjs": "^1.10.7",
+    "express": "^4.17.2",
+    "express-graphql": "^0.12.0",
+    "graphql-playground-html": "^1.6.30",
+    "graphql-tools": "^8.2.0",
+    "http-proxy-middleware": "^2.0.1",
+    "mockjs": "^1.1.0",
     "@fruits-chain/hooks-laba": "^1.0.2",
     "@fruits-chain/qiufen-helpers": "^1.0.1",
     "@graphql-tools/load": "^7.8.8",
