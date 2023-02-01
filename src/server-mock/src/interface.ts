@@ -1,6 +1,6 @@
-import type { IResolvers } from '@graphql-tools/utils'
-import type { ScalarMap } from '@fruits-chain/qiufen-helpers'
-import type { IncomingMessage } from 'http'
+import type { IResolvers } from "@graphql-tools/utils"
+import type { ScalarMap } from "@fruits-chain/qiufen-helpers"
+import type { IncomingMessage } from "http"
 
 export interface IncomingMessageWithBody extends IncomingMessage {
   body?: unknown
@@ -17,7 +17,7 @@ export interface PlaygroundConfig {
 }
 
 /** schema polity type */
-export type SchemaPolicy = 'local' | 'remote'
+export type SchemaPolicy = "local" | "remote"
 
 /** mock config type */
 export interface MockConfig {

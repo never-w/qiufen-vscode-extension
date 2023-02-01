@@ -1,38 +1,24 @@
-import path from 'path'
-import express from 'express'
-import {
-  genGQLStr,
-  genArgsExample,
-  getOperationsBySchema,
-} from '@fruits-chain/qiufen-helpers'
-import { renderPlaygroundPage } from 'graphql-playground-html'
-import { BASE_PATH } from './graphqlController'
-import type { RenderPageOptions } from 'graphql-playground-html'
-import type { GraphqlKitConfig } from './interface'
-import type { GraphQLSchema, OperationTypeNode } from 'graphql'
+import path from "path"
+import express from "express"
+import { genGQLStr, genArgsExample, getOperationsBySchema } from "@fruits-chain/qiufen-helpers"
+import { renderPlaygroundPage } from "graphql-playground-html"
+import { BASE_PATH } from "./graphqlController"
+import type { RenderPageOptions } from "graphql-playground-html"
+import type { GraphqlKitConfig } from "./interface"
+import type { GraphQLSchema, OperationTypeNode } from "graphql"
 
-const createPlaygroundController = (
-  rawSchema: GraphQLSchema,
-  config: GraphqlKitConfig,
-  ip: string,
-) => {
+const createPlaygroundController = (rawSchema: GraphQLSchema, config: GraphqlKitConfig, ip: string) => {
   const router = express.Router()
   const { mock, playground } = config
 
-  router.use(
-    `/graphql-playground-react`,
-    express.static(path.join(__dirname, '../public/graphql-playground-react')),
-  )
+  router.use(`/graphql-playground-react`, express.static(path.join(__dirname, "../public/graphql-playground-react")))
   // serve a playground
   router.get(`/playground`, (req, res) => {
     const { operationType, operationName } = req.query as {
       operationType: OperationTypeNode
       operationName: string
     }
-    const operation = getOperationsBySchema(rawSchema).find(
-      item =>
-        item.name === operationName && item.operationType === operationType,
-    )
+    const operation = getOperationsBySchema(rawSchema).find((item) => item.name === operationName && item.operationType === operationType)
     if (!operation) {
       res.json({
         status: 404,
@@ -45,10 +31,10 @@ const createPlaygroundController = (
     const endpoint = `http://${ip}:${config.port}${BASE_PATH}`
     const playgroundOptions: RenderPageOptions = {
       endpoint,
-      cdnUrl: '',
+      cdnUrl: "",
       tabs: [
         {
-          name: 'debug',
+          name: "debug",
           endpoint,
           query,
           variables: JSON.stringify(variables, null, 2),
@@ -56,7 +42,7 @@ const createPlaygroundController = (
         },
       ],
     }
-    res.setHeader('Content-Type', 'text/html')
+    res.setHeader("Content-Type", "text/html")
     const playgroundPage = renderPlaygroundPage(playgroundOptions)
     res.write(playgroundPage)
     res.end()

@@ -65,6 +65,7 @@ export function addMocksToSchema({ schema, scalarMap, resolvers, globalContext =
 
     const mockVal = mockDirective?.arguments?.find((item) => item.name.value === "val")
     const mockLen = mockDirective?.arguments?.find((item) => item.name.value === "len")
+    // 这里必须()?.value 这样或者 ?.value.value不然会出bug
     const mockFallback = (mockDirective?.arguments?.find((item) => item.name.value === "fallback")?.value as BooleanValueNode)?.value
 
     const genMockVal = (val: ArgumentNode, path: GraphQLResolveInfo["path"]) => {

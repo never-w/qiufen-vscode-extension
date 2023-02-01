@@ -10,6 +10,7 @@ const extensionConfig = {
   target: "node",
   mode: "development",
   entry: {
+    server_mock: "./src/server-mock/src/index.ts",
     extension: "./src/extension.ts",
     webview: {
       import: "./src/webview/index.tsx",
