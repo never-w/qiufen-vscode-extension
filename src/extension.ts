@@ -1,9 +1,13 @@
 import * as vscode from "vscode"
 import * as path from "path"
 import fs from "fs"
+import type { Server } from "http"
+import Mock from "mockjs"
 import fetchOperations from "./utils/fetchOperations"
 import getIpAddress from "./utils/getIpAddress"
+import { startServer } from "./server-mock/src"
 
+let serverMock: Server
 let processId: number | undefined
 let myStatusBarItem: vscode.StatusBarItem
 let currentPanel: vscode.WebviewPanel | undefined = undefined
@@ -28,9 +32,45 @@ export function activate(context: vscode.ExtensionContext) {
         qiufenConfig = eval("require")(qiufenConfigPath) as GraphqlKitConfig
         port = qiufenConfig.port
         url = qiufenConfig.endpoint.url
+        serverMock = await startServer(qiufenConfig)
       } else {
         port = jsonSettings?.port
         url = jsonSettings?.endpointUrl
+        const { Random } = Mock
+        serverMock = await startServer({
+          port,
+          endpoint: {
+            url,
+          },
+          playground: {
+            headers: {
+              Authorization: "",
+              appversioncode: "33",
+              "app-version": "33",
+              platform: "ios",
+            },
+          },
+          mock: {
+            enable: true,
+            mockDirectiveDefaultEnableValue: true,
+            scalarMap: {
+              Int: () => Random.integer(0, 100),
+              String: () => Random.ctitle(2, 4),
+              ID: () => Random.id(),
+              Boolean: () => Random.boolean(),
+              BigDecimal: () => Random.integer(0, 1000000),
+              Float: () => Random.float(0, 100),
+              Date: () => Random.date(),
+              DateTime: () => Random.datetime(),
+              Long: () => Random.integer(0, 10000),
+              NumberOrBoolOrStringOrNull: () => null,
+              NumberOrString: () => null,
+            },
+            resolvers: {
+              Query: {},
+            },
+          },
+        })
       }
 
       if (!port) {
@@ -89,6 +129,7 @@ export function activate(context: vscode.ExtensionContext) {
         currentPanel.onDidDispose(
           () => {
             currentPanel = undefined
+            serverMock.close()
             updateStatusBarItem(gqlDocStartCommandId, `$(target) Start Gql Doc`)
           },
           null,
@@ -103,37 +144,38 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand(gqlDocCloseCommandId, () => {
       if (currentPanel) {
         currentPanel?.dispose()
+        serverMock.close()
         updateStatusBarItem(gqlDocStartCommandId, `$(target) Start Gql Doc`)
       }
-    }),
+    })
 
     // vscode.commands.registerCommand(gqlDocSettingCommandId, () => {
     //   vscode.commands.executeCommand("workbench.action.openSettings", "@ext:never-w.gql-doc")
     // }),
 
     // Mock gql doc命令注册
-    vscode.commands.registerCommand(gqlDocMockCommandId, async () => {
-      if (!!processId) {
-        vscode.window.showWarningMessage("Mock终端已存在！！！")
-        return
-      } else {
-        const terminal = vscode.window.createTerminal()
-        terminal.show()
-        terminal.sendText("yarn qiufen start")
-        const res = await terminal.processId
-        processId = res
-      }
+    // vscode.commands.registerCommand(gqlDocMockCommandId, async () => {
+    //   if (!!processId) {
+    //     vscode.window.showWarningMessage("Mock终端已存在！！！")
+    //     return
+    //   } else {
+    //     const terminal = vscode.window.createTerminal()
+    //     terminal.show()
+    //     terminal.sendText("yarn qiufen start")
+    //     const res = await terminal.processId
+    //     processId = res
+    //   }
 
-      vscode.window.onDidCloseTerminal(async (e) => {
-        let terminalNum
-        const res = await e.processId
-        terminalNum = res
+    //   vscode.window.onDidCloseTerminal(async (e) => {
+    //     let terminalNum
+    //     const res = await e.processId
+    //     terminalNum = res
 
-        if (terminalNum === processId) {
-          processId = undefined
-        }
-      })
-    })
+    //     if (terminalNum === processId) {
+    //       processId = undefined
+    //     }
+    //   })
+    // })
   )
 
   // 设置底部bar图标
