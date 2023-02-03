@@ -8,7 +8,6 @@ import { startServer } from "./server-mock/src"
 import { defaultQiufenConfig } from "./config"
 
 let serverMock: Server
-// let processId: number | undefined
 let docStatusBarItem: vscode.StatusBarItem
 let mockStatusBarItem: vscode.StatusBarItem
 let currentPanel: vscode.WebviewPanel | undefined = undefined
@@ -141,7 +140,12 @@ export function activate(context: vscode.ExtensionContext) {
           return vscode.window.showErrorMessage("请在项目根目录 .vscode/settings.json 中配置schema地址！！！")
         }
 
-        serverMock = await startServer(qiufenConfig)
+        try {
+          serverMock = await startServer(qiufenConfig)
+        } catch {
+          vscode.window.showErrorMessage("网络异常！！！")
+          return
+        }
       } else {
         port = jsonSettings?.port
         url = jsonSettings?.endpointUrl
@@ -152,13 +156,18 @@ export function activate(context: vscode.ExtensionContext) {
         if (!url) {
           return vscode.window.showErrorMessage("请在项目根目录 .vscode/settings.json 中配置schema地址！！！")
         }
-        serverMock = await startServer({
-          port,
-          endpoint: {
-            url,
-          },
-          ...defaultQiufenConfig,
-        })
+        try {
+          serverMock = await startServer({
+            port,
+            endpoint: {
+              url,
+            },
+            ...defaultQiufenConfig,
+          })
+        } catch {
+          vscode.window.showErrorMessage("网络异常！！！")
+          return
+        }
       }
 
       vscode.env.openExternal(vscode.Uri.parse(`http://localhost:${port}`))
@@ -175,8 +184,6 @@ export function activate(context: vscode.ExtensionContext) {
   updateStatusBarItem(gqlDocMockCommandId, `$(play) Mock`, mockStatusBarItem)
   mockStatusBarItem.show()
 }
-
-export function deactivate(context: vscode.ExtensionContext) {}
 
 /** 底部bar更新函数 */
 function updateStatusBarItem(commandId: string, text: string, statusBarItem: vscode.StatusBarItem, color?: string) {
@@ -203,6 +210,8 @@ function getWebviewContent(srcUrl: vscode.Uri) {
           `
   return renderHtml
 }
+
+export function deactivate(context: vscode.ExtensionContext) {}
 
 // const gqlDocSettingCommandId = "gqlDoc.settings"
 // vscode.commands.registerCommand(gqlDocSettingCommandId, () => {
