@@ -2,19 +2,19 @@ import * as vscode from "vscode"
 import * as path from "path"
 import fs from "fs"
 import type { Server } from "http"
-import Mock from "mockjs"
 import fetchOperations from "./utils/fetchOperations"
 import getIpAddress from "./utils/getIpAddress"
 import { startServer } from "./server-mock/src"
+import { defaultQiufenConfig } from "./config"
 
 let serverMock: Server
-let processId: number | undefined
+// let processId: number | undefined
 let myStatusBarItem: vscode.StatusBarItem
 let currentPanel: vscode.WebviewPanel | undefined = undefined
 const gqlDocStartCommandId = "gqlDoc.start"
 const gqlDocCloseCommandId = "gqlDoc.close"
 // const gqlDocSettingCommandId = "gqlDoc.settings"
-const gqlDocMockCommandId = "gqlDoc.mock"
+// const gqlDocMockCommandId = "gqlDoc.mock"
 const workspaceRootPath = vscode.workspace.workspaceFolders?.[0].uri.fsPath // 工作区根目录
 
 export function activate(context: vscode.ExtensionContext) {
@@ -23,78 +23,53 @@ export function activate(context: vscode.ExtensionContext) {
       const jsonSettings = vscode.workspace.getConfiguration("gql-doc")
       const qiufenConfigPath = path.join(workspaceRootPath!, "qiufen.config.js")
       const isExistConfigFile = fs.existsSync(qiufenConfigPath)
-      let qiufenConfig
+      let qiufenConfig: GraphqlKitConfig
       let port: number
       let url: string
-      if (isExistConfigFile) {
-        /** 去除require缓存 */
-        delete eval("require.cache")[qiufenConfigPath]
-        qiufenConfig = eval("require")(qiufenConfigPath) as GraphqlKitConfig
-        port = qiufenConfig.port
-        url = qiufenConfig.endpoint.url
-        serverMock = await startServer(qiufenConfig)
-      } else {
-        port = jsonSettings?.port
-        url = jsonSettings?.endpointUrl
-        const { Random } = Mock
-        serverMock = await startServer({
-          port,
-          endpoint: {
-            url,
-          },
-          playground: {
-            headers: {
-              Authorization: "",
-              appversioncode: "33",
-              "app-version": "33",
-              platform: "ios",
-            },
-          },
-          mock: {
-            enable: true,
-            mockDirectiveDefaultEnableValue: true,
-            scalarMap: {
-              Int: () => Random.integer(0, 100),
-              String: () => Random.ctitle(2, 4),
-              ID: () => Random.id(),
-              Boolean: () => Random.boolean(),
-              BigDecimal: () => Random.integer(0, 1000000),
-              Float: () => Random.float(0, 100),
-              Date: () => Random.date(),
-              DateTime: () => Random.datetime(),
-              Long: () => Random.integer(0, 10000),
-              NumberOrBoolOrStringOrNull: () => null,
-              NumberOrString: () => null,
-            },
-            resolvers: {
-              Query: {},
-            },
-          },
-        })
-      }
 
-      if (!port) {
-        return vscode.window.showErrorMessage("请在项目根目录 .vscode/settings.json 中配置port！！！")
-      }
-      if (!url) {
-        return vscode.window.showErrorMessage("请在项目根目录 .vscode/settings.json 中配置schema地址！！！")
-      }
-
-      const operations = await fetchOperations(url)
       const columnToShowIn = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined
-
       if (currentPanel) {
         currentPanel.reveal(columnToShowIn)
       }
+
       if (!currentPanel) {
+        if (isExistConfigFile) {
+          /** 去除require缓存 */
+          delete eval("require.cache")[qiufenConfigPath]
+          qiufenConfig = eval("require")(qiufenConfigPath) as GraphqlKitConfig
+          port = qiufenConfig.port
+          url = qiufenConfig.endpoint.url
+          serverMock = await startServer(qiufenConfig)
+        } else {
+          port = jsonSettings?.port
+          url = jsonSettings?.endpointUrl
+          serverMock = await startServer({
+            port,
+            endpoint: {
+              url,
+            },
+            ...defaultQiufenConfig,
+          })
+        }
+
+        if (!port) {
+          return vscode.window.showErrorMessage("请在项目根目录 .vscode/settings.json 中配置port！！！")
+        }
+        if (!url) {
+          return vscode.window.showErrorMessage("请在项目根目录 .vscode/settings.json 中配置schema地址！！！")
+        }
+
+        // 获取gql接口数据
+        const operations = await fetchOperations(url)
+        // 创建webview画板
         currentPanel = vscode.window.createWebviewPanel("gqlDoc", "Gql Doc", columnToShowIn!, {
           retainContextWhenHidden: true, // 保证 Webview 所在页面进入后台时不被释放
           enableScripts: true,
         })
         currentPanel.iconPath = vscode.Uri.file(path.join(context.extensionPath, "assets/logo", "qiufen-logo.png"))
-
         // 获取磁盘上的资源路径且，获取在webview中使用的特殊URI
         const srcUrl = currentPanel.webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, "dist", "webview.js")))
+        currentPanel.webview.html = getWebviewContent(srcUrl)
 
         // 接受webview发送的信息，且再向webview发送信息，这样做为了解决它们两者通信有时不得行的bug
         currentPanel.webview.onDidReceiveMessage(
@@ -109,21 +84,19 @@ export function activate(context: vscode.ExtensionContext) {
               currentPanel!.webview.postMessage(messageObj)
             } else {
               fetchOperations(url).then((operationsRes) => {
-                const obj = {
+                const messageObj = {
                   port,
                   operations: operationsRes,
                   IpAddress: getIpAddress(),
                 }
 
-                currentPanel!.webview.postMessage(obj)
+                currentPanel!.webview.postMessage(messageObj)
               })
             }
           },
           undefined,
           context.subscriptions
         )
-
-        currentPanel.webview.html = getWebviewContent(srcUrl)
 
         // 当前面板被关闭后重置
         currentPanel.onDidDispose(

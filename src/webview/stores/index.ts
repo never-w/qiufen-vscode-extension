@@ -18,7 +18,7 @@ interface BearState extends MessageEvent {
 
 const useBearStore = create<BearState>((set, get) => {
   return {
-    port: 2121,
+    port: 9400,
     operations: [],
     IpAddress: "",
     isDisplaySidebar: true,
