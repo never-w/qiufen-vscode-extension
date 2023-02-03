@@ -15,12 +15,10 @@ let currentPanel: vscode.WebviewPanel | undefined = undefined
 
 const gqlDocStartCommandId = "gqlDoc.start"
 const gqlDocCloseCommandId = "gqlDoc.close"
-// const gqlDocSettingCommandId = "gqlDoc.settings"
 const gqlDocMockCloseCommandId = "gqlDoc.mockClose"
 const gqlDocMockCommandId = "gqlDoc.mock"
 const workspaceRootPath = vscode.workspace.workspaceFolders?.[0].uri.fsPath // 工作区根目录
 
-const jsonSettings = vscode.workspace.getConfiguration("gql-doc")
 const qiufenConfigPath = path.join(workspaceRootPath!, "qiufen.config.js")
 const isExistConfigFile = fs.existsSync(qiufenConfigPath)
 let qiufenConfig: GraphqlKitConfig
@@ -36,6 +34,7 @@ export function activate(context: vscode.ExtensionContext) {
       }
 
       if (!currentPanel) {
+        const jsonSettings = vscode.workspace.getConfiguration("gql-doc")
         if (isExistConfigFile) {
           /** 去除require缓存 */
           delete eval("require.cache")[qiufenConfigPath]
@@ -56,6 +55,10 @@ export function activate(context: vscode.ExtensionContext) {
 
         // 获取gql接口数据
         const operations = await fetchOperations(url)
+        if (!operations) {
+          return
+        }
+
         // 创建webview画板
         currentPanel = vscode.window.createWebviewPanel("gqlDoc", "Gql Doc", columnToShowIn!, {
           retainContextWhenHidden: true, // 保证 Webview 所在页面进入后台时不被释放
@@ -97,7 +100,6 @@ export function activate(context: vscode.ExtensionContext) {
         currentPanel.onDidDispose(
           () => {
             currentPanel = undefined
-            serverMock.close()
             updateStatusBarItem(gqlDocStartCommandId, `$(target) Doc`, docStatusBarItem)
           },
           null,
@@ -112,35 +114,44 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand(gqlDocCloseCommandId, () => {
       if (currentPanel) {
         currentPanel?.dispose()
-        serverMock.close()
         updateStatusBarItem(gqlDocStartCommandId, `$(target) Doc`, docStatusBarItem)
       }
     }),
 
-    // vscode.commands.registerCommand(gqlDocSettingCommandId, () => {
-    //   vscode.commands.executeCommand("workbench.action.openSettings", "@ext:never-w.gql-doc")
-    // }),
-
-    // 关闭gql mock命令注册
+    // Close Mock命令注册
     vscode.commands.registerCommand(gqlDocMockCloseCommandId, () => {
       serverMock.close()
       updateStatusBarItem(gqlDocMockCommandId, `$(play) Mock`, mockStatusBarItem)
     }),
 
-    // Mock gql doc命令注册
+    // Start Mock命令注册
     vscode.commands.registerCommand(gqlDocMockCommandId, async () => {
-      updateStatusBarItem(gqlDocMockCloseCommandId, `$(play) Close Mock`, mockStatusBarItem, "yellow")
-
+      const jsonSettings = vscode.workspace.getConfiguration("gql-doc")
       if (isExistConfigFile) {
         /** 去除require缓存 */
         delete eval("require.cache")[qiufenConfigPath]
         qiufenConfig = eval("require")(qiufenConfigPath) as GraphqlKitConfig
         port = qiufenConfig.port
         url = qiufenConfig.endpoint.url
+
+        if (!port) {
+          return vscode.window.showErrorMessage("请在项目根目录 .vscode/settings.json 中配置port！！！")
+        }
+        if (!url) {
+          return vscode.window.showErrorMessage("请在项目根目录 .vscode/settings.json 中配置schema地址！！！")
+        }
+
         serverMock = await startServer(qiufenConfig)
       } else {
         port = jsonSettings?.port
         url = jsonSettings?.endpointUrl
+
+        if (!port) {
+          return vscode.window.showErrorMessage("请在项目根目录 .vscode/settings.json 中配置port！！！")
+        }
+        if (!url) {
+          return vscode.window.showErrorMessage("请在项目根目录 .vscode/settings.json 中配置schema地址！！！")
+        }
         serverMock = await startServer({
           port,
           endpoint: {
@@ -150,12 +161,8 @@ export function activate(context: vscode.ExtensionContext) {
         })
       }
 
-      if (!port) {
-        return vscode.window.showErrorMessage("请在项目根目录 .vscode/settings.json 中配置port！！！")
-      }
-      if (!url) {
-        return vscode.window.showErrorMessage("请在项目根目录 .vscode/settings.json 中配置schema地址！！！")
-      }
+      vscode.env.openExternal(vscode.Uri.parse(`http://localhost:${port}`))
+      updateStatusBarItem(gqlDocMockCloseCommandId, `$(play) Close Mock`, mockStatusBarItem, "yellow")
     })
   )
 
@@ -196,3 +203,8 @@ function getWebviewContent(srcUrl: vscode.Uri) {
           `
   return renderHtml
 }
+
+// const gqlDocSettingCommandId = "gqlDoc.settings"
+// vscode.commands.registerCommand(gqlDocSettingCommandId, () => {
+//   vscode.commands.executeCommand("workbench.action.openSettings", "@ext:never-w.gql-doc")
+// }),
