@@ -31,6 +31,16 @@
         "command": "gqlDoc.close",
         "title": "Close gql doc",
         "category": "gqlDoc"
+      },
+      {
+        "command": "gqlDoc.mock",
+        "title": "Mock gql",
+        "category": "gqlDoc"
+      },
+      {
+        "command": "gqlDoc.mockClose",
+        "title": "Close mock gql",
+        "category": "gqlDoc"
       }
     ],
     "viewsContainers": {

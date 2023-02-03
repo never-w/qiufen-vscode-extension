@@ -11,6 +11,9 @@ import createPlaygroundController from "./playgroundController"
 import getIPAddress from "./utils/getIPAddress"
 import type { GraphqlKitConfig, MockConfig } from "./interface"
 import type { Server } from "http"
+import createOperationsController from "./operations"
+import path from "path"
+// import createViewDocControllerController from "./viewDocContraller"
 
 interface LoadSchemaOptions {
   schemaPolicy?: GraphqlKitConfig["schemaPolicy"]
@@ -135,6 +138,14 @@ const startServer = (config: GraphqlKitConfig): Promise<Server> => {
 
       const playgroundController = createPlaygroundController(rawSchema, config, ip)
       app.use(playgroundController)
+
+      const operationsController = createOperationsController()
+      app.use(operationsController)
+
+      // const viewDocController = createViewDocControllerController()
+      // app.use(viewDocController)
+
+      app.use(express.static(path.resolve(__dirname, "../files")))
 
       const server = app.listen(port, "0.0.0.0", () => {
         console.log(chalk.green(`Running a GraphQL server at http://${ip}:${port}/graphql`))

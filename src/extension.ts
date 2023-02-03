@@ -9,24 +9,27 @@ import { defaultQiufenConfig } from "./config"
 
 let serverMock: Server
 // let processId: number | undefined
-let myStatusBarItem: vscode.StatusBarItem
+let docStatusBarItem: vscode.StatusBarItem
+let mockStatusBarItem: vscode.StatusBarItem
 let currentPanel: vscode.WebviewPanel | undefined = undefined
+
 const gqlDocStartCommandId = "gqlDoc.start"
 const gqlDocCloseCommandId = "gqlDoc.close"
 // const gqlDocSettingCommandId = "gqlDoc.settings"
-// const gqlDocMockCommandId = "gqlDoc.mock"
+const gqlDocMockCloseCommandId = "gqlDoc.mockClose"
+const gqlDocMockCommandId = "gqlDoc.mock"
 const workspaceRootPath = vscode.workspace.workspaceFolders?.[0].uri.fsPath // 工作区根目录
+
+const jsonSettings = vscode.workspace.getConfiguration("gql-doc")
+const qiufenConfigPath = path.join(workspaceRootPath!, "qiufen.config.js")
+const isExistConfigFile = fs.existsSync(qiufenConfigPath)
+let qiufenConfig: GraphqlKitConfig
+let port: number
+let url: string
 
 export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand(gqlDocStartCommandId, async () => {
-      const jsonSettings = vscode.workspace.getConfiguration("gql-doc")
-      const qiufenConfigPath = path.join(workspaceRootPath!, "qiufen.config.js")
-      const isExistConfigFile = fs.existsSync(qiufenConfigPath)
-      let qiufenConfig: GraphqlKitConfig
-      let port: number
-      let url: string
-
       const columnToShowIn = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined
       if (currentPanel) {
         currentPanel.reveal(columnToShowIn)
@@ -39,17 +42,9 @@ export function activate(context: vscode.ExtensionContext) {
           qiufenConfig = eval("require")(qiufenConfigPath) as GraphqlKitConfig
           port = qiufenConfig.port
           url = qiufenConfig.endpoint.url
-          serverMock = await startServer(qiufenConfig)
         } else {
           port = jsonSettings?.port
           url = jsonSettings?.endpointUrl
-          serverMock = await startServer({
-            port,
-            endpoint: {
-              url,
-            },
-            ...defaultQiufenConfig,
-          })
         }
 
         if (!port) {
@@ -103,14 +98,14 @@ export function activate(context: vscode.ExtensionContext) {
           () => {
             currentPanel = undefined
             serverMock.close()
-            updateStatusBarItem(gqlDocStartCommandId, `$(target) Start Gql Doc`)
+            updateStatusBarItem(gqlDocStartCommandId, `$(target) Doc`, docStatusBarItem)
           },
           null,
           context.subscriptions
         )
       }
 
-      updateStatusBarItem(gqlDocCloseCommandId, `$(target) Close Gql Doc`, "yellow")
+      updateStatusBarItem(gqlDocCloseCommandId, `$(target) Close Doc`, docStatusBarItem, "yellow")
     }),
 
     // 关闭gql doc命令注册
@@ -118,53 +113,69 @@ export function activate(context: vscode.ExtensionContext) {
       if (currentPanel) {
         currentPanel?.dispose()
         serverMock.close()
-        updateStatusBarItem(gqlDocStartCommandId, `$(target) Start Gql Doc`)
+        updateStatusBarItem(gqlDocStartCommandId, `$(target) Doc`, docStatusBarItem)
       }
-    })
+    }),
 
     // vscode.commands.registerCommand(gqlDocSettingCommandId, () => {
     //   vscode.commands.executeCommand("workbench.action.openSettings", "@ext:never-w.gql-doc")
     // }),
 
+    // 关闭gql mock命令注册
+    vscode.commands.registerCommand(gqlDocMockCloseCommandId, () => {
+      serverMock.close()
+      updateStatusBarItem(gqlDocMockCommandId, `$(play) Mock`, mockStatusBarItem)
+    }),
+
     // Mock gql doc命令注册
-    // vscode.commands.registerCommand(gqlDocMockCommandId, async () => {
-    //   if (!!processId) {
-    //     vscode.window.showWarningMessage("Mock终端已存在！！！")
-    //     return
-    //   } else {
-    //     const terminal = vscode.window.createTerminal()
-    //     terminal.show()
-    //     terminal.sendText("yarn qiufen start")
-    //     const res = await terminal.processId
-    //     processId = res
-    //   }
+    vscode.commands.registerCommand(gqlDocMockCommandId, async () => {
+      updateStatusBarItem(gqlDocMockCloseCommandId, `$(play) Close Mock`, mockStatusBarItem, "yellow")
 
-    //   vscode.window.onDidCloseTerminal(async (e) => {
-    //     let terminalNum
-    //     const res = await e.processId
-    //     terminalNum = res
+      if (isExistConfigFile) {
+        /** 去除require缓存 */
+        delete eval("require.cache")[qiufenConfigPath]
+        qiufenConfig = eval("require")(qiufenConfigPath) as GraphqlKitConfig
+        port = qiufenConfig.port
+        url = qiufenConfig.endpoint.url
+        serverMock = await startServer(qiufenConfig)
+      } else {
+        port = jsonSettings?.port
+        url = jsonSettings?.endpointUrl
+        serverMock = await startServer({
+          port,
+          endpoint: {
+            url,
+          },
+          ...defaultQiufenConfig,
+        })
+      }
 
-    //     if (terminalNum === processId) {
-    //       processId = undefined
-    //     }
-    //   })
-    // })
+      if (!port) {
+        return vscode.window.showErrorMessage("请在项目根目录 .vscode/settings.json 中配置port！！！")
+      }
+      if (!url) {
+        return vscode.window.showErrorMessage("请在项目根目录 .vscode/settings.json 中配置schema地址！！！")
+      }
+    })
   )
 
   // 设置底部bar图标
-  myStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left)
-  context.subscriptions.push(myStatusBarItem)
-  updateStatusBarItem(gqlDocStartCommandId, `$(target) Start Gql Doc`)
-  myStatusBarItem.show()
+  docStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left)
+  mockStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left)
+  context.subscriptions.push(docStatusBarItem, mockStatusBarItem)
+  updateStatusBarItem(gqlDocStartCommandId, `$(target) Doc`, docStatusBarItem)
+  docStatusBarItem.show()
+  updateStatusBarItem(gqlDocMockCommandId, `$(play) Mock`, mockStatusBarItem)
+  mockStatusBarItem.show()
 }
 
 export function deactivate(context: vscode.ExtensionContext) {}
 
 /** 底部bar更新函数 */
-function updateStatusBarItem(commandId: string, text: string, color?: string) {
-  myStatusBarItem.command = commandId
-  myStatusBarItem.text = text
-  myStatusBarItem.color = color
+function updateStatusBarItem(commandId: string, text: string, statusBarItem: vscode.StatusBarItem, color?: string) {
+  statusBarItem.command = commandId
+  statusBarItem.text = text
+  statusBarItem.color = color
 }
 
 /** webview函数 */
