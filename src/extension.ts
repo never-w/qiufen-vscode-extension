@@ -16,10 +16,11 @@ const gqlDocStartCommandId = "gqlDoc.start"
 const gqlDocCloseCommandId = "gqlDoc.close"
 const gqlDocMockCloseCommandId = "gqlDoc.mockClose"
 const gqlDocMockCommandId = "gqlDoc.mock"
-const workspaceRootPath = vscode.workspace.workspaceFolders?.[0].uri.fsPath // 工作区根目录
 
-const qiufenConfigPath = path.join(workspaceRootPath!, "qiufen.config.js")
-const isExistConfigFile = fs.existsSync(qiufenConfigPath)
+// const workspaceRootPath = vscode.workspace.workspaceFolders?.[0].uri.fsPath // 工作区根目录
+
+// const qiufenConfigPath = path.join(workspaceRootPath!, "qiufen.config.js")
+// const isExistConfigFile = fs.existsSync(qiufenConfigPath)
 let qiufenConfig: GraphqlKitConfig
 let port: number
 let url: string
@@ -33,6 +34,7 @@ export function activate(context: vscode.ExtensionContext) {
       }
 
       if (!currentPanel) {
+        const { qiufenConfigPath, isExistConfigFile } = getWorkspaceConfig()
         const jsonSettings = vscode.workspace.getConfiguration("gql-doc")
         if (isExistConfigFile) {
           /** 去除require缓存 */
@@ -125,6 +127,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Start Mock命令注册
     vscode.commands.registerCommand(gqlDocMockCommandId, async () => {
+      const { qiufenConfigPath, isExistConfigFile } = getWorkspaceConfig()
       const jsonSettings = vscode.workspace.getConfiguration("gql-doc")
       if (isExistConfigFile) {
         /** 去除require缓存 */
@@ -202,6 +205,14 @@ function updateStatusBarItem(commandId: string, text: string, statusBarItem: vsc
   statusBarItem.command = commandId
   statusBarItem.text = text
   statusBarItem.color = color
+}
+
+function getWorkspaceConfig() {
+  const workspaceRootPath = vscode.workspace.workspaceFolders?.[0].uri.fsPath // 工作区根目录
+  const qiufenConfigPath = path.join(workspaceRootPath!, "qiufen.config.js")
+  const isExistConfigFile = fs.existsSync(qiufenConfigPath)
+
+  return { workspaceRootPath, qiufenConfigPath, isExistConfigFile }
 }
 
 /** webview函数 */
