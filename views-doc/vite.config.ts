@@ -13,7 +13,7 @@ export default defineConfig({
   },
   build: {
     target: 'modules',
-    outDir: '../page-view',
+    outDir: '../dist-page-view',
     assetsDir: 'assets',
     minify: 'terser', // 混淆器
   },

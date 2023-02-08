@@ -1,6 +1,7 @@
 const path = require("path")
 const { DefinePlugin } = require("webpack")
 const { CleanWebpackPlugin } = require("clean-webpack-plugin")
+const CopyWebpackPlugin = require("copy-webpack-plugin")
 
 //@ts-check
 /** @typedef {import('webpack').Configuration} WebpackConfig **/
@@ -42,6 +43,14 @@ const extensionConfig = {
       },
     }),
     new CleanWebpackPlugin(),
+    new CopyWebpackPlugin({
+      patterns: [
+        {
+          from: "./src/server-mock/public",
+          to: "./public",
+        },
+      ],
+    }),
   ],
   module: {
     rules: [

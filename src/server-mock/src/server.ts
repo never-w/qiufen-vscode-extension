@@ -145,7 +145,7 @@ const startServer = (config: GraphqlKitConfig): Promise<Server> => {
       // const viewDocController = createViewDocControllerController()
       // app.use(viewDocController)
 
-      app.use(express.static(path.resolve(__dirname, "../page-view")))
+      app.use(express.static(path.resolve(__dirname, "../dist-page-view")))
 
       const server = app.listen(port, "0.0.0.0", () => {
         console.log(chalk.green(`Running a GraphQL server at http://${ip}:${port}/graphql`))

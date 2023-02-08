@@ -11,7 +11,7 @@ const createPlaygroundController = (rawSchema: GraphQLSchema, config: GraphqlKit
   const router = express.Router()
   const { mock, playground } = config
 
-  router.use(`/graphql-playground-react`, express.static(path.join(__dirname, "../src/server-mock/public/graphql-playground-react")))
+  router.use(`/graphql-playground-react`, express.static(path.join(__dirname, "./public/graphql-playground-react")))
   // serve a playground
   router.get(`/playground`, (req, res) => {
     const { operationType, operationName } = req.query as {

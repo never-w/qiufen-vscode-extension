@@ -4,7 +4,7 @@
   "description": "Graphql Graphql-tool Graphql-Doc schema",
   "author": "never-w",
   "publisher": "never-w",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "engines": {
     "vscode": "^1.62.0"
   },
@@ -116,6 +116,7 @@
     "@vscode/test-electron": "^2.2.0",
     "bufferutil": "^4.0.7",
     "clean-webpack-plugin": "^4.0.0",
+    "copy-webpack-plugin": "^11.0.0",
     "css-loader": "^6.7.3",
     "eslint": "^8.28.0",
     "file-loader": "^6.2.0",
