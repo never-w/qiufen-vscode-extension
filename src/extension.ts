@@ -170,7 +170,19 @@ export function activate(context: vscode.ExtensionContext) {
         }
       }
 
-      vscode.env.openExternal(vscode.Uri.parse(`http://localhost:${port}`))
+      const res = await vscode.window.showInformationMessage(
+        "是否打开 Mock 网页Doc？",
+        {
+          modal: true,
+        },
+        "确定"
+      )
+
+      // 当点击确定时才打开网页
+      if (!!res) {
+        vscode.env.openExternal(vscode.Uri.parse(`http://localhost:${port}`))
+      }
+
       updateStatusBarItem(gqlDocMockCloseCommandId, `$(play) Close Mock`, mockStatusBarItem, "yellow")
     })
   )
