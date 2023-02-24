@@ -1,6 +1,6 @@
 import React, { useMemo } from "react"
 import type { FC } from "react"
-import { buildSchema, print } from "graphql"
+import { buildSchema, GraphQLSchema, print } from "graphql"
 import { message, Space, Table, Tooltip, Switch, Divider, Tag, Button } from "antd"
 import type { ColumnsType } from "antd/lib/table"
 import ReactDiffViewer, { DiffMethod } from "react-diff-viewer"
@@ -200,8 +200,24 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
   }, [operation])
 
   const schema = buildSchema(typeDefs)
-  const localSchema = buildSchema(localTypeDefs)
-  const localOperation = getOperationsBySchema(localSchema).find((operationItem) => operationItem.name === operation.name) || null
+  let localSchema: GraphQLSchema
+  try {
+    localSchema = buildSchema(
+      // 这里给个默认值，意思是当本地schema什么都没有时
+      localTypeDefs ||
+        `
+  schema {ss
+    query: Query
+  }
+  type Query {
+    qiufenquery: String
+  }
+  `
+    )
+  } catch (error) {
+    message.error(`SyntaxError：Unexpected of local schema and ${error}`)
+  }
+  const localOperation = getOperationsBySchema(localSchema!).find((operationItem) => operationItem.name === operation.name) || null
 
   return (
     <Space id={operation.name} className={styles.operationDoc} direction="vertical">
@@ -294,7 +310,7 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
             localOperation
               ? print(
                   buildOperationNodeForField({
-                    schema: localSchema,
+                    schema: localSchema!,
                     kind: localOperation.operationType,
                     field: localOperation.name,
                   })
