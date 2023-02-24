@@ -1,10 +1,9 @@
 import { readFileSync, existsSync } from "fs"
+import * as vscode from "vscode"
 import express from "express"
 import bodyParser from "body-parser"
 import chalk from "chalk"
 import { buildSchema } from "graphql"
-import { UrlLoader } from "@graphql-tools/url-loader"
-import { loadSchema } from "@graphql-tools/load"
 import { stitchSchemas } from "@graphql-tools/stitch"
 import createGraphqlController from "./graphqlController"
 import createPlaygroundController from "./playgroundController"
@@ -13,7 +12,7 @@ import type { GraphqlKitConfig, MockConfig } from "./interface"
 import type { Server } from "http"
 import createOperationsController from "./operations"
 import path from "path"
-// import createViewDocControllerController from "./viewDocContraller"
+import fetchRemoteSchemaTypeDefs from "@/utils/fetchRemoteSchemaTypeDefs"
 
 interface LoadSchemaOptions {
   schemaPolicy?: GraphqlKitConfig["schemaPolicy"]
@@ -31,13 +30,13 @@ async function getGraphQLSchema({ schemaPolicy, endpointUrl, localSchemaFile = "
   switch (schemaPolicy) {
     case undefined:
     case "remote":
+      let backendTypeDefs
       try {
-        backendSchema = await loadSchema(endpointUrl, {
-          loaders: [new UrlLoader()],
-        })
+        backendTypeDefs = await fetchRemoteSchemaTypeDefs(endpointUrl)
       } catch (err) {
-        throw new Error("there is an error when loading a remote schema")
+        throw err
       }
+      backendSchema = buildSchema(backendTypeDefs)
       break
     case "local":
       if (!localSchemaFile) {
@@ -53,8 +52,10 @@ async function getGraphQLSchema({ schemaPolicy, endpointUrl, localSchemaFile = "
       }
       break
     default:
-      throw new Error(`unknown schemaPolicy ${schemaPolicy}`)
+      vscode.window.showErrorMessage(`unknown schemaPolicy ${schemaPolicy}`)
+      throw new Error("error!!!")
   }
+
   return stitchSchemas({
     mergeDirectives: true,
     typeDefs: [
@@ -87,6 +88,7 @@ async function getGraphQLSchema({ schemaPolicy, endpointUrl, localSchemaFile = "
             }
           }
         } catch (err) {
+          // eslint-disable-next-line no-throw-literal
           throw err as Error
         }
       }),
@@ -99,7 +101,6 @@ async function getGraphQLSchema({ schemaPolicy, endpointUrl, localSchemaFile = "
  * @param configPath - the absolute path of config file
  */
 const startServer = (config: GraphqlKitConfig): Promise<Server> => {
-  // eslint-disable-next-line no-async-promise-executor
   return new Promise(async (resolve, reject) => {
     try {
       const app = express()
@@ -127,8 +128,7 @@ const startServer = (config: GraphqlKitConfig): Promise<Server> => {
           })
           return schema
         } catch (err) {
-          console.log(chalk.red(err as any))
-          process.exit(1)
+          throw err
         }
       }
 
@@ -142,16 +142,9 @@ const startServer = (config: GraphqlKitConfig): Promise<Server> => {
       const operationsController = createOperationsController()
       app.use(operationsController)
 
-      // const viewDocController = createViewDocControllerController()
-      // app.use(viewDocController)
-
       app.use(express.static(path.resolve(__dirname, "../dist-page-view")))
 
-      const server = app.listen(port, "0.0.0.0", () => {
-        console.log(chalk.green(`Running a GraphQL server at http://${ip}:${port}/graphql`))
-        console.log(chalk.green(`You can view api docs at http://${ip}:${port}/`))
-      })
-
+      const server = app.listen(port, "0.0.0.0")
       resolve(server)
     } catch (err) {
       reject(err)

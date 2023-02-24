@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from "react"
-import { Spin } from "antd"
+import { Spin, message } from "antd"
 import { FC, useEffect } from "react"
 import DocSidebar from "@/webview/components/side-bar/index"
 import useBearStore from "./stores"
@@ -34,9 +34,21 @@ const App: FC<IProps> = () => {
   }, [operations])
 
   const onBtnClick = async () => {
+    let timer: NodeJS.Timeout | undefined
     setLoading(true)
     vscode.postMessage(false)
-    await reloadOperations()
+    try {
+      await Promise.race([
+        reloadOperations(),
+        new Promise((_, reject) => {
+          timer = setTimeout(() => {
+            message.error("network error")
+            return reject(new Error("request timeout"))
+          }, 10000)
+        }),
+      ])
+    } catch {}
+    clearTimeout(timer)
     setLoading(false)
   }
 

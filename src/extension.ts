@@ -1,14 +1,15 @@
 import * as vscode from "vscode"
 import * as path from "path"
 import type { Server } from "http"
-import fetchOperations from "./utils/fetchOperations"
+import { buildSchema } from "graphql"
 import getIpAddress from "./utils/getIpAddress"
-import { startServer } from "./server-mock/src"
-import { defaultQiufenConfig } from "./config"
+import { getOperationsBySchema } from "./utils/operation"
 import getWorkspaceConfig from "./utils/getWorkspaceConfig"
 import fetchRemoteSchemaTypeDefs from "./utils/fetchRemoteSchemaTypeDefs"
-import updateStatusBarItem, { loadingStatusBarItem } from "./utils/updateStatusBarItem"
+import { updateStatusBarItem, loadingStatusBarItem } from "./utils/updateStatusBarItem"
+import { defaultQiufenConfig } from "./config"
 import { gqlDocCloseCommandId, gqlDocMockCloseCommandId, gqlDocMockCommandId, gqlDocStartCommandId } from "./config/commands"
+import { startServer } from "./server-mock/src"
 
 let serverMock: Server
 let docStatusBarItem: vscode.StatusBarItem
@@ -26,11 +27,17 @@ export function activate(context: vscode.ExtensionContext) {
       if (!currentPanel) {
         loadingStatusBarItem(docStatusBarItem, "Doc")
         const { url, port } = getWorkspaceConfig()
-        // 获取gql接口数据
-        const operations = await fetchOperations(url)
-        // 获取远程schema typeDefs
-        const backendTypeDefs = await fetchRemoteSchemaTypeDefs(url)
 
+        // 获取远程schema typeDefs
+        let backendTypeDefs: string | undefined
+        try {
+          backendTypeDefs = await fetchRemoteSchemaTypeDefs(url)
+        } catch (e) {
+          updateStatusBarItem(gqlDocStartCommandId, `$(target) Doc`, docStatusBarItem)
+          throw e
+        }
+        const schema = buildSchema(backendTypeDefs)
+        const operations = getOperationsBySchema(schema)
         if (!operations) {
           return
         }
@@ -57,16 +64,22 @@ export function activate(context: vscode.ExtensionContext) {
 
               currentPanel!.webview.postMessage(messageObj)
             } else {
-              fetchOperations(url).then((operationsRes) => {
-                const messageObj = {
-                  typeDefs: backendTypeDefs,
-                  port,
-                  operations: operationsRes,
-                  IpAddress: getIpAddress(),
-                }
+              fetchRemoteSchemaTypeDefs(url)
+                .then((resTypeDefs) => {
+                  const schema = buildSchema(resTypeDefs)
+                  const operations = getOperationsBySchema(schema)
+                  const messageObj = {
+                    typeDefs: backendTypeDefs,
+                    port,
+                    operations,
+                    IpAddress: getIpAddress(),
+                  }
 
-                currentPanel!.webview.postMessage(messageObj)
-              })
+                  currentPanel!.webview.postMessage(messageObj)
+                })
+                .catch((e) => {
+                  throw e
+                })
             }
           },
           undefined,
@@ -105,9 +118,9 @@ export function activate(context: vscode.ExtensionContext) {
       if (isExistConfigFile) {
         try {
           serverMock = await startServer(qiufenConfig!)
-        } catch {
-          vscode.window.showErrorMessage("网络异常！！！")
-          return
+        } catch (err) {
+          updateStatusBarItem(gqlDocMockCommandId, `$(play) Mock`, mockStatusBarItem)
+          throw err
         }
       } else {
         try {
@@ -118,9 +131,9 @@ export function activate(context: vscode.ExtensionContext) {
             },
             ...defaultQiufenConfig,
           })
-        } catch {
-          vscode.window.showErrorMessage("网络异常！！！")
-          return
+        } catch (err) {
+          updateStatusBarItem(gqlDocMockCommandId, `$(play) Mock`, mockStatusBarItem)
+          throw err
         }
       }
 

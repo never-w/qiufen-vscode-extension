@@ -1,8 +1,10 @@
 import express from "express"
 import * as vscode from "vscode"
 import * as path from "path"
-import fetchOperations from "@/utils/fetchOperations"
 import getIpAddress from "@/utils/getIpAddress"
+import fetchRemoteSchemaTypeDefs from "@/utils/fetchRemoteSchemaTypeDefs"
+import { getOperationsBySchema } from "@/utils/operation"
+import { buildSchema } from "graphql"
 
 const router = express.Router()
 
@@ -26,7 +28,14 @@ const createOperationsController = () => {
   }
 
   router.get("/operations", async (req, res) => {
-    const operations = await fetchOperations(url)
+    let backendTypeDefs
+    try {
+      backendTypeDefs = await fetchRemoteSchemaTypeDefs(url)
+    } catch (error) {
+      throw error
+    }
+    const schema = buildSchema(backendTypeDefs)
+    const operations = getOperationsBySchema(schema)
     res.send(operations)
   })
 

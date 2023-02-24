@@ -1,11 +1,12 @@
 import path from "path"
 import express from "express"
-import { genGQLStr, genArgsExample, getOperationsBySchema } from "@fruits-chain/qiufen-helpers"
+import { genGQLStr, genArgsExample } from "@fruits-chain/qiufen-helpers"
 import { renderPlaygroundPage } from "graphql-playground-html"
 import { BASE_PATH } from "./graphqlController"
 import type { RenderPageOptions } from "graphql-playground-html"
 import type { GraphqlKitConfig } from "./interface"
 import type { GraphQLSchema, OperationTypeNode } from "graphql"
+import { getOperationsBySchema } from "@/utils/operation"
 
 const createPlaygroundController = (rawSchema: GraphQLSchema, config: GraphqlKitConfig, ip: string) => {
   const router = express.Router()
