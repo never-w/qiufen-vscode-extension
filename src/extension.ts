@@ -1,11 +1,11 @@
 import * as vscode from "vscode"
 import * as path from "path"
-import fs from "fs"
 import type { Server } from "http"
 import fetchOperations from "./utils/fetchOperations"
 import getIpAddress from "./utils/getIpAddress"
 import { startServer } from "./server-mock/src"
 import { defaultQiufenConfig } from "./config"
+import getWorkspaceConfig from "./utils/getWorkspaceConfig"
 
 let serverMock: Server
 let docStatusBarItem: vscode.StatusBarItem
@@ -56,6 +56,25 @@ export function activate(context: vscode.ExtensionContext) {
 
         // 获取gql接口数据
         const operations = await fetchOperations(url)
+        // 获取schema
+        const response = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            query: `
+                      query sdl{
+                           _service{
+                              sdl
+                             }
+                          }
+                  `,
+          }),
+        })
+        const { data } = (await response.json()) as any
+        const backendTypeDefs = data._service.sdl as string
+
         if (!operations) {
           return
         }
@@ -75,6 +94,7 @@ export function activate(context: vscode.ExtensionContext) {
           (message) => {
             if (message) {
               const messageObj = {
+                typeDefs: backendTypeDefs,
                 port,
                 operations,
                 IpAddress: getIpAddress(),
@@ -84,6 +104,7 @@ export function activate(context: vscode.ExtensionContext) {
             } else {
               fetchOperations(url).then((operationsRes) => {
                 const messageObj = {
+                  typeDefs: backendTypeDefs,
                   port,
                   operations: operationsRes,
                   IpAddress: getIpAddress(),
@@ -205,14 +226,6 @@ function updateStatusBarItem(commandId: string, text: string, statusBarItem: vsc
   statusBarItem.command = commandId
   statusBarItem.text = text
   statusBarItem.color = color
-}
-
-function getWorkspaceConfig() {
-  const workspaceRootPath = vscode.workspace.workspaceFolders?.[0].uri.fsPath // 工作区根目录
-  const qiufenConfigPath = path.join(workspaceRootPath!, "qiufen.config.js")
-  const isExistConfigFile = fs.existsSync(qiufenConfigPath)
-
-  return { workspaceRootPath, qiufenConfigPath, isExistConfigFile }
 }
 
 /** webview函数 */
