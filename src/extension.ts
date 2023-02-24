@@ -7,7 +7,7 @@ import { startServer } from "./server-mock/src"
 import { defaultQiufenConfig } from "./config"
 import getWorkspaceConfig from "./utils/getWorkspaceConfig"
 import fetchRemoteSchemaTypeDefs from "./utils/fetchRemoteSchemaTypeDefs"
-import updateStatusBarItem from "./utils/updateStatusBarItem"
+import updateStatusBarItem, { loadingStatusBarItem } from "./utils/updateStatusBarItem"
 import { gqlDocCloseCommandId, gqlDocMockCloseCommandId, gqlDocMockCommandId, gqlDocStartCommandId } from "./config/commands"
 
 let serverMock: Server
@@ -18,14 +18,13 @@ let currentPanel: vscode.WebviewPanel | undefined = undefined
 export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand(gqlDocStartCommandId, async () => {
-      updateStatusBarItem(gqlDocCloseCommandId, `$(target) Close Doc`, docStatusBarItem, "yellow")
-
       const columnToShowIn = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined
       if (currentPanel) {
         currentPanel.reveal(columnToShowIn)
       }
 
       if (!currentPanel) {
+        loadingStatusBarItem(docStatusBarItem, "Doc")
         const { url, port } = getWorkspaceConfig()
         // 获取gql接口数据
         const operations = await fetchOperations(url)
@@ -74,6 +73,8 @@ export function activate(context: vscode.ExtensionContext) {
           context.subscriptions
         )
 
+        updateStatusBarItem(gqlDocCloseCommandId, `$(target) Close Doc`, docStatusBarItem, "yellow")
+
         // 当前面板被关闭后重置
         currentPanel.onDidDispose(
           () => {
@@ -100,6 +101,7 @@ export function activate(context: vscode.ExtensionContext) {
     // Start Mock命令注册
     vscode.commands.registerCommand(gqlDocMockCommandId, async () => {
       const { isExistConfigFile, url, port, qiufenConfig } = getWorkspaceConfig()
+      loadingStatusBarItem(mockStatusBarItem, "Mock")
       if (isExistConfigFile) {
         try {
           serverMock = await startServer(qiufenConfig!)
