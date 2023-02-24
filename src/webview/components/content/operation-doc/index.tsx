@@ -1,18 +1,18 @@
 import React, { useMemo } from "react"
+import type { FC } from "react"
+import { buildSchema, print } from "graphql"
 import { message, Space, Table, Tooltip, Switch, Divider, Tag, Button } from "antd"
+import type { ColumnsType } from "antd/lib/table"
 import ReactDiffViewer, { DiffMethod } from "react-diff-viewer"
+import obj2str from "stringify-object"
 import { CopyOutlined, PlayCircleOutlined, MenuFoldOutlined } from "@ant-design/icons"
 import ClipboardJS from "clipboard"
 import { genGQLStr } from "@fruits-chain/qiufen-helpers"
 import { useToggle } from "@fruits-chain/hooks-laba"
-import AceEditor, { diff as DiffEditor } from "react-ace"
-import obj2str from "stringify-object"
 import styles from "./index.module.less"
+import { getOperationsBySchema } from "@/utils/operation"
 import type { TypedOperation, ArgTypeDef, ObjectFieldTypeDef } from "@fruits-chain/qiufen-helpers"
-import type { ColumnsType } from "antd/lib/table"
-import type { FC } from "react"
 import useBearStore from "@/webview/stores"
-import { buildSchema, print } from "graphql"
 import { buildOperationNodeForField } from "@/utils/buildOperationNodeForField"
 
 interface IProps {
@@ -178,7 +178,7 @@ export const copy = (selector: string) => {
 }
 
 const OperationDoc: FC<IProps> = ({ operation }) => {
-  const { IpAddress, isDisplaySidebar, setState, port, typeDefs } = useBearStore((ste) => ste)
+  const { IpAddress, isDisplaySidebar, setState, port, typeDefs, localTypeDefs } = useBearStore((ste) => ste)
   const [mode, { toggle: toggleMode }] = useToggle<"TABLE", "EDITOR">("TABLE", "EDITOR")
 
   const argsTreeData = useMemo(() => {
@@ -200,6 +200,8 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
   }, [operation])
 
   const schema = buildSchema(typeDefs)
+  const localSchema = buildSchema(localTypeDefs)
+  const localOperation = getOperationsBySchema(localSchema).find((operationItem) => operationItem.name === operation.name) || null
 
   return (
     <Space id={operation.name} className={styles.operationDoc} direction="vertical">
@@ -260,88 +262,52 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
           />
         </Space>
       </div>
-      {/* {!!argsTreeData.length && (
+      {!!argsTreeData.length && (
         <>
           <Divider className={styles.divider} />
           <div className={styles.paramsText}>Params: </div>
           {mode === "TABLE" ? (
             <Table columns={argsColumns} defaultExpandAllRows className={styles.table} dataSource={argsTreeData} pagination={false} bordered />
           ) : (
-            <AceEditor theme="tomorrow" mode="javascript" width="100%" readOnly maxLines={Infinity} value={obj2str(operation.argsExample)} />
+            <ReactDiffViewer
+              oldValue={localOperation ? obj2str(localOperation.argsExample) : "nothings..."}
+              newValue={obj2str(operation.argsExample)}
+              splitView={true}
+              compareMethod={DiffMethod.SENTENCES}
+              showDiffOnly={false}
+              hideLineNumbers
+              leftTitle="Old"
+              rightTitle="New"
+              renderContent={(codeStr) => {
+                return <div style={{ fontFamily: "Consolas", fontSize: 12, color: "#000", lineHeight: "13px" }}>{codeStr}</div>
+              }}
+            />
           )}
         </>
       )}
-      <div>Response: </div> */}
+      <div>Response: </div>
       {mode === "TABLE" ? (
         <Table columns={objectFieldsColumns} defaultExpandAllRows className={styles.table} dataSource={objectFieldsTreeData} pagination={false} bordered />
       ) : (
-        // <AceEditor
-        //   theme="textmate"
-        //   mode="javascript"
-        //   width="100%"
-        //   fontSize={13}
-        //   showPrintMargin={true}
-        //   showGutter={true}
-        //   highlightActiveLine={true}
-        //   name={`${operation.name}_${operation.operationType}`}
-        //   maxLines={Infinity}
-        //   onChange={(newValue) => {
-        //     console.log("change", newValue)
-        //   }}
-        //   value={print(
-        //     buildOperationNodeForField({
-        //       schema,
-        //       kind: operation.operationType,
-        //       field: operation.name,
-        //     })
-        //   )}
-        //   setOptions={{
-        //     theme: "textmate",
-        //     enableBasicAutocompletion: true,
-        //     enableLiveAutocompletion: true,
-        //     enableSnippets: true,
-        //     showLineNumbers: true,
-        //     tabSize: 2,
-        //   }}
-        // />
-        // <DiffEditor
-        //   enableBasicAutocompletion
-        //   enableLiveAutocompletion
-        //   value={[
-        // print(
-        //   buildOperationNodeForField({
-        //     schema,
-        //     kind: operation.operationType,
-        //     field: operation.name,
-        //   })
-        // ),
-        // print(
-        //   buildOperationNodeForField({
-        //     schema,
-        //     kind: operation.operationType,
-        //     field: operation.name,
-        //   })
-        // ).replace("adjustmentId", ""),
-        //   ]}
-        //   height="1000px"
-        //   width="1000px"
-        //   mode="Javascript"
-        // />
         <ReactDiffViewer
-          oldValue={print(
-            buildOperationNodeForField({
-              schema,
-              kind: operation.operationType,
-              field: operation.name,
-            })
-          )}
+          oldValue={
+            localOperation
+              ? print(
+                  buildOperationNodeForField({
+                    schema: localSchema,
+                    kind: localOperation.operationType,
+                    field: localOperation.name,
+                  })
+                )
+              : "nothings..."
+          }
           newValue={print(
             buildOperationNodeForField({
               schema,
               kind: operation.operationType,
               field: operation.name,
             })
-          ).replace("adjustmentId", "")}
+          )}
           splitView={true}
           compareMethod={DiffMethod.SENTENCES}
           showDiffOnly={false}

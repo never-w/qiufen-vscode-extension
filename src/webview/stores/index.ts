@@ -9,6 +9,7 @@ interface MessageEvent {
   isDisplaySidebar: boolean
   port: number
   typeDefs: string
+  localTypeDefs: string
 }
 
 interface BearState extends MessageEvent {
@@ -20,6 +21,7 @@ interface BearState extends MessageEvent {
 const useBearStore = create<BearState>((set, get) => {
   return {
     port: 9400,
+    localTypeDefs: "",
     operations: [],
     IpAddress: "",
     typeDefs: "",

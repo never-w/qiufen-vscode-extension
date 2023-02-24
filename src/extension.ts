@@ -10,11 +10,12 @@ import { updateStatusBarItem, loadingStatusBarItem } from "./utils/updateStatusB
 import { defaultQiufenConfig } from "./config"
 import { gqlDocCloseCommandId, gqlDocMockCloseCommandId, gqlDocMockCommandId, gqlDocStartCommandId } from "./config/commands"
 import { startServer } from "./server-mock/src"
+import readLocalSchemaTypeDefs from "./utils/readLocalSchemaTypeDefs"
 
 let serverMock: Server
 let docStatusBarItem: vscode.StatusBarItem
 let mockStatusBarItem: vscode.StatusBarItem
-let currentPanel: vscode.WebviewPanel | undefined = undefined
+let currentPanel: vscode.WebviewPanel | undefined
 
 export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
@@ -51,11 +52,14 @@ export function activate(context: vscode.ExtensionContext) {
         const srcUrl = currentPanel.webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, "dist", "webview.js")))
         currentPanel.webview.html = getWebviewContent(srcUrl)
 
+        // 读取本地的schema类型定义
+        const localTypeDefs = readLocalSchemaTypeDefs()
         // 接受webview发送的信息，且再向webview发送信息，这样做为了解决它们两者通信有时不得行的bug
         currentPanel.webview.onDidReceiveMessage(
           (message) => {
             if (message) {
               const messageObj = {
+                localTypeDefs,
                 typeDefs: backendTypeDefs,
                 port,
                 operations,
@@ -69,6 +73,7 @@ export function activate(context: vscode.ExtensionContext) {
                   const schema = buildSchema(resTypeDefs)
                   const operations = getOperationsBySchema(schema)
                   const messageObj = {
+                    localTypeDefs,
                     typeDefs: backendTypeDefs,
                     port,
                     operations,
