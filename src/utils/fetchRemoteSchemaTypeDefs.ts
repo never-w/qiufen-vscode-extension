@@ -1,3 +1,5 @@
+import fetch from "node-fetch"
+
 async function fetchRemoteSchemaTypeDefs(url: string) {
   const response = await fetch(url, {
     method: "POST",

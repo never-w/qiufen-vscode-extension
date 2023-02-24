@@ -18,6 +18,8 @@ let currentPanel: vscode.WebviewPanel | undefined = undefined
 export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand(gqlDocStartCommandId, async () => {
+      updateStatusBarItem(gqlDocCloseCommandId, `$(target) Close Doc`, docStatusBarItem, "yellow")
+
       const columnToShowIn = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined
       if (currentPanel) {
         currentPanel.reveal(columnToShowIn)
@@ -82,8 +84,6 @@ export function activate(context: vscode.ExtensionContext) {
           context.subscriptions
         )
       }
-
-      updateStatusBarItem(gqlDocCloseCommandId, `$(target) Close Doc`, docStatusBarItem, "yellow")
     }),
     // 关闭gql doc命令注册
     vscode.commands.registerCommand(gqlDocCloseCommandId, () => {
