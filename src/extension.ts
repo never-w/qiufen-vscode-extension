@@ -6,24 +6,14 @@ import getIpAddress from "./utils/getIpAddress"
 import { startServer } from "./server-mock/src"
 import { defaultQiufenConfig } from "./config"
 import getWorkspaceConfig from "./utils/getWorkspaceConfig"
+import fetchRemoteSchemaTypeDefs from "./utils/fetchRemoteSchemaTypeDefs"
+import updateStatusBarItem from "./utils/updateStatusBarItem"
+import { gqlDocCloseCommandId, gqlDocMockCloseCommandId, gqlDocMockCommandId, gqlDocStartCommandId } from "./config/commands"
 
 let serverMock: Server
 let docStatusBarItem: vscode.StatusBarItem
 let mockStatusBarItem: vscode.StatusBarItem
 let currentPanel: vscode.WebviewPanel | undefined = undefined
-
-const gqlDocStartCommandId = "gqlDoc.start"
-const gqlDocCloseCommandId = "gqlDoc.close"
-const gqlDocMockCloseCommandId = "gqlDoc.mockClose"
-const gqlDocMockCommandId = "gqlDoc.mock"
-
-// const workspaceRootPath = vscode.workspace.workspaceFolders?.[0].uri.fsPath // 工作区根目录
-
-// const qiufenConfigPath = path.join(workspaceRootPath!, "qiufen.config.js")
-// const isExistConfigFile = fs.existsSync(qiufenConfigPath)
-let qiufenConfig: GraphqlKitConfig
-let port: number
-let url: string
 
 export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
@@ -34,52 +24,16 @@ export function activate(context: vscode.ExtensionContext) {
       }
 
       if (!currentPanel) {
-        const { qiufenConfigPath, isExistConfigFile } = getWorkspaceConfig()
-        const jsonSettings = vscode.workspace.getConfiguration("gql-doc")
-        if (isExistConfigFile) {
-          /** 去除require缓存 */
-          delete eval("require.cache")[qiufenConfigPath]
-          qiufenConfig = eval("require")(qiufenConfigPath) as GraphqlKitConfig
-          port = qiufenConfig.port
-          url = qiufenConfig.endpoint.url
-        } else {
-          port = jsonSettings?.port
-          url = jsonSettings?.endpointUrl
-        }
-
-        if (!port) {
-          return vscode.window.showErrorMessage("请在项目根目录 .vscode/settings.json 中配置port！！！")
-        }
-        if (!url) {
-          return vscode.window.showErrorMessage("请在项目根目录 .vscode/settings.json 中配置schema地址！！！")
-        }
-
+        const { url, port } = getWorkspaceConfig()
         // 获取gql接口数据
         const operations = await fetchOperations(url)
-        // 获取schema
-        const response = await fetch(url, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            query: `
-                      query sdl{
-                           _service{
-                              sdl
-                             }
-                          }
-                  `,
-          }),
-        })
-        const { data } = (await response.json()) as any
-        const backendTypeDefs = data._service.sdl as string
+        // 获取远程schema typeDefs
+        const backendTypeDefs = await fetchRemoteSchemaTypeDefs(url)
 
         if (!operations) {
           return
         }
 
-        // 创建webview画板
         currentPanel = vscode.window.createWebviewPanel("gqlDoc", "Gql Doc", columnToShowIn!, {
           retainContextWhenHidden: true, // 保证 Webview 所在页面进入后台时不被释放
           enableScripts: true,
@@ -131,7 +85,6 @@ export function activate(context: vscode.ExtensionContext) {
 
       updateStatusBarItem(gqlDocCloseCommandId, `$(target) Close Doc`, docStatusBarItem, "yellow")
     }),
-
     // 关闭gql doc命令注册
     vscode.commands.registerCommand(gqlDocCloseCommandId, () => {
       if (currentPanel) {
@@ -139,47 +92,22 @@ export function activate(context: vscode.ExtensionContext) {
         updateStatusBarItem(gqlDocStartCommandId, `$(target) Doc`, docStatusBarItem)
       }
     }),
-
     // Close Mock命令注册
     vscode.commands.registerCommand(gqlDocMockCloseCommandId, () => {
       serverMock.close()
       updateStatusBarItem(gqlDocMockCommandId, `$(play) Mock`, mockStatusBarItem)
     }),
-
     // Start Mock命令注册
     vscode.commands.registerCommand(gqlDocMockCommandId, async () => {
-      const { qiufenConfigPath, isExistConfigFile } = getWorkspaceConfig()
-      const jsonSettings = vscode.workspace.getConfiguration("gql-doc")
+      const { isExistConfigFile, url, port, qiufenConfig } = getWorkspaceConfig()
       if (isExistConfigFile) {
-        /** 去除require缓存 */
-        delete eval("require.cache")[qiufenConfigPath]
-        qiufenConfig = eval("require")(qiufenConfigPath) as GraphqlKitConfig
-        port = qiufenConfig.port
-        url = qiufenConfig.endpoint.url
-
-        if (!port) {
-          return vscode.window.showErrorMessage("请在项目根目录 .vscode/settings.json 中配置port！！！")
-        }
-        if (!url) {
-          return vscode.window.showErrorMessage("请在项目根目录 .vscode/settings.json 中配置schema地址！！！")
-        }
-
         try {
-          serverMock = await startServer(qiufenConfig)
+          serverMock = await startServer(qiufenConfig!)
         } catch {
           vscode.window.showErrorMessage("网络异常！！！")
           return
         }
       } else {
-        port = jsonSettings?.port
-        url = jsonSettings?.endpointUrl
-
-        if (!port) {
-          return vscode.window.showErrorMessage("请在项目根目录 .vscode/settings.json 中配置port！！！")
-        }
-        if (!url) {
-          return vscode.window.showErrorMessage("请在项目根目录 .vscode/settings.json 中配置schema地址！！！")
-        }
         try {
           serverMock = await startServer({
             port,
@@ -221,14 +149,8 @@ export function activate(context: vscode.ExtensionContext) {
   mockStatusBarItem.show()
 }
 
-/** 底部bar更新函数 */
-function updateStatusBarItem(commandId: string, text: string, statusBarItem: vscode.StatusBarItem, color?: string) {
-  statusBarItem.command = commandId
-  statusBarItem.text = text
-  statusBarItem.color = color
-}
+export function deactivate(context: vscode.ExtensionContext) {}
 
-/** webview函数 */
 function getWebviewContent(srcUrl: vscode.Uri) {
   const renderHtml = `
           <!DOCTYPE html>
@@ -247,8 +169,7 @@ function getWebviewContent(srcUrl: vscode.Uri) {
   return renderHtml
 }
 
-export function deactivate(context: vscode.ExtensionContext) {}
-
+// TODO 暂时不删除以防后面记忆
 // const gqlDocSettingCommandId = "gqlDoc.settings"
 // vscode.commands.registerCommand(gqlDocSettingCommandId, () => {
 //   vscode.commands.executeCommand("workbench.action.openSettings", "@ext:never-w.gql-doc")
