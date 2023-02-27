@@ -349,6 +349,7 @@ function resolveSelectionSet({
           return null
         })
         .filter((f): f is SelectionNode => {
+          // eslint-disable-next-line eqeqeq
           if (f == null) {
             return false
           } else if ("selectionSet" in f) {

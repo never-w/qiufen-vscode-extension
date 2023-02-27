@@ -8,8 +8,6 @@ export function loadingStatusBarItem(statusBarItem: StatusBarItem, text: string)
   statusBarItem.show()
 }
 
-// export function resetStatusBarItem(commandId: string, text: string, statusBarItem: StatusBarItem, color?: string) {}
-
 export function updateStatusBarItem(commandId: string, text: string, statusBarItem: StatusBarItem, color?: string) {
   statusBarItem.command = commandId
   statusBarItem.text = text
