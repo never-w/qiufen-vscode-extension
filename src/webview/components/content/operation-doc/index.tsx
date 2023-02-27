@@ -29,12 +29,10 @@ type ArgColumnRecord = {
   children: ArgColumnRecord[] | null
 }
 
-type SwitchToggleType = "EDITOR" | "TABLE" | "DIFF"
-
 enum SwitchToggleEnum {
-  editor = "EDITOR",
-  table = "TABLE",
-  diff = "DIFF",
+  EDITOR,
+  TABLE,
+  DIFF,
 }
 
 const getArgsTreeData = (args: ArgTypeDef[], keyPrefix = "") => {
@@ -187,7 +185,7 @@ export const copy = (selector: string) => {
 
 const OperationDoc: FC<IProps> = ({ operation }) => {
   const { IpAddress, isDisplaySidebar, setState, port, typeDefs, localTypeDefs } = useBearStore((ste) => ste)
-  const [mode, setMode] = useState<SwitchToggleType>("TABLE")
+  const [mode, setMode] = useState<SwitchToggleEnum>(SwitchToggleEnum.TABLE)
 
   const argsTreeData = useMemo(() => {
     return getArgsTreeData(operation.args)
@@ -233,7 +231,7 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
     let paramsJsx = null
     let responseJsx = null
     switch (mode) {
-      case SwitchToggleEnum.diff:
+      case SwitchToggleEnum.DIFF:
         paramsJsx = (
           <ReactDiffViewer
             oldValue={localOperation ? obj2str(localOperation.argsExample) : "nothings..."}
@@ -242,10 +240,10 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
             compareMethod={DiffMethod.SENTENCES}
             showDiffOnly={false}
             hideLineNumbers
-            leftTitle="Old"
-            rightTitle="New"
+            leftTitle="Old-Diff"
+            rightTitle="New-Diff"
             renderContent={(codeStr) => {
-              return <div style={{ fontFamily: "Consolas", fontSize: 12, color: "#000", lineHeight: "13px" }}>{codeStr}</div>
+              return <div className={styles.diff_viewer_div}>{codeStr}</div>
             }}
           />
         )
@@ -269,16 +267,16 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
             compareMethod={DiffMethod.SENTENCES}
             showDiffOnly={false}
             hideLineNumbers
-            leftTitle="Old"
-            rightTitle="New"
+            leftTitle="Old-Diff"
+            rightTitle="New-Diff"
             renderContent={(codeStr) => {
-              return <div style={{ fontFamily: "Consolas", fontSize: 12, color: "#000", lineHeight: "13px" }}>{codeStr}</div>
+              return <div className={styles.diff_viewer_div}>{codeStr}</div>
             }}
           />
         )
         break
 
-      case SwitchToggleEnum.editor:
+      case SwitchToggleEnum.EDITOR:
         paramsJsx = <AceEditor theme="tomorrow" mode="javascript" width="100%" readOnly maxLines={Infinity} value={obj2str(operation.argsExample)} />
         responseJsx = (
           <AceEditor
@@ -383,27 +381,27 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
             <Switch
               className={styles.switch_diff}
               size="default"
-              checked={mode === "DIFF"}
+              checked={mode === SwitchToggleEnum.DIFF}
               checkedChildren="diff"
               unCheckedChildren="diff"
               onClick={(checked) => {
                 if (checked) {
-                  setMode(SwitchToggleEnum.diff)
+                  setMode(SwitchToggleEnum.DIFF)
                 } else {
-                  setMode(SwitchToggleEnum.table)
+                  setMode(SwitchToggleEnum.TABLE)
                 }
               }}
             />
             <Switch
               size="default"
-              checked={mode === "EDITOR"}
+              checked={mode === SwitchToggleEnum.EDITOR}
               checkedChildren="editor"
               unCheckedChildren="table"
               onClick={(checked) => {
                 if (checked) {
-                  setMode(SwitchToggleEnum.editor)
+                  setMode(SwitchToggleEnum.EDITOR)
                 } else {
-                  setMode(SwitchToggleEnum.table)
+                  setMode(SwitchToggleEnum.TABLE)
                 }
               }}
             />
