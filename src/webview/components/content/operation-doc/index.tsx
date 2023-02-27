@@ -211,10 +211,10 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
   let localSchema: GraphQLSchema
   try {
     localSchema = buildSchema(
-      // 这里给个默认值，意思是当本地schema什么都没有时
+      // 读取本地schema文件失败设置一个默认值
       localTypeDefs ||
         `
-  schema {ss
+  schema {
     query: Query
   }
   type Query {
@@ -223,8 +223,9 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
   `
     )
   } catch (error) {
-    message.error(`SyntaxError：Unexpected of local schema and ${error}`)
+    message.error(`${error}`)
   }
+
   const localOperation = getOperationsBySchema(localSchema!).find((operationItem) => operationItem.name === operation.name) || null
 
   /** 渲染 TableView or DiffView or EditorView */

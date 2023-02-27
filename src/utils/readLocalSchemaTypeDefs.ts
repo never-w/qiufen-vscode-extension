@@ -9,8 +9,8 @@ function readLocalSchemaTypeDefs(filePath: string = "src/graphql/generated/schem
   try {
     localSchema = fs.readFileSync(qiufenConfigPath).toString()
   } catch (error) {
-    window.showErrorMessage("read local schema error")
-    return
+    window.showWarningMessage("read local schema failed")
+    localSchema = ""
   }
 
   return localSchema
