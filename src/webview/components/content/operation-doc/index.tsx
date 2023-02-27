@@ -1,19 +1,19 @@
-import React, { useMemo } from "react"
+import React, { useMemo, useState } from "react"
 import type { FC } from "react"
 import { buildSchema, GraphQLSchema, print } from "graphql"
 import { message, Space, Table, Tooltip, Switch, Divider, Tag, Button } from "antd"
 import type { ColumnsType } from "antd/lib/table"
 import ReactDiffViewer, { DiffMethod } from "react-diff-viewer"
+import AceEditor from "react-ace"
 import obj2str from "stringify-object"
 import { CopyOutlined, PlayCircleOutlined, MenuFoldOutlined } from "@ant-design/icons"
 import ClipboardJS from "clipboard"
 import { genGQLStr } from "@fruits-chain/qiufen-helpers"
-import { useToggle } from "@fruits-chain/hooks-laba"
 import styles from "./index.module.less"
 import { getOperationsBySchema } from "@/utils/operation"
 import type { TypedOperation, ArgTypeDef, ObjectFieldTypeDef } from "@fruits-chain/qiufen-helpers"
 import useBearStore from "@/webview/stores"
-import { buildOperationNodeForField } from "@/utils/buildOperationNodeForField"
+import printOperationNodeForField from "@/utils/printOperationNodeForField"
 
 interface IProps {
   operation: TypedOperation
@@ -27,6 +27,14 @@ type ArgColumnRecord = {
   description: ArgTypeDef["description"]
   deprecationReason?: ArgTypeDef["deprecationReason"]
   children: ArgColumnRecord[] | null
+}
+
+type SwitchToggleType = "EDITOR" | "TABLE" | "DIFF"
+
+enum SwitchToggleEnum {
+  editor = "EDITOR",
+  table = "TABLE",
+  diff = "DIFF",
 }
 
 const getArgsTreeData = (args: ArgTypeDef[], keyPrefix = "") => {
@@ -179,7 +187,7 @@ export const copy = (selector: string) => {
 
 const OperationDoc: FC<IProps> = ({ operation }) => {
   const { IpAddress, isDisplaySidebar, setState, port, typeDefs, localTypeDefs } = useBearStore((ste) => ste)
-  const [mode, { toggle: toggleMode }] = useToggle<"TABLE", "EDITOR">("TABLE", "EDITOR")
+  const [mode, setMode] = useState<SwitchToggleType>("TABLE")
 
   const argsTreeData = useMemo(() => {
     return getArgsTreeData(operation.args)
@@ -218,6 +226,109 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
     message.error(`SyntaxError：Unexpected of local schema and ${error}`)
   }
   const localOperation = getOperationsBySchema(localSchema!).find((operationItem) => operationItem.name === operation.name) || null
+
+  /** 渲染 TableView or DiffView or EditorView */
+  const renderSwitchJsx = useMemo(() => {
+    let paramsJsx = null
+    let responseJsx = null
+    switch (mode) {
+      case SwitchToggleEnum.diff:
+        paramsJsx = (
+          <ReactDiffViewer
+            oldValue={localOperation ? obj2str(localOperation.argsExample) : "nothings..."}
+            newValue={obj2str(operation.argsExample)}
+            splitView={true}
+            compareMethod={DiffMethod.SENTENCES}
+            showDiffOnly={false}
+            hideLineNumbers
+            leftTitle="Old"
+            rightTitle="New"
+            renderContent={(codeStr) => {
+              return <div style={{ fontFamily: "Consolas", fontSize: 12, color: "#000", lineHeight: "13px" }}>{codeStr}</div>
+            }}
+          />
+        )
+        responseJsx = (
+          <ReactDiffViewer
+            oldValue={
+              localOperation
+                ? printOperationNodeForField({
+                    schema: localSchema!,
+                    kind: localOperation.operationType,
+                    field: localOperation.name,
+                  })
+                : "nothings..."
+            }
+            newValue={printOperationNodeForField({
+              schema,
+              kind: operation.operationType,
+              field: operation.name,
+            })}
+            splitView={true}
+            compareMethod={DiffMethod.SENTENCES}
+            showDiffOnly={false}
+            hideLineNumbers
+            leftTitle="Old"
+            rightTitle="New"
+            renderContent={(codeStr) => {
+              return <div style={{ fontFamily: "Consolas", fontSize: 12, color: "#000", lineHeight: "13px" }}>{codeStr}</div>
+            }}
+          />
+        )
+        break
+
+      case SwitchToggleEnum.editor:
+        paramsJsx = <AceEditor theme="tomorrow" mode="javascript" width="100%" readOnly maxLines={Infinity} value={obj2str(operation.argsExample)} />
+        responseJsx = (
+          <AceEditor
+            theme="textmate"
+            mode="javascript"
+            width="100%"
+            fontSize={13}
+            showPrintMargin={true}
+            showGutter={true}
+            highlightActiveLine={true}
+            name={`${operation.name}_${operation.operationType}`}
+            maxLines={Infinity}
+            value={printOperationNodeForField({
+              schema,
+              kind: operation.operationType,
+              field: operation.name,
+            })}
+            setOptions={{
+              theme: "textmate",
+              enableBasicAutocompletion: true,
+              enableLiveAutocompletion: true,
+              enableSnippets: true,
+              showLineNumbers: true,
+              tabSize: 2,
+            }}
+          />
+        )
+        break
+
+      default:
+        paramsJsx = <Table columns={argsColumns} defaultExpandAllRows className={styles.table} dataSource={argsTreeData} pagination={false} bordered />
+        responseJsx = <Table columns={objectFieldsColumns} defaultExpandAllRows className={styles.table} dataSource={objectFieldsTreeData} pagination={false} bordered />
+        break
+    }
+
+    return (
+      <>
+        {!!argsTreeData.length && (
+          <>
+            <Divider className={styles.divider} />
+            <div className={styles.paramsText}>Params: </div>
+            {paramsJsx}
+          </>
+        )}
+        <>
+          <div>Response: </div>
+          {responseJsx}
+        </>
+      </>
+    )
+  }, [mode])
 
   return (
     <Space id={operation.name} className={styles.operationDoc} direction="vertical">
@@ -267,74 +378,39 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
               </Space>
             </a>
           </Tooltip>
-          <Switch
-            size="default"
-            checked={mode === "EDITOR"}
-            checkedChildren="editor"
-            unCheckedChildren="table"
-            onChange={() => {
-              toggleMode()
-            }}
-          />
-        </Space>
-      </div>
-      {!!argsTreeData.length && (
-        <>
-          <Divider className={styles.divider} />
-          <div className={styles.paramsText}>Params: </div>
-          {mode === "TABLE" ? (
-            <Table columns={argsColumns} defaultExpandAllRows className={styles.table} dataSource={argsTreeData} pagination={false} bordered />
-          ) : (
-            <ReactDiffViewer
-              oldValue={localOperation ? obj2str(localOperation.argsExample) : "nothings..."}
-              newValue={obj2str(operation.argsExample)}
-              splitView={true}
-              compareMethod={DiffMethod.SENTENCES}
-              showDiffOnly={false}
-              hideLineNumbers
-              leftTitle="Old"
-              rightTitle="New"
-              renderContent={(codeStr) => {
-                return <div style={{ fontFamily: "Consolas", fontSize: 12, color: "#000", lineHeight: "13px" }}>{codeStr}</div>
+          <div className={styles.switch_box}>
+            <Switch
+              className={styles.switch_diff}
+              size="default"
+              checked={mode === "DIFF"}
+              checkedChildren="diff"
+              unCheckedChildren="diff"
+              onClick={(checked) => {
+                if (checked) {
+                  setMode(SwitchToggleEnum.diff)
+                } else {
+                  setMode(SwitchToggleEnum.table)
+                }
               }}
             />
-          )}
-        </>
-      )}
-      <div>Response: </div>
-      {mode === "TABLE" ? (
-        <Table columns={objectFieldsColumns} defaultExpandAllRows className={styles.table} dataSource={objectFieldsTreeData} pagination={false} bordered />
-      ) : (
-        <ReactDiffViewer
-          oldValue={
-            localOperation
-              ? print(
-                  buildOperationNodeForField({
-                    schema: localSchema!,
-                    kind: localOperation.operationType,
-                    field: localOperation.name,
-                  })
-                )
-              : "nothings..."
-          }
-          newValue={print(
-            buildOperationNodeForField({
-              schema,
-              kind: operation.operationType,
-              field: operation.name,
-            })
-          )}
-          splitView={true}
-          compareMethod={DiffMethod.SENTENCES}
-          showDiffOnly={false}
-          hideLineNumbers
-          leftTitle="Old"
-          rightTitle="New"
-          renderContent={(codeStr) => {
-            return <div style={{ fontFamily: "Consolas", fontSize: 12, color: "#000", lineHeight: "13px" }}>{codeStr}</div>
-          }}
-        />
-      )}
+            <Switch
+              size="default"
+              checked={mode === "EDITOR"}
+              checkedChildren="editor"
+              unCheckedChildren="table"
+              onClick={(checked) => {
+                if (checked) {
+                  setMode(SwitchToggleEnum.editor)
+                } else {
+                  setMode(SwitchToggleEnum.table)
+                }
+              }}
+            />
+          </div>
+        </Space>
+      </div>
+      {/* 根据情况判断具体渲染内容 */}
+      {renderSwitchJsx}
     </Space>
   )
 }
