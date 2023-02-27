@@ -5,10 +5,12 @@
     "ecmaVersion": 6,
     "sourceType": "module"
   },
-  "plugins": ["@typescript-eslint"],
+  "plugins": ["@typescript-eslint", "react-hooks"],
   "rules": {
     "@typescript-eslint/naming-convention": "off",
     "@typescript-eslint/semi": "off",
+    "react-hooks/rules-of-hooks": "error", // 检查 Hook 的规则
+    "react-hooks/exhaustive-deps": "warn", // 检查 effect 的依赖
     "curly": "warn",
     "eqeqeq": "warn",
     "no-throw-literal": "warn",

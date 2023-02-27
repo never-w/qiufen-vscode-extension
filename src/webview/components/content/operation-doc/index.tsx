@@ -192,21 +192,21 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
   }, [operation.args])
   const argsColumns: ColumnsType<ArgColumnRecord> = useMemo(() => {
     return columnGen("arguments")
-  }, [operation])
+  }, [])
 
   const objectFieldsTreeData = useMemo(() => {
     return getObjectFieldsTreeData([operation])
   }, [operation])
   const objectFieldsColumns: ColumnsType<ArgColumnRecord> = useMemo(() => {
     return columnGen("return")
-  }, [operation])
+  }, [])
 
   const gqlStr = useMemo(() => {
     return genGQLStr(operation)
   }, [operation])
 
   const schema = buildSchema(typeDefs)
-  let localSchema: GraphQLSchema
+  let localSchema: GraphQLSchema | undefined
   try {
     localSchema = buildSchema(
       // 读取本地schema文件失败设置一个默认值
@@ -327,7 +327,19 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
         </>
       </>
     )
-  }, [mode])
+  }, [
+    mode,
+    argsTreeData,
+    localOperation,
+    operation.argsExample,
+    operation.operationType,
+    operation.name,
+    localSchema,
+    schema,
+    argsColumns,
+    objectFieldsColumns,
+    objectFieldsTreeData,
+  ])
 
   return (
     <Space id={operation.name} className={styles.operationDoc} direction="vertical">

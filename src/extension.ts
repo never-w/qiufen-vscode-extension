@@ -52,12 +52,12 @@ export function activate(context: vscode.ExtensionContext) {
         const srcUrl = currentPanel.webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, "dist", "webview.js")))
         currentPanel.webview.html = getWebviewContent(srcUrl)
 
-        // 读取本地的schema类型定义
-        const localTypeDefs = readLocalSchemaTypeDefs()
         // 接受webview发送的信息，且再向webview发送信息，这样做为了解决它们两者通信有时不得行的bug
         currentPanel.webview.onDidReceiveMessage(
           (message) => {
             if (message) {
+              // 读取本地的schema类型定义
+              const localTypeDefs = readLocalSchemaTypeDefs()
               const messageObj = {
                 localTypeDefs,
                 typeDefs: backendTypeDefs,
@@ -70,11 +70,13 @@ export function activate(context: vscode.ExtensionContext) {
             } else {
               fetchRemoteSchemaTypeDefs(url)
                 .then((resTypeDefs) => {
+                  // 读取本地的schema类型定义
+                  const localTypeDefs = readLocalSchemaTypeDefs()
                   const schema = buildSchema(resTypeDefs)
                   const operations = getOperationsBySchema(schema)
                   const messageObj = {
                     localTypeDefs,
-                    typeDefs: backendTypeDefs,
+                    typeDefs: resTypeDefs,
                     port,
                     operations,
                     IpAddress: getIpAddress(),

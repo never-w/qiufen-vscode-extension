@@ -9,7 +9,7 @@ import Content from "./components/content"
 interface IProps {}
 
 const App: FC<IProps> = () => {
-  const { operations, captureMessage: handleCaptureMessage, vscode, reloadOperations, isDisplaySidebar } = useBearStore((state) => state)
+  const { operations, captureMessage: handleCaptureMessage, reloadOperations, isDisplaySidebar } = useBearStore((state) => state)
   const [operationData, setOperationData] = useState<TypedOperation | null>(null)
   const [keyword, setKeyword] = useState<string>("")
   const [loading, setLoading] = useState(false)
@@ -24,19 +24,18 @@ const App: FC<IProps> = () => {
     setLoading(true)
     await handleCaptureMessage()
     setLoading(false)
-  }, [])
+  }, [handleCaptureMessage])
 
   useEffect(() => {
     const operationResult = operations.find((operationItm) => {
       return operationItm?.operationType + operationItm?.name === selectedOperationId
     })
     setOperationData(operationResult!)
-  }, [operations])
+  }, [operations, selectedOperationId])
 
-  const onBtnClick = async () => {
+  const handleReload = async () => {
     let timer: NodeJS.Timeout | undefined
     setLoading(true)
-    vscode.postMessage(false)
     try {
       await Promise.race([
         reloadOperations(),
@@ -58,7 +57,7 @@ const App: FC<IProps> = () => {
         <div style={{ display: "flex", flexDirection: "row" }}>
           <div style={{ display: isDisplaySidebar ? "block" : "none" }}>
             <DocSidebar
-              onBtnClick={onBtnClick}
+              handleReload={handleReload}
               activeItemKey={activeItemKey}
               setActiveItemKey={setActiveItemKey}
               operations={operations}
@@ -68,6 +67,7 @@ const App: FC<IProps> = () => {
               onKeywordChange={setKeyword}
             />
           </div>
+          {/* selectedOperationId必须加上不然会出现不重置组件bug */}
           <Content key={selectedOperationId} operation={operationData!} />
         </div>
       </Spin>

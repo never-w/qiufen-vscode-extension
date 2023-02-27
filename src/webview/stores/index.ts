@@ -43,6 +43,9 @@ const useBearStore = create<BearState>((set, get) => {
     setState: set,
     reloadOperations() {
       return new Promise((resolve) => {
+        const vscode = get().vscode
+        // 向插件发送信息
+        vscode.postMessage(false)
         window.addEventListener("message", (evt) => {
           const data = evt.data as MessageEvent
           set(data)

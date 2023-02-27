@@ -30,10 +30,10 @@ export interface IProps {
   onSelect: (operation: TypedOperation) => void
   activeItemKey: string
   setActiveItemKey: (data: string) => void
-  onBtnClick: () => void
+  handleReload: () => void
 }
 
-const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, operations, onSelect, selectedOperationId, setActiveItemKey, onBtnClick }) => {
+const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, operations, onSelect, selectedOperationId, setActiveItemKey, handleReload }) => {
   const [top, setTop] = useState(0)
   const [isFocus, setIsFocus] = useState(false)
 
@@ -167,7 +167,7 @@ const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, opera
         </Collapse>
       </div>
       <Tooltip title="reload doc">
-        <div onClick={onBtnClick} style={{ bottom: 150 }} className={classnames(styles.topBtn, styles.show)}>
+        <div onClick={handleReload} style={{ bottom: 150 }} className={classnames(styles.topBtn, styles.show)}>
           <img src="https://pic.imgdb.cn/item/63d72e6eface21e9ef36b62f.png" alt="刷新文档" />
         </div>
       </Tooltip>
