@@ -317,12 +317,37 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
             rowSelection={{
               selectedRowKeys,
               onChange: (selectedKeys, selectedRows) => {
+                console.log(selectedKeys, "=====selectedKeys")
+                function dfsChild(node: any, keys: string[] = []) {
+                  keys.push(node.key) // 将当前节点的键值添加到 keys 数组中
+                  if (node.children) {
+                    for (let i = 0; i < node.children.length; i++) {
+                      dfsChild(node.children[i], keys) // 递归调用 dfs 函数遍历子节点
+                    }
+                  }
+                  return keys // 返回遍历结果
+                }
+
                 function dfs(node: ArgColumnRecord, selectedKeys: string[], path: ArgColumnRecord[] = [], shouldSelectedKeys: string[] = []) {
                   const parentKeys = path?.map((pathItm) => pathItm.key)
                   path.push(node)
 
                   if (selectedKeys.includes(node.key)) {
+                    const tmpKeys = dfsChild(node)
                     shouldSelectedKeys.push(...parentKeys, node.key)
+
+                    const hasKeys = tmpKeys.map((tmpKey) => {
+                      if (selectedRowKeys.includes(tmpKey)) {
+                        return true
+                      }
+                      return false
+                    })
+
+                    const isExistChildKey = hasKeys.every((val) => val)
+
+                    if (!isExistChildKey) {
+                      shouldSelectedKeys.pop()
+                    }
                   }
 
                   node?.children?.forEach((child: ArgColumnRecord) => {

@@ -27,6 +27,7 @@ import {
   isEnumType,
   Kind,
 } from "graphql"
+import { capitalizeFirstLetter } from "./dealWordFirstLetter"
 
 import { getDefinedRootType, getRootTypeNames } from "./rootTypes"
 
@@ -135,7 +136,7 @@ function buildOperationAndCollectVariables({
   /** eg. search--GraphQLField */
   const field = type.getFields()[fieldName]
 
-  const operationName = `${fieldName}_${kind}`
+  const operationName = capitalizeFirstLetter(fieldName)
 
   if (field.args) {
     for (const arg of field.args) {
