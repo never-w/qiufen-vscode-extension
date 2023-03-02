@@ -1,6 +1,6 @@
-import React, { useMemo, useState } from "react"
+import React, { useMemo, useRef, useState } from "react"
 import type { FC } from "react"
-import { buildSchema, GraphQLSchema, print } from "graphql"
+import { buildSchema, ConstDirectiveNode, GraphQLSchema } from "graphql"
 import { message, Space, Table, Tooltip, Switch, Divider, Tag, Button } from "antd"
 import type { ColumnsType } from "antd/lib/table"
 import ReactDiffViewer, { DiffMethod } from "react-diff-viewer"
@@ -8,20 +8,21 @@ import AceEditor from "react-ace"
 import obj2str from "stringify-object"
 import { CopyOutlined, PlayCircleOutlined, MenuFoldOutlined } from "@ant-design/icons"
 import ClipboardJS from "clipboard"
-import { genGQLStr } from "@fruits-chain/qiufen-helpers"
+// import { genGQLStr } from "@fruits-chain/qiufen-helpers"
 import styles from "./index.module.less"
 import { getOperationsBySchema } from "@/utils/operation"
-import visitOperationTransformer from "@/utils/visitOperationTransformer"
+import { printGqlOperation } from "@/utils/visitOperationTransformer"
 import type { TypedOperation, ArgTypeDef, ObjectFieldTypeDef } from "@fruits-chain/qiufen-helpers"
 import useBearStore from "@/webview/stores"
 import printOperationNodeForField from "@/utils/printOperationNodeForField"
-import parseOperationToAst from "@/utils/parseOperationToAst"
+import traverseTree, { getDefaultRowKeys } from "@/utils/traverseTree"
+import { useUpdate } from "@fruits-chain/hooks-laba"
 
 interface IProps {
   operation: TypedOperation
 }
 
-type ArgColumnRecord = {
+export type ArgColumnRecord = {
   key: string
   name: ArgTypeDef["name"]
   type: ArgTypeDef["type"]["name"]
@@ -29,6 +30,7 @@ type ArgColumnRecord = {
   description: ArgTypeDef["description"]
   deprecationReason?: ArgTypeDef["deprecationReason"]
   children: ArgColumnRecord[] | null
+  directives?: ConstDirectiveNode[]
 }
 
 enum SwitchToggleEnum {
@@ -188,7 +190,8 @@ export const copy = (selector: string) => {
 const OperationDoc: FC<IProps> = ({ operation }) => {
   const { IpAddress, isDisplaySidebar, setState, port, typeDefs, localTypeDefs } = useBearStore((ste) => ste)
   const [mode, setMode] = useState<SwitchToggleEnum>(SwitchToggleEnum.TABLE)
-  const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([])
+  const selectedRowKeys = useRef<string[]>([])
+  const update = useUpdate()
 
   const argsTreeData = useMemo(() => {
     return getArgsTreeData(operation.args)
@@ -204,9 +207,9 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
     return columnGen("return")
   }, [])
 
-  const gqlStr = useMemo(() => {
-    return genGQLStr(operation)
-  }, [operation])
+  // const gqlStr = useMemo(() => {
+  //   return genGQLStr(operation)
+  // }, [operation])
 
   const schema = buildSchema(typeDefs)
   let localSchema: GraphQLSchema | undefined
@@ -228,7 +231,24 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
   }
 
   const localOperation = getOperationsBySchema(localSchema!).find((operationItem) => operationItem.name === operation.name) || null
-  // console.log(objectFieldsTreeData, "----------objectFieldsTreeData")
+
+  const defaultSelectedRowKeys = useMemo(() => {
+    const keys: string[] = []
+    getDefaultRowKeys(objectFieldsTreeData, keys)
+
+    return keys
+  }, [objectFieldsTreeData])
+
+  // 获取初始化页面默认值时选择的operation filed
+  const defaultSelectedKeys = useMemo(() => {
+    const tmpSelectedKeys: string[] = []
+    objectFieldsTreeData.forEach((node) => {
+      traverseTree(node, defaultSelectedRowKeys, [], tmpSelectedKeys)
+    })
+    const resultKeys = [...new Set(tmpSelectedKeys)]
+
+    return resultKeys
+  }, [defaultSelectedRowKeys, objectFieldsTreeData])
 
   /** 渲染 TableView or DiffView or EditorView */
   const renderSwitchJsx = useMemo(() => {
@@ -315,40 +335,16 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
         responseJsx = (
           <Table
             rowSelection={{
-              selectedRowKeys,
-              onChange: (selectedKeys, selectedRows) => {
-                function dfs(node: ArgColumnRecord, selectedKeys: string[], path: ArgColumnRecord[] = [], shouldSelectedKeys: string[] = []) {
-                  const parentKeys = path?.map((pathItm) => pathItm.key)
-                  path.push(node)
-
-                  if (selectedKeys.includes(node.key)) {
-                    shouldSelectedKeys.push(...parentKeys, node.key)
-                  }
-
-                  node?.children?.forEach((child: ArgColumnRecord) => {
-                    dfs(child, selectedKeys, path, shouldSelectedKeys)
-                  })
-                  path.pop()
-                }
-
+              defaultSelectedRowKeys,
+              hideSelectAll: true,
+              checkStrictly: false,
+              onChange: (selectedKeys) => {
                 const tmpSelectedKeys: string[] = []
                 objectFieldsTreeData.forEach((node) => {
-                  dfs(node, selectedKeys as string[], [], tmpSelectedKeys)
+                  traverseTree(node, selectedKeys as string[], [], tmpSelectedKeys)
                 })
                 const uniqTmpSelectedKeys = [...new Set(tmpSelectedKeys)]
-
-                const operationAst = visitOperationTransformer(
-                  parseOperationToAst(
-                    printOperationNodeForField({
-                      schema,
-                      kind: operation.operationType,
-                      field: operation.name,
-                    })
-                  ),
-                  uniqTmpSelectedKeys
-                )
-                setSelectedRowKeys(uniqTmpSelectedKeys)
-                console.log(print(operationAst), "00000000000000000")
+                selectedRowKeys.current = uniqTmpSelectedKeys
               },
             }}
             columns={objectFieldsColumns}
@@ -377,7 +373,6 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
         </>
       </>
     )
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     mode,
     argsTreeData,
@@ -390,6 +385,7 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
     argsColumns,
     objectFieldsColumns,
     objectFieldsTreeData,
+    defaultSelectedRowKeys,
   ])
 
   return (
@@ -413,7 +409,7 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
                 setState({ isDisplaySidebar: !isDisplaySidebar })
               }}
             >
-              <Space id="sidebar" data-clipboard-text={gqlStr} className={styles.copyBtn}>
+              <Space id="sidebar" className={styles.copyBtn}>
                 <MenuFoldOutlined />
                 <span className={styles.text}>Hide Sidebar</span>
               </Space>
@@ -422,9 +418,10 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
           <Tooltip title="Copy GQL">
             <Space
               id="copy"
-              data-clipboard-text={gqlStr}
+              data-clipboard-text={printGqlOperation(schema, operation, !!selectedRowKeys.current.length ? selectedRowKeys.current : defaultSelectedKeys)}
               className={styles.copyBtn}
               onClick={() => {
+                update()
                 copy("#copy")
               }}
             >
