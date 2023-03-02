@@ -188,7 +188,7 @@ export const copy = (selector: string) => {
 }
 
 const OperationDoc: FC<IProps> = ({ operation }) => {
-  const { IpAddress, isDisplaySidebar, setState, port, typeDefs, localTypeDefs } = useBearStore((ste) => ste)
+  const { IpAddress, isDisplaySidebar, setState, port, directive, typeDefs, localTypeDefs } = useBearStore((ste) => ste)
   const [mode, setMode] = useState<SwitchToggleEnum>(SwitchToggleEnum.TABLE)
   const selectedRowKeys = useRef<string[]>([])
   const update = useUpdate()
@@ -234,10 +234,9 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
 
   const defaultSelectedRowKeys = useMemo(() => {
     const keys: string[] = []
-    getDefaultRowKeys(objectFieldsTreeData, keys)
-
+    getDefaultRowKeys(objectFieldsTreeData, keys, directive)
     return keys
-  }, [objectFieldsTreeData])
+  }, [directive, objectFieldsTreeData])
 
   // 获取初始化页面默认值时选择的operation filed
   const defaultSelectedKeys = useMemo(() => {

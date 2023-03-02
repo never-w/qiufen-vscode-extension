@@ -20,6 +20,8 @@ let currentPanel: vscode.WebviewPanel | undefined
 export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand(gqlDocStartCommandId, async () => {
+      const jsonSettings = vscode.workspace.getConfiguration("gql-doc")
+
       const columnToShowIn = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined
       if (currentPanel) {
         currentPanel.reveal(columnToShowIn)
@@ -59,6 +61,7 @@ export function activate(context: vscode.ExtensionContext) {
               // 读取本地的schema类型定义
               const localTypeDefs = readLocalSchemaTypeDefs()
               const messageObj = {
+                directive: jsonSettings.directive,
                 localTypeDefs,
                 typeDefs: backendTypeDefs,
                 port,
@@ -75,6 +78,7 @@ export function activate(context: vscode.ExtensionContext) {
                   const schema = buildSchema(resTypeDefs)
                   const operations = getOperationsBySchema(schema)
                   const messageObj = {
+                    directive: jsonSettings.directive,
                     localTypeDefs,
                     typeDefs: resTypeDefs,
                     port,

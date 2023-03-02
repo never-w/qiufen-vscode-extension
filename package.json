@@ -54,6 +54,11 @@
           "type": "number",
           "default": 9400,
           "description": "backend service port"
+        },
+        "gql-doc.directive": {
+          "type": "string",
+          "default": "fetchField",
+          "description": "custom backed directive"
         }
       }
     }
