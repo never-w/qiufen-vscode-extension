@@ -25,7 +25,7 @@ export function getDefaultRowKeys(objectFieldsTreeData: ArgColumnRecord[], defau
   })
 }
 
-function traverseTree(node: ArgColumnRecord, selectedKeys: string[], path: ArgColumnRecord[] = [], shouldSelectedKeys: string[] = []) {
+export function traverseOperationTreeGetParentAndChildSelectedKeys(node: ArgColumnRecord, selectedKeys: string[], path: ArgColumnRecord[] = [], shouldSelectedKeys: string[] = []) {
   const parentKeys = path?.map((pathItm) => pathItm.key)
   path.push(node)
 
@@ -34,9 +34,7 @@ function traverseTree(node: ArgColumnRecord, selectedKeys: string[], path: ArgCo
   }
 
   node?.children?.forEach((child: ArgColumnRecord) => {
-    traverseTree(child, selectedKeys, path, shouldSelectedKeys)
+    traverseOperationTreeGetParentAndChildSelectedKeys(child, selectedKeys, path, shouldSelectedKeys)
   })
   path.pop()
 }
-
-export default traverseTree

@@ -8,14 +8,13 @@ import AceEditor from "react-ace"
 import obj2str from "stringify-object"
 import { CopyOutlined, PlayCircleOutlined, MenuFoldOutlined } from "@ant-design/icons"
 import ClipboardJS from "clipboard"
-// import { genGQLStr } from "@fruits-chain/qiufen-helpers"
 import styles from "./index.module.less"
 import { getOperationsBySchema } from "@/utils/operation"
 import { printGqlOperation } from "@/utils/visitOperationTransformer"
 import type { TypedOperation, ArgTypeDef, ObjectFieldTypeDef } from "@fruits-chain/qiufen-helpers"
 import useBearStore from "@/webview/stores"
 import printOperationNodeForField from "@/utils/printOperationNodeForField"
-import traverseTree, { getDefaultRowKeys } from "@/utils/traverseTree"
+import { traverseOperationTreeGetParentAndChildSelectedKeys, getDefaultRowKeys } from "@/utils/traverseTree"
 import { useUpdate } from "@fruits-chain/hooks-laba"
 
 interface IProps {
@@ -117,11 +116,13 @@ const columnGen = (field: "arguments" | "return"): ColumnsType<ArgColumnRecord> 
       dataIndex: "name",
       width: "35%",
       render(value, record) {
+        const tmpIsDirective = !!record.directives?.find((itm) => itm.name.value === "fetchField")
+
         const deprecationReason = record.deprecationReason
         if (deprecationReason) {
-          return <span className={styles.deprecated}>{value}</span>
+          return <span className={tmpIsDirective ? styles.deprecated_red : styles.deprecated}>{value}</span>
         }
-        return value
+        return <span className={tmpIsDirective ? styles.deprecated_red : ""}>{value}</span>
       },
     },
     {
@@ -207,10 +208,6 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
     return columnGen("return")
   }, [])
 
-  // const gqlStr = useMemo(() => {
-  //   return genGQLStr(operation)
-  // }, [operation])
-
   const schema = buildSchema(typeDefs)
   let localSchema: GraphQLSchema | undefined
   try {
@@ -242,11 +239,12 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
   const defaultSelectedKeys = useMemo(() => {
     const tmpSelectedKeys: string[] = []
     objectFieldsTreeData.forEach((node) => {
-      traverseTree(node, defaultSelectedRowKeys, [], tmpSelectedKeys)
+      traverseOperationTreeGetParentAndChildSelectedKeys(node, defaultSelectedRowKeys, [], tmpSelectedKeys)
     })
-    const resultKeys = [...new Set(tmpSelectedKeys)]
+    // 去重
+    const resultUniqKeys = [...new Set(tmpSelectedKeys)]
 
-    return resultKeys
+    return resultUniqKeys
   }, [defaultSelectedRowKeys, objectFieldsTreeData])
 
   /** 渲染 TableView or DiffView or EditorView */
@@ -340,17 +338,18 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
               onChange: (selectedKeys) => {
                 const tmpSelectedKeys: string[] = []
                 objectFieldsTreeData.forEach((node) => {
-                  traverseTree(node, selectedKeys as string[], [], tmpSelectedKeys)
+                  traverseOperationTreeGetParentAndChildSelectedKeys(node, selectedKeys as string[], [], tmpSelectedKeys)
                 })
+                // 去重
                 const uniqTmpSelectedKeys = [...new Set(tmpSelectedKeys)]
                 selectedRowKeys.current = uniqTmpSelectedKeys
               },
             }}
             columns={objectFieldsColumns}
-            defaultExpandAllRows
             className={styles.table}
             dataSource={objectFieldsTreeData}
             pagination={false}
+            defaultExpandedRowKeys={defaultSelectedKeys}
             bordered
           />
         )
@@ -382,9 +381,10 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
     localSchema,
     schema,
     argsColumns,
+    defaultSelectedRowKeys,
     objectFieldsColumns,
     objectFieldsTreeData,
-    defaultSelectedRowKeys,
+    defaultSelectedKeys,
   ])
 
   return (
