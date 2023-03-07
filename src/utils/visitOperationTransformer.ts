@@ -1,6 +1,5 @@
 import { TypedOperation } from "@fruits-chain/qiufen-helpers"
-import { FieldNode, DocumentNode, Kind, visit, print, GraphQLSchema } from "graphql"
-import parseOperationToAst from "./parseOperationToAst"
+import { FieldNode, DocumentNode, Kind, visit, print, GraphQLSchema, parse } from "graphql"
 import printOperationNodeForField from "./printOperationNodeForField"
 
 function visitOperationTransformer(ast: DocumentNode, selectedKeys: string[]) {
@@ -27,15 +26,13 @@ function visitOperationTransformer(ast: DocumentNode, selectedKeys: string[]) {
 }
 
 export function printGqlOperation(schema: GraphQLSchema, operation: TypedOperation, uniqTmpSelectedKeys: string[]) {
-  const operationAst = visitOperationTransformer(
-    parseOperationToAst(
-      printOperationNodeForField({
-        schema,
-        kind: operation.operationType,
-        field: operation.name,
-      })
-    ),
-    uniqTmpSelectedKeys
-  )
+  const operationStrGql = printOperationNodeForField({
+    schema,
+    kind: operation.operationType,
+    field: operation.name,
+  })
+
+  const documentNode = parse(operationStrGql, { noLocation: true })
+  const operationAst = visitOperationTransformer(documentNode, uniqTmpSelectedKeys)
   return print(operationAst)
 }
