@@ -441,8 +441,8 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
               className={styles.switch_diff}
               size="default"
               checked={mode === SwitchToggleEnum.DIFF}
-              checkedChildren="diff"
-              unCheckedChildren="diff"
+              checkedChildren="diff off"
+              unCheckedChildren="diff on"
               onClick={(checked) => {
                 if (checked) {
                   setMode(SwitchToggleEnum.DIFF)

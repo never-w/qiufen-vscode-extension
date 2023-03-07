@@ -17,6 +17,7 @@ function visitOperationTransformer(ast: DocumentNode, selectedKeys: string[]) {
         const nameKey = node.name.value
         const nodeKey = prefixKey + nameKey
 
+        // 不存在的key就让该节点删除掉
         if (!selectedKeys.find((selectedKey) => selectedKey === nodeKey)) {
           return null
         }

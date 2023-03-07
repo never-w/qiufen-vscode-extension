@@ -318,13 +318,25 @@ function resolveSelectionSet({
       }
     }
 
+    // 获取通过继承的interfaces类型
+    const _interfaces = type.getInterfaces()
+    // 得到继承的所有字段
+    const _interfacesFields = _interfaces
+      .map((_interfaceItm) => {
+        return _interfaceItm.getFields()
+      })
+      .reduce((pre, cur) => ({ ...pre, ...cur }), {})
+
+    // 得到自身的所有字段
     const fields = type.getFields()
+    // 将继承的字段覆盖自身的字段，这样是
+    const tmpFields = { ...fields, ..._interfacesFields }
 
     return {
       kind: Kind.SELECTION_SET,
-      selections: Object.keys(fields)
+      selections: Object.keys(tmpFields)
         .filter((fieldName) => {
-          return !hasCircularRef([...ancestors, getNamedType(fields[fieldName].type)], {
+          return !hasCircularRef([...ancestors, getNamedType(tmpFields[fieldName].type)], {
             depth: circularReferenceDepth,
           })
         })
@@ -333,7 +345,7 @@ function resolveSelectionSet({
           if (selectedSubFields) {
             return resolveField({
               type,
-              field: fields[fieldName],
+              field: tmpFields[fieldName],
               models,
               path: [...path, fieldName],
               ancestors,
@@ -350,7 +362,6 @@ function resolveSelectionSet({
           return null
         })
         .filter((f): f is SelectionNode => {
-          // eslint-disable-next-line eqeqeq
           if (f == null) {
             return false
           } else if ("selectionSet" in f) {

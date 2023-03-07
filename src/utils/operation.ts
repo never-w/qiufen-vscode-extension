@@ -69,6 +69,20 @@ function _normalizeObjectType(
 ): ObjectTypeDef {
   const refCount = refChain.filter((item) => item === type.name).length
 
+  // 获取通过继承的interfaces类型
+  const _interfaces = type.getInterfaces()
+  // 得到继承的所有字段
+  const _interfacesFields = _interfaces
+    .map((_interfaceItm) => {
+      return _interfaceItm.getFields()
+    })
+    .reduce((pre, cur) => ({ ...pre, ...cur }), {})
+
+  // 得到自身的所有字段
+  const fields = type.getFields()
+  // 将继承的字段覆盖自身的字段，这样是
+  const tmpFields = { ...fields, ..._interfacesFields }
+
   return {
     kind: "Object",
     name: typeName,
@@ -76,7 +90,7 @@ function _normalizeObjectType(
     fields:
       refCount > 3
         ? []
-        : Object.values(type.getFields()).map((item) => {
+        : Object.values(tmpFields).map((item) => {
             return normalizeGraphqlField(item, scalarMap, refChain)
           }),
   }
