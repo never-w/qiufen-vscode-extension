@@ -29,7 +29,9 @@ export function activate(context: vscode.ExtensionContext) {
 
       if (!currentPanel) {
         loadingStatusBarItem(docStatusBarItem, "Doc")
-        const { url, port } = getWorkspaceConfig()
+        const { url, port } = getWorkspaceConfig(() => {
+          updateStatusBarItem(gqlDocStartCommandId, `$(target) Doc`, docStatusBarItem)
+        })
 
         // 获取远程schema typeDefs
         let backendTypeDefs: string | undefined

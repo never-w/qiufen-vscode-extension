@@ -8,6 +8,7 @@ async function fetchRemoteSchemaTypeDefs(url: string) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "app-version": "66",
       },
       body: JSON.stringify({
         query: `

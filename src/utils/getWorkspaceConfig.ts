@@ -3,7 +3,7 @@ import * as path from "path"
 import fs from "fs"
 
 /** 获取工作区qiufen配置 */
-function getWorkspaceConfig() {
+function getWorkspaceConfig(tryCatchCallback?: VoidFunction) {
   const workspaceRootPath = vscode.workspace.workspaceFolders?.[0].uri.fsPath // 工作区根目录
   const qiufenConfigPath = path.join(workspaceRootPath!, "qiufen.config.js")
   const isExistConfigFile = fs.existsSync(qiufenConfigPath)
@@ -15,7 +15,12 @@ function getWorkspaceConfig() {
   if (isExistConfigFile) {
     /** 去除require缓存 */
     delete eval("require.cache")[qiufenConfigPath]
-    qiufenConfig = eval("require")(qiufenConfigPath) as GraphqlKitConfig
+    try {
+      qiufenConfig = eval("require")(qiufenConfigPath) as GraphqlKitConfig
+    } catch (error) {
+      tryCatchCallback?.()
+      throw error
+    }
     port = qiufenConfig.port
     url = qiufenConfig.endpoint.url
   } else {

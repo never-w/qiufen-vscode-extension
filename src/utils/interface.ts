@@ -55,3 +55,8 @@ export interface TypedOperation extends Operation {
 }
 
 export type ScalarMap = Record<string, unknown>
+
+export enum FetchDirectiveArg {
+  LOADER = "loader",
+  FETCH = "fetch",
+}

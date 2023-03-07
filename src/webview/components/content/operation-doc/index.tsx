@@ -1,6 +1,6 @@
 import React, { useMemo, useRef, useState } from "react"
 import type { FC } from "react"
-import { buildSchema, ConstDirectiveNode, GraphQLSchema } from "graphql"
+import { ArgumentNode, buildSchema, ConstDirectiveNode, GraphQLSchema, StringValueNode } from "graphql"
 import { message, Space, Table, Tooltip, Switch, Divider, Tag, Button } from "antd"
 import type { ColumnsType } from "antd/lib/table"
 import ReactDiffViewer, { DiffMethod } from "react-diff-viewer"
@@ -16,6 +16,7 @@ import useBearStore from "@/webview/stores"
 import printOperationNodeForField from "@/utils/printOperationNodeForField"
 import { traverseOperationTreeGetParentAndChildSelectedKeys, getDefaultRowKeys } from "@/utils/traverseTree"
 import { useUpdate } from "@fruits-chain/hooks-laba"
+import { FetchDirectiveArg } from "@/utils/interface"
 
 interface IProps {
   operation: TypedOperation
@@ -117,12 +118,21 @@ const columnGen = (field: "arguments" | "return"): ColumnsType<ArgColumnRecord> 
       width: "35%",
       render(value, record) {
         const tmpIsDirective = !!record.directives?.find((itm) => itm.name.value === "fetchField")
+        const directivesArgs = record.directives?.find((itm) => itm.name.value === "fetchField")?.arguments as ArgumentNode[]
+        const firstArgValue = (directivesArgs?.[0]?.value as StringValueNode)?.value
+
+        const isYellow = FetchDirectiveArg.LOADER === firstArgValue
+        const colorStyle: React.CSSProperties | undefined = tmpIsDirective ? { color: isYellow ? "#FF9900" : "red" } : undefined
 
         const deprecationReason = record.deprecationReason
         if (deprecationReason) {
-          return <span className={tmpIsDirective ? styles.deprecated_red : styles.deprecated}>{value}</span>
+          return (
+            <span className={styles.deprecated} style={colorStyle}>
+              {value}
+            </span>
+          )
         }
-        return <span className={tmpIsDirective ? styles.deprecated_red : ""}>{value}</span>
+        return <span style={colorStyle}>{value}</span>
       },
     },
     {
