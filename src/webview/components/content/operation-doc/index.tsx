@@ -247,146 +247,6 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
     return resultUniqKeys
   }, [defaultSelectedRowKeys, objectFieldsTreeData])
 
-  /** 渲染 TableView or DiffView or EditorView */
-  const renderSwitchJsx = useMemo(() => {
-    let paramsJsx = null
-    let responseJsx = null
-    switch (mode) {
-      case SwitchToggleEnum.DIFF:
-        paramsJsx = (
-          <ReactDiffViewer
-            oldValue={localOperation ? obj2str(localOperation.argsExample) : "nothings..."}
-            newValue={obj2str(operation.argsExample)}
-            splitView={true}
-            compareMethod={DiffMethod.SENTENCES}
-            showDiffOnly={false}
-            hideLineNumbers
-            leftTitle="Old-Diff"
-            rightTitle="New-Diff"
-            renderContent={(codeStr) => {
-              return <div className={styles.diff_viewer_div}>{codeStr}</div>
-            }}
-          />
-        )
-        responseJsx = (
-          <ReactDiffViewer
-            oldValue={
-              localOperation
-                ? printOperationNodeForField({
-                    schema: localSchema!,
-                    kind: localOperation.operationType,
-                    field: localOperation.name,
-                  })
-                : "nothings..."
-            }
-            newValue={printOperationNodeForField({
-              schema,
-              kind: operation.operationType,
-              field: operation.name,
-            })}
-            splitView={true}
-            compareMethod={DiffMethod.SENTENCES}
-            showDiffOnly={false}
-            hideLineNumbers
-            leftTitle="Old-Diff"
-            rightTitle="New-Diff"
-            renderContent={(codeStr) => {
-              return <div className={styles.diff_viewer_div}>{codeStr}</div>
-            }}
-          />
-        )
-        break
-
-      case SwitchToggleEnum.EDITOR:
-        paramsJsx = <AceEditor theme="tomorrow" mode="javascript" width="100%" readOnly maxLines={Infinity} value={obj2str(operation.argsExample)} />
-        responseJsx = (
-          <AceEditor
-            theme="textmate"
-            mode="javascript"
-            width="100%"
-            fontSize={13}
-            showPrintMargin={true}
-            showGutter={true}
-            highlightActiveLine={true}
-            name={`${operation.name}_${operation.operationType}`}
-            maxLines={Infinity}
-            value={printOperationNodeForField({
-              schema,
-              kind: operation.operationType,
-              field: operation.name,
-            })}
-            setOptions={{
-              theme: "textmate",
-              enableBasicAutocompletion: true,
-              enableLiveAutocompletion: true,
-              enableSnippets: true,
-              showLineNumbers: true,
-              tabSize: 2,
-            }}
-          />
-        )
-        break
-
-      default:
-        paramsJsx = <Table columns={argsColumns} defaultExpandAllRows className={styles.table} dataSource={argsTreeData} pagination={false} bordered />
-        responseJsx = (
-          <Table
-            rowSelection={{
-              defaultSelectedRowKeys,
-              hideSelectAll: true,
-              checkStrictly: false,
-              onChange: (selectedKeys) => {
-                const tmpSelectedKeys: string[] = []
-                objectFieldsTreeData.forEach((node) => {
-                  traverseOperationTreeGetParentAndChildSelectedKeys(node, selectedKeys as string[], [], tmpSelectedKeys)
-                })
-                // 去重
-                const uniqTmpSelectedKeys = [...new Set(tmpSelectedKeys)]
-                selectedRowKeys.current = uniqTmpSelectedKeys
-              },
-            }}
-            columns={objectFieldsColumns}
-            className={styles.table}
-            dataSource={objectFieldsTreeData}
-            pagination={false}
-            defaultExpandedRowKeys={defaultSelectedKeys}
-            bordered
-          />
-        )
-        break
-    }
-
-    return (
-      <>
-        {!!argsTreeData.length && (
-          <>
-            <Divider className={styles.divider} />
-            <div className={styles.paramsText}>Params: </div>
-            {paramsJsx}
-          </>
-        )}
-        <>
-          <div>Response: </div>
-          {responseJsx}
-        </>
-      </>
-    )
-  }, [
-    mode,
-    argsTreeData,
-    localOperation,
-    operation.argsExample,
-    operation.operationType,
-    operation.name,
-    localSchema,
-    schema,
-    argsColumns,
-    defaultSelectedRowKeys,
-    objectFieldsColumns,
-    objectFieldsTreeData,
-    defaultSelectedKeys,
-  ])
-
   return (
     <Space id={operation.name} className={styles.operationDoc} direction="vertical">
       <div className={styles.name}>
@@ -467,8 +327,117 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
           </div>
         </Space>
       </div>
-      {/* 根据情况判断具体渲染内容 */}
-      {renderSwitchJsx}
+      <>
+        {!!argsTreeData.length && (
+          <>
+            <Divider className={styles.divider} />
+            <div className={styles.paramsText}>Params: </div>
+            {/* 因为这里table tree selected不是受控的所以需要用样式来显示隐藏组件，起到缓存作用 */}
+            <div style={{ display: mode === SwitchToggleEnum.TABLE ? "block" : "none" }}>
+              <Table columns={argsColumns} defaultExpandAllRows className={styles.table} dataSource={argsTreeData} pagination={false} bordered />
+            </div>
+            <div style={{ display: mode === SwitchToggleEnum.EDITOR ? "block" : "none" }}>
+              <AceEditor theme="tomorrow" mode="javascript" width="100%" readOnly maxLines={Infinity} value={obj2str(operation.argsExample)} />
+            </div>
+            <div style={{ display: mode === SwitchToggleEnum.DIFF ? "block" : "none" }}>
+              <ReactDiffViewer
+                oldValue={localOperation ? obj2str(localOperation.argsExample) : "nothings..."}
+                newValue={obj2str(operation.argsExample)}
+                splitView={true}
+                compareMethod={DiffMethod.SENTENCES}
+                showDiffOnly={false}
+                hideLineNumbers
+                leftTitle="Old-Diff"
+                rightTitle="New-Diff"
+                renderContent={(codeStr) => {
+                  return <div className={styles.diff_viewer_div}>{codeStr}</div>
+                }}
+              />
+            </div>
+          </>
+        )}
+        <>
+          <div>Response: </div>
+          {/* 因为这里table tree selected不是受控的所以需要用样式来显示隐藏组件，起到缓存作用 */}
+          <div style={{ display: mode === SwitchToggleEnum.TABLE ? "block" : "none" }}>
+            <Table
+              rowSelection={{
+                defaultSelectedRowKeys,
+                hideSelectAll: true,
+                checkStrictly: false,
+                onChange: (selectedKeys) => {
+                  const tmpSelectedKeys: string[] = []
+                  objectFieldsTreeData.forEach((node) => {
+                    traverseOperationTreeGetParentAndChildSelectedKeys(node, selectedKeys as string[], [], tmpSelectedKeys)
+                  })
+                  // 去重
+                  const uniqTmpSelectedKeys = [...new Set(tmpSelectedKeys)]
+                  selectedRowKeys.current = uniqTmpSelectedKeys
+                },
+              }}
+              columns={objectFieldsColumns}
+              className={styles.table}
+              dataSource={objectFieldsTreeData}
+              pagination={false}
+              defaultExpandedRowKeys={defaultSelectedKeys}
+              bordered
+            />
+          </div>
+          <div style={{ display: mode === SwitchToggleEnum.EDITOR ? "block" : "none" }}>
+            <AceEditor
+              theme="textmate"
+              mode="javascript"
+              width="100%"
+              fontSize={13}
+              showPrintMargin={true}
+              showGutter={true}
+              highlightActiveLine={true}
+              name={`${operation.name}_${operation.operationType}`}
+              maxLines={Infinity}
+              value={printOperationNodeForField({
+                schema,
+                kind: operation.operationType,
+                field: operation.name,
+              })}
+              setOptions={{
+                theme: "textmate",
+                enableBasicAutocompletion: true,
+                enableLiveAutocompletion: true,
+                enableSnippets: true,
+                showLineNumbers: true,
+                tabSize: 2,
+              }}
+            />
+          </div>
+          <div style={{ display: mode === SwitchToggleEnum.DIFF ? "block" : "none" }}>
+            <ReactDiffViewer
+              oldValue={
+                localOperation
+                  ? printOperationNodeForField({
+                      schema: localSchema!,
+                      kind: localOperation.operationType,
+                      field: localOperation.name,
+                    })
+                  : "nothings..."
+              }
+              newValue={printOperationNodeForField({
+                schema,
+                kind: operation.operationType,
+                field: operation.name,
+              })}
+              splitView={true}
+              compareMethod={DiffMethod.SENTENCES}
+              showDiffOnly={false}
+              hideLineNumbers
+              leftTitle="Old-Diff"
+              rightTitle="New-Diff"
+              renderContent={(codeStr) => {
+                return <div className={styles.diff_viewer_div}>{codeStr}</div>
+              }}
+            />
+          </div>
+        </>
+      </>
     </Space>
   )
 }
