@@ -6,7 +6,7 @@ import type { ColumnsType } from "antd/lib/table"
 import ReactDiffViewer, { DiffMethod } from "react-diff-viewer"
 import AceEditor from "react-ace"
 import obj2str from "stringify-object"
-import { CopyOutlined, PlayCircleOutlined, MenuFoldOutlined, EditOutlined } from "@ant-design/icons"
+import { CopyOutlined, PlayCircleOutlined, LoadingOutlined, MenuFoldOutlined, EditOutlined } from "@ant-design/icons"
 import ClipboardJS from "clipboard"
 import styles from "./index.module.less"
 import { getOperationsBySchema } from "@/utils/operation"
@@ -17,7 +17,7 @@ import printOperationNodeForField from "@/utils/printOperationNodeForField"
 import { traverseOperationTreeGetParentAndChildSelectedKeys, getDefaultRowKeys } from "@/utils/traverseTree"
 import { useUpdate } from "@fruits-chain/hooks-laba"
 import { FetchDirectiveArg } from "@/utils/interface"
-import { MessageEnum } from "@/config/postMessage"
+import { fillOneKeyMessageSign, MessageEnum } from "@/config/postMessage"
 
 interface IProps {
   operation: TypedOperation
@@ -202,7 +202,8 @@ export const copy = (selector: string) => {
 const OperationDoc: FC<IProps> = ({ operation }) => {
   const { IpAddress, isDisplaySidebar, setState, vscode, port, directive, typeDefs, localTypeDefs } = useBearStore((ste) => ste)
   const [mode, setMode] = useState<SwitchToggleEnum>(SwitchToggleEnum.TABLE)
-  const selectedRowKeys = useRef<string[]>([])
+  const [spinIcon, setSpinIcon] = useState(false)
+  const selectedRowKeys = useRef<string[] | null>(null)
   const update = useUpdate()
 
   const argsTreeData = useMemo(() => {
@@ -254,17 +255,27 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
     })
     // 去重
     const resultUniqKeys = [...new Set(tmpSelectedKeys)]
-
     return resultUniqKeys
   }, [defaultSelectedRowKeys, objectFieldsTreeData])
 
   // 一键填入事件
   const handleOneKeyFillEvent = useCallback(() => {
+    setSpinIcon(true)
     // 向插件发送信息
-    vscode.postMessage(MessageEnum.ONE_KEY_FILL)
+    vscode.postMessage({
+      type: MessageEnum.ONE_KEY_FILL,
+      gqlStr: printGqlOperation(schema, operation, !selectedRowKeys.current ? defaultSelectedKeys : selectedRowKeys.current),
+      gqlName: operation.name,
+      gqlType: operation.operationType,
+    })
     // 接受插件发送过来的信息
-    window.addEventListener("message", (evt) => {})
-  }, [vscode])
+    window.addEventListener("message", (evt) => {
+      const data = evt.data as string
+      if (data === fillOneKeyMessageSign) {
+        setSpinIcon(false)
+      }
+    })
+  }, [defaultSelectedKeys, operation, schema, vscode])
 
   return (
     <Space id={operation.name} className={styles.operationDoc} direction="vertical">
@@ -295,14 +306,14 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
           </Tooltip>
           <Tooltip title="一键填入">
             <Space className={styles.copyBtn} onClick={handleOneKeyFillEvent}>
-              <EditOutlined />
+              {!spinIcon ? <EditOutlined /> : <LoadingOutlined />}
               <span className={styles.text}>一键填入</span>
             </Space>
           </Tooltip>
           <Tooltip title="Copy GQL">
             <Space
               id="copy"
-              data-clipboard-text={printGqlOperation(schema, operation, !!selectedRowKeys.current.length ? selectedRowKeys.current : defaultSelectedKeys)}
+              data-clipboard-text={printGqlOperation(schema, operation, !selectedRowKeys.current ? defaultSelectedKeys : selectedRowKeys.current)}
               className={styles.copyBtn}
               onClick={() => {
                 update()

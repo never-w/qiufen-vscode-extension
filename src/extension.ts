@@ -11,7 +11,8 @@ import { defaultQiufenConfig } from "./config"
 import { gqlDocCloseCommandId, gqlDocMockCloseCommandId, gqlDocMockCommandId, gqlDocStartCommandId } from "./config/commands"
 import { startServer } from "./server-mock/src"
 import readLocalSchemaTypeDefs from "./utils/readLocalSchemaTypeDefs"
-import { MessageEnum } from "./config/postMessage"
+import { fillOneKeyMessageSign, MessageEnum } from "./config/postMessage"
+import { readWorkspaceAndSetGqls } from "./utils/readWorkspaceAndSetGqls"
 
 let serverMock: Server
 let docStatusBarItem: vscode.StatusBarItem
@@ -60,7 +61,7 @@ export function activate(context: vscode.ExtensionContext) {
         // 接受webview发送的信息，且再向webview发送信息，这样做为了解决它们两者通信有时不得行的bug
         currentPanel.webview.onDidReceiveMessage(
           (message) => {
-            switch (message) {
+            switch (message.type) {
               case MessageEnum.FETCH:
                 // 读取本地的schema类型定义
                 const localTypeDefs = readLocalSchemaTypeDefs()
@@ -98,7 +99,9 @@ export function activate(context: vscode.ExtensionContext) {
                   })
                 break
               default:
-                console.log("ssssssssssssssssssssss")
+                const { gqlStr, gqlName, gqlType } = message
+                readWorkspaceAndSetGqls(gqlStr, gqlName, gqlType)
+                currentPanel!.webview.postMessage(fillOneKeyMessageSign)
             }
           },
           undefined,

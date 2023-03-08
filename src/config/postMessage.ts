@@ -3,3 +3,5 @@ export enum MessageEnum {
   REFETCH = "REFETCH",
   ONE_KEY_FILL = "ONE_KEY_FILL",
 }
+
+export const fillOneKeyMessageSign = "fill-success"

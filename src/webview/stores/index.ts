@@ -34,7 +34,7 @@ const useBearStore = create<BearState>((set, get) => {
       return new Promise((resolve) => {
         const vscode = get().vscode
         // 向插件发送信息
-        vscode.postMessage(MessageEnum.FETCH)
+        vscode.postMessage({ type: MessageEnum.FETCH })
         // 接受插件发送过来的信息
         window.addEventListener("message", (evt) => {
           const data = evt.data as MessageEvent
@@ -48,7 +48,9 @@ const useBearStore = create<BearState>((set, get) => {
       return new Promise((resolve) => {
         const vscode = get().vscode
         // 向插件发送信息
-        vscode.postMessage(MessageEnum.REFETCH)
+        vscode.postMessage({
+          type: MessageEnum.REFETCH,
+        })
         window.addEventListener("message", (evt) => {
           const data = evt.data as MessageEvent
           set(data)
