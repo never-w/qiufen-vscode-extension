@@ -273,6 +273,7 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
       const data = evt.data as string
       if (data === fillOneKeyMessageSign) {
         setSpinIcon(false)
+        message.success("一键填入成功")
       }
     })
   }, [defaultSelectedKeys, operation, schema, vscode])
