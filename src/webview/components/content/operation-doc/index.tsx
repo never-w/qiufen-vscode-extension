@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from "react"
+import React, { useCallback, useMemo, useRef, useState } from "react"
 import type { FC } from "react"
 import { ArgumentNode, buildSchema, ConstDirectiveNode, GraphQLSchema, StringValueNode } from "graphql"
 import { message, Space, Table, Tooltip, Switch, Divider, Tag, Button } from "antd"
@@ -6,7 +6,7 @@ import type { ColumnsType } from "antd/lib/table"
 import ReactDiffViewer, { DiffMethod } from "react-diff-viewer"
 import AceEditor from "react-ace"
 import obj2str from "stringify-object"
-import { CopyOutlined, PlayCircleOutlined, MenuFoldOutlined } from "@ant-design/icons"
+import { CopyOutlined, PlayCircleOutlined, MenuFoldOutlined, EditOutlined } from "@ant-design/icons"
 import ClipboardJS from "clipboard"
 import styles from "./index.module.less"
 import { getOperationsBySchema } from "@/utils/operation"
@@ -17,6 +17,7 @@ import printOperationNodeForField from "@/utils/printOperationNodeForField"
 import { traverseOperationTreeGetParentAndChildSelectedKeys, getDefaultRowKeys } from "@/utils/traverseTree"
 import { useUpdate } from "@fruits-chain/hooks-laba"
 import { FetchDirectiveArg } from "@/utils/interface"
+import { MessageEnum } from "@/config/postMessage"
 
 interface IProps {
   operation: TypedOperation
@@ -199,7 +200,7 @@ export const copy = (selector: string) => {
 }
 
 const OperationDoc: FC<IProps> = ({ operation }) => {
-  const { IpAddress, isDisplaySidebar, setState, port, directive, typeDefs, localTypeDefs } = useBearStore((ste) => ste)
+  const { IpAddress, isDisplaySidebar, setState, vscode, port, directive, typeDefs, localTypeDefs } = useBearStore((ste) => ste)
   const [mode, setMode] = useState<SwitchToggleEnum>(SwitchToggleEnum.TABLE)
   const selectedRowKeys = useRef<string[]>([])
   const update = useUpdate()
@@ -257,6 +258,14 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
     return resultUniqKeys
   }, [defaultSelectedRowKeys, objectFieldsTreeData])
 
+  // 一键填入事件
+  const handleOneKeyFillEvent = useCallback(() => {
+    // 向插件发送信息
+    vscode.postMessage(MessageEnum.ONE_KEY_FILL)
+    // 接受插件发送过来的信息
+    window.addEventListener("message", (evt) => {})
+  }, [vscode])
+
   return (
     <Space id={operation.name} className={styles.operationDoc} direction="vertical">
       <div className={styles.name}>
@@ -270,7 +279,7 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
             <span className={styles.operationName}>{` ${operation.operationType}`}</span>
           </span>
         </Space>
-        <Space size={88}>
+        <Space size={50}>
           <Tooltip title="Hide Sidebar">
             <Button
               type="text"
@@ -283,6 +292,12 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
                 <span className={styles.text}>Hide Sidebar</span>
               </Space>
             </Button>
+          </Tooltip>
+          <Tooltip title="一键填入">
+            <Space className={styles.copyBtn} onClick={handleOneKeyFillEvent}>
+              <EditOutlined />
+              <span className={styles.text}>一键填入</span>
+            </Space>
           </Tooltip>
           <Tooltip title="Copy GQL">
             <Space

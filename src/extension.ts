@@ -11,6 +11,7 @@ import { defaultQiufenConfig } from "./config"
 import { gqlDocCloseCommandId, gqlDocMockCloseCommandId, gqlDocMockCommandId, gqlDocStartCommandId } from "./config/commands"
 import { startServer } from "./server-mock/src"
 import readLocalSchemaTypeDefs from "./utils/readLocalSchemaTypeDefs"
+import { MessageEnum } from "./config/postMessage"
 
 let serverMock: Server
 let docStatusBarItem: vscode.StatusBarItem
@@ -59,40 +60,45 @@ export function activate(context: vscode.ExtensionContext) {
         // 接受webview发送的信息，且再向webview发送信息，这样做为了解决它们两者通信有时不得行的bug
         currentPanel.webview.onDidReceiveMessage(
           (message) => {
-            if (message) {
-              // 读取本地的schema类型定义
-              const localTypeDefs = readLocalSchemaTypeDefs()
-              const messageObj = {
-                directive: jsonSettings.directive,
-                localTypeDefs,
-                typeDefs: backendTypeDefs,
-                port,
-                operations,
-                IpAddress: getIpAddress(),
-              }
+            switch (message) {
+              case MessageEnum.FETCH:
+                // 读取本地的schema类型定义
+                const localTypeDefs = readLocalSchemaTypeDefs()
+                const messageObj = {
+                  directive: jsonSettings.directive,
+                  localTypeDefs,
+                  typeDefs: backendTypeDefs,
+                  port,
+                  operations,
+                  IpAddress: getIpAddress(),
+                }
 
-              currentPanel!.webview.postMessage(messageObj)
-            } else {
-              fetchRemoteSchemaTypeDefs(url)
-                .then((resTypeDefs) => {
-                  // 读取本地的schema类型定义
-                  const localTypeDefs = readLocalSchemaTypeDefs()
-                  const schema = buildSchema(resTypeDefs)
-                  const operations = getOperationsBySchema(schema)
-                  const messageObj = {
-                    directive: jsonSettings.directive,
-                    localTypeDefs,
-                    typeDefs: resTypeDefs,
-                    port,
-                    operations,
-                    IpAddress: getIpAddress(),
-                  }
+                currentPanel!.webview.postMessage(messageObj)
+                break
+              case MessageEnum.REFETCH:
+                fetchRemoteSchemaTypeDefs(url)
+                  .then((resTypeDefs) => {
+                    // 读取本地的schema类型定义
+                    const localTypeDefs = readLocalSchemaTypeDefs()
+                    const schema = buildSchema(resTypeDefs)
+                    const operations = getOperationsBySchema(schema)
+                    const messageObj = {
+                      directive: jsonSettings.directive,
+                      localTypeDefs,
+                      typeDefs: resTypeDefs,
+                      port,
+                      operations,
+                      IpAddress: getIpAddress(),
+                    }
 
-                  currentPanel!.webview.postMessage(messageObj)
-                })
-                .catch((e) => {
-                  throw e
-                })
+                    currentPanel!.webview.postMessage(messageObj)
+                  })
+                  .catch((e) => {
+                    throw e
+                  })
+                break
+              default:
+                console.log("ssssssssssssssssssssss")
             }
           },
           undefined,
