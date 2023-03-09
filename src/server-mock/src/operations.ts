@@ -10,7 +10,7 @@ const router = express.Router()
 
 const createOperationsController = () => {
   const workspaceRootPath = vscode.workspace.workspaceFolders?.[0].uri.fsPath // 工作区根目录
-  const jsonSettings = vscode.workspace.getConfiguration("gql-doc")
+  const jsonSettings = vscode.workspace.getConfiguration("graphql-qiufen-pro")
   let qiufenConfigPath: string
   let qiufenConfig: GraphqlKitConfig
   let port: number

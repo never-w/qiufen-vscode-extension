@@ -7,7 +7,7 @@ function getWorkspaceConfig(tryCatchCallback?: VoidFunction) {
   const workspaceRootPath = vscode.workspace.workspaceFolders?.[0].uri.fsPath // 工作区根目录
   const qiufenConfigPath = path.join(workspaceRootPath!, "qiufen.config.js")
   const isExistConfigFile = fs.existsSync(qiufenConfigPath)
-  const jsonSettings = vscode.workspace.getConfiguration("gql-doc")
+  const jsonSettings = vscode.workspace.getConfiguration("graphql-qiufen-pro")
 
   let qiufenConfig: GraphqlKitConfig | undefined
   let port: number | undefined

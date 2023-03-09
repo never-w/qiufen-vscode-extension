@@ -1,7 +1,7 @@
 {
-  "name": "gql-doc",
-  "displayName": "gql doc",
-  "description": "Graphql Graphql-tool Graphql-Doc schema",
+  "name": "graphql-qiufen-pro",
+  "displayName": "Graphql Qiufen Pro",
+  "description": "Graphql Graphql-tool Graphql-Doc schema Operations Ast",
   "author": "never-w",
   "publisher": "never-w",
   "version": "0.0.8",

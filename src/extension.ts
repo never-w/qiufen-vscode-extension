@@ -22,7 +22,7 @@ let currentPanel: vscode.WebviewPanel | undefined
 export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand(gqlDocStartCommandId, async () => {
-      const jsonSettings = vscode.workspace.getConfiguration("gql-doc")
+      const jsonSettings = vscode.workspace.getConfiguration("graphql-qiufen-pro")
 
       const columnToShowIn = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined
       if (currentPanel) {
@@ -222,5 +222,5 @@ function getWebviewContent(srcUrl: vscode.Uri) {
 // TODO 暂时不删除以防后面记忆
 // const gqlDocSettingCommandId = "gqlDoc.settings"
 // vscode.commands.registerCommand(gqlDocSettingCommandId, () => {
-//   vscode.commands.executeCommand("workbench.action.openSettings", "@ext:never-w.gql-doc")
+//   vscode.commands.executeCommand("workbench.action.openSettings", "@ext:never-w.graphql-qiufen-pro")
 // }),
