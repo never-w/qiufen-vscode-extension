@@ -1,6 +1,5 @@
 import { MessageEnum } from "@/config/postMessage"
 import { TypedOperation } from "@fruits-chain/qiufen-helpers"
-import { Uri } from "vscode"
 import create, { SetState } from "zustand"
 
 interface MessageEvent {
@@ -12,6 +11,7 @@ interface MessageEvent {
   typeDefs: string
   localTypeDefs: string
   directive: string
+  workspaceGqlNames: string[]
 }
 
 interface BearState extends MessageEvent {
@@ -28,6 +28,7 @@ const useBearStore = create<BearState>((set, get) => {
     operations: [],
     IpAddress: "",
     typeDefs: "",
+    workspaceGqlNames: [],
     isDisplaySidebar: true,
     vscode: (window as unknown as VscodeGlobal).acquireVsCodeApi(),
     captureMessage() {

@@ -1,6 +1,6 @@
 import React, { memo, useEffect, useMemo, useState } from "react"
 import { Input, Collapse, Tooltip, Space, message } from "antd"
-import { CopyOutlined, SearchOutlined } from "@ant-design/icons"
+import { CopyOutlined, SearchOutlined, CheckCircleTwoTone } from "@ant-design/icons"
 import { useThrottleFn } from "@fruits-chain/hooks-laba"
 import classnames from "classnames"
 import ClipboardJS from "clipboard"
@@ -9,6 +9,8 @@ import styles from "./index.module.less"
 import type { CollapseProps } from "antd"
 import type { TypedOperation } from "@fruits-chain/qiufen-helpers"
 import type { FC } from "react"
+import useBearStore from "@/webview/stores"
+import { includes } from "lodash"
 
 export const copy = (selector: string) => {
   const clipboard = new ClipboardJS(selector)
@@ -36,6 +38,7 @@ export interface IProps {
 const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, operations, onSelect, selectedOperationId, setActiveItemKey, handleReload }) => {
   const [top, setTop] = useState(0)
   const [isFocus, setIsFocus] = useState(false)
+  const { workspaceGqlNames } = useBearStore((ste) => ste)
 
   const onScroll = useThrottleFn(
     (evt) => {
@@ -59,7 +62,7 @@ const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, opera
     })
     setActiveKey(activeKey as string[])
     setActiveItemKey(selectedOperationId)
-  }, [selectedOperationId])
+  }, [groupedOperations, selectedOperationId, setActiveItemKey])
 
   const contentJSX = useMemo(() => {
     return Object.entries(groupedOperations).map(([groupName, operationData]) => {
@@ -118,7 +121,8 @@ const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, opera
                       [styles.deprecated]: !!deprecatedReason,
                     })}
                   >
-                    <Space direction="vertical">
+                    <Space direction="horizontal">
+                      {workspaceGqlNames.includes(operation.name) && <CheckCircleTwoTone twoToneColor="#52c41a" />}
                       {operation.description || operation.name}
                       {!!deprecatedReason && <span className={styles.warning}>{deprecatedReason}</span>}
                     </Space>
@@ -130,7 +134,7 @@ const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, opera
         </Collapse.Panel>
       )
     })
-  }, [groupedOperations, keyword, onSelect, activeItemKey, activeKey])
+  }, [groupedOperations, keyword, activeKey, activeItemKey, workspaceGqlNames, onSelect, setActiveItemKey])
 
   return (
     <div className={styles.sidebar}>

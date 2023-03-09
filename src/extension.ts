@@ -12,7 +12,7 @@ import { gqlDocCloseCommandId, gqlDocMockCloseCommandId, gqlDocMockCommandId, gq
 import { startServer } from "./server-mock/src"
 import readLocalSchemaTypeDefs from "./utils/readLocalSchemaTypeDefs"
 import { fillOneKeyMessageSignNull, fillOneKeyMessageSignSuccess, MessageEnum } from "./config/postMessage"
-import { setWorkspaceGqls } from "./utils/readWorkspaceOperations"
+import { getLocalAllGqlResolveFilePaths, getWorkspaceGqlFileInfo, setWorkspaceGqls } from "./utils/readWorkspaceOperations"
 
 let serverMock: Server
 let docStatusBarItem: vscode.StatusBarItem
@@ -63,12 +63,18 @@ export function activate(context: vscode.ExtensionContext) {
           (message) => {
             switch (message.type) {
               case MessageEnum.FETCH:
+                const resolveGqlFiles = getLocalAllGqlResolveFilePaths()
+                const workspaceGqlNames = getWorkspaceGqlFileInfo(resolveGqlFiles)
+                  .map((itm) => itm.operationNames)
+                  .flat(Infinity)
+
                 // 读取本地的schema类型定义
                 const localTypeDefs = readLocalSchemaTypeDefs()
                 const messageObj = {
+                  typeDefs: backendTypeDefs,
                   directive: jsonSettings.directive,
                   localTypeDefs,
-                  typeDefs: backendTypeDefs,
+                  workspaceGqlNames,
                   port,
                   operations,
                   IpAddress: getIpAddress(),
@@ -77,6 +83,11 @@ export function activate(context: vscode.ExtensionContext) {
                 currentPanel!.webview.postMessage(messageObj)
                 break
               case MessageEnum.REFETCH:
+                const resolveGqlFiles1 = getLocalAllGqlResolveFilePaths()
+                const workspaceGqlNames1 = getWorkspaceGqlFileInfo(resolveGqlFiles1)
+                  .map((itm) => itm.operationNames)
+                  .flat(Infinity)
+
                 fetchRemoteSchemaTypeDefs(url)
                   .then((resTypeDefs) => {
                     // 读取本地的schema类型定义
@@ -85,8 +96,9 @@ export function activate(context: vscode.ExtensionContext) {
                     const operations = getOperationsBySchema(schema)
                     const messageObj = {
                       directive: jsonSettings.directive,
-                      localTypeDefs,
                       typeDefs: resTypeDefs,
+                      workspaceGqlNames: workspaceGqlNames1,
+                      localTypeDefs,
                       port,
                       operations,
                       IpAddress: getIpAddress(),
