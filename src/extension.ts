@@ -101,8 +101,6 @@ export function activate(context: vscode.ExtensionContext) {
               default:
                 const { gqlStr, gqlName, gqlType } = message
                 readWorkspaceAndSetGqls(gqlStr, gqlName, gqlType).then((res) => {
-                  console.log(res, ";sas;a;sa;sa;sa")
-
                   currentPanel!.webview.postMessage(res ? fillOneKeyMessageSignSuccess : fillOneKeyMessageSignNull)
                 })
             }

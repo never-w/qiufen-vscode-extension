@@ -32,15 +32,19 @@ const useBearStore = create<BearState>((set, get) => {
     vscode: (window as unknown as VscodeGlobal).acquireVsCodeApi(),
     captureMessage() {
       return new Promise((resolve) => {
+        globalThis.MessageEvent
         const vscode = get().vscode
         // 向插件发送信息
         vscode.postMessage({ type: MessageEnum.FETCH })
         // 接受插件发送过来的信息
-        window.addEventListener("message", (evt) => {
+        window.addEventListener("message", listener)
+
+        function listener(evt: globalThis.MessageEvent) {
           const data = evt.data as MessageEvent
           set(data)
           resolve(true)
-        })
+          window.removeEventListener("message", listener)
+        }
       })
     },
     setState: set,
@@ -51,11 +55,14 @@ const useBearStore = create<BearState>((set, get) => {
         vscode.postMessage({
           type: MessageEnum.REFETCH,
         })
-        window.addEventListener("message", (evt) => {
+        window.addEventListener("message", listener)
+
+        function listener(evt: globalThis.MessageEvent) {
           const data = evt.data as MessageEvent
           set(data)
           resolve(true)
-        })
+          window.removeEventListener("message", listener)
+        }
       })
     },
   }

@@ -5,66 +5,6 @@ import { workspace, window } from "vscode"
 import path from "path"
 import { DefinitionNode, parse, visit, Kind, print, FieldNode, OperationDefinitionNode, BREAK } from "graphql"
 
-function fillOperationInLocal(filePath: string, gql: string, gqlName: string, gqlType: string) {
-  const updateOperationFieldNode = getUpdateOperationNode(parse(gql).definitions[0], gqlName)
-
-  const content = fs.readFileSync(filePath, "utf8")
-  const operationsAstArr = parse(content).definitions
-
-  const operationsStrArr = operationsAstArr.map((operationAst) => {
-    return print(visitOperationTransformer(operationAst, updateOperationFieldNode!, gqlName, gqlType))
-  })
-  const newContent = operationsStrArr.join("\n\n")
-  fs.writeFileSync(filePath, newContent)
-}
-
-export async function readWorkspaceAndSetGqls(gql: string, gqlName: string, gqlType: string) {
-  try {
-    // 在这里验证一哈选择过来的gql接口是不是正确选择的
-    parse(gql).definitions[0]
-  } catch (error) {
-    vscode.window.showErrorMessage("GraphQLError: Syntax Error")
-    return Promise.reject("GraphQLError: Syntax Error")
-  }
-
-  // 工作区根目录
-  const workspaceRootPath = workspace.workspaceFolders?.[0].uri.fsPath
-  // 读取项目根目录下所有.gql文件相对路径
-  const gqlFiles = glob.sync("**/*.gql", { cwd: workspaceRootPath })
-  const resolveGqlFiles = gqlFiles.map((file) => path.join(workspaceRootPath!, file))
-  const workspaceGqlFileInfo = getWorkspaceGqlFileInfo(resolveGqlFiles)
-  const filterWorkspaceGqlFiles = workspaceGqlFileInfo.filter((gqlFileItm) => gqlFileItm.operationNames.includes(gqlName)).map((itm) => itm.filename)
-
-  if (!filterWorkspaceGqlFiles.length) {
-    vscode.window.showInformationMessage("The operation does not exist in a local file")
-    return Promise.resolve(false)
-  }
-
-  if (filterWorkspaceGqlFiles.length >= 2) {
-    // 当该传入的operation在本地存在于多个文件夹时
-    const items = ["Select all", ...filterWorkspaceGqlFiles]
-    const res = await window.showQuickPick(items)
-
-    if (!res) {
-      return Promise.resolve(false)
-    }
-
-    // 如果选择全部
-    if (res === items[0]) {
-      filterWorkspaceGqlFiles.forEach((fileResolvePath) => {
-        fillOperationInLocal(fileResolvePath, gql, gqlName, gqlType)
-      })
-      return Promise.resolve(true)
-    } else {
-      fillOperationInLocal(res, gql, gqlName, gqlType)
-      return Promise.resolve(true)
-    }
-  } else {
-    fillOperationInLocal(filterWorkspaceGqlFiles[0], gql, gqlName, gqlType)
-    return Promise.resolve(true)
-  }
-}
-
 function visitOperationTransformer(ast: DefinitionNode, updateOperationNode: FieldNode, operationName: string, gqlType: string) {
   return visit(ast, {
     enter(node, key, parent, path, ancestors) {
@@ -96,6 +36,65 @@ function getUpdateOperationNode(ast: DefinitionNode, operationName: string) {
 
   // 返回当前需要更新的operation的node
   return childNode
+}
+
+function fillOperationInLocal(filePath: string, gql: string, gqlName: string, gqlType: string) {
+  const updateOperationFieldNode = getUpdateOperationNode(parse(gql).definitions[0], gqlName)
+
+  const content = fs.readFileSync(filePath, "utf8")
+  const operationsAstArr = parse(content).definitions
+
+  const operationsStrArr = operationsAstArr.map((operationAst) => {
+    return print(visitOperationTransformer(operationAst, updateOperationFieldNode!, gqlName, gqlType))
+  })
+  const newContent = operationsStrArr.join("\n\n")
+  fs.writeFileSync(filePath, newContent)
+}
+
+export function getLocalAllGqlResolveFilePaths() {
+  const workspaceRootPath = workspace.workspaceFolders?.[0].uri.fsPath
+  const gqlFiles = glob.sync("**/*.gql", { cwd: workspaceRootPath })
+  const resolveGqlFiles = gqlFiles.map((file) => path.join(workspaceRootPath!, file))
+  return resolveGqlFiles
+}
+
+export async function readWorkspaceAndSetGqls(gql: string, gqlName: string, gqlType: string) {
+  try {
+    // 在这里验证一哈选择过来的gql接口是不是正确选择的
+    parse(gql).definitions[0]
+  } catch (error) {
+    vscode.window.showErrorMessage("GraphQLError: Syntax Error")
+    return Promise.reject("GraphQLError: Syntax Error")
+  }
+
+  const resolveGqlFiles = getLocalAllGqlResolveFilePaths()
+  const workspaceGqlFileInfo = getWorkspaceGqlFileInfo(resolveGqlFiles)
+  const filterWorkspaceGqlFiles = workspaceGqlFileInfo.filter((gqlFileItm) => gqlFileItm.operationNames.includes(gqlName)).map((itm) => itm.filename)
+
+  if (!filterWorkspaceGqlFiles.length) {
+    vscode.window.showInformationMessage("The operation does not exist in a local file")
+    return Promise.resolve(false)
+  }
+
+  if (filterWorkspaceGqlFiles.length >= 2) {
+    // 当该传入的operation在本地存在于多个文件夹时
+    const items = filterWorkspaceGqlFiles
+    const res = await window.showQuickPick(items, {
+      canPickMany: true,
+    })
+
+    if (!res?.length) {
+      return Promise.resolve(false)
+    }
+
+    res.forEach((fileResolvePath) => {
+      fillOperationInLocal(fileResolvePath, gql, gqlName, gqlType)
+    })
+    return Promise.resolve(true)
+  } else {
+    fillOperationInLocal(filterWorkspaceGqlFiles[0], gql, gqlName, gqlType)
+    return Promise.resolve(true)
+  }
 }
 
 /** 获取本每个gql文件的对应信息 */

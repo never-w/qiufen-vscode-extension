@@ -269,15 +269,17 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
       gqlType: operation.operationType,
     })
     // 接受插件发送过来的信息
-    window.addEventListener("message", (evt) => {
+    window.addEventListener("message", listener)
+
+    function listener(evt: any) {
       const data = evt.data as string
       if (data === fillOneKeyMessageSignSuccess) {
         message.success("一键填入成功")
-        console.log("1111111111111111111")
         setSpinIcon(false)
       }
       setSpinIcon(false)
-    })
+      window.removeEventListener("message", listener)
+    }
   }, [defaultSelectedKeys, operation, schema, vscode])
 
   return (
