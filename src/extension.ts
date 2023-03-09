@@ -112,9 +112,13 @@ export function activate(context: vscode.ExtensionContext) {
                 break
               default:
                 const { gqlStr, gqlName, gqlType } = message
-                setWorkspaceGqls(gqlStr, gqlName, gqlType).then((res) => {
-                  currentPanel!.webview.postMessage(res ? fillOneKeyMessageSignSuccess : fillOneKeyMessageSignNull)
-                })
+                setWorkspaceGqls(gqlStr, gqlName, gqlType)
+                  .then((res) => {
+                    currentPanel!.webview.postMessage(res ? fillOneKeyMessageSignSuccess : fillOneKeyMessageSignNull)
+                  })
+                  .catch(() => {
+                    currentPanel!.webview.postMessage(fillOneKeyMessageSignNull)
+                  })
             }
           },
           undefined,
