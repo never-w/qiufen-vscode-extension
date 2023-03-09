@@ -58,7 +58,7 @@ export function getLocalAllGqlResolveFilePaths() {
   return resolveGqlFiles
 }
 
-export async function readWorkspaceAndSetGqls(gql: string, gqlName: string, gqlType: string) {
+export async function setWorkspaceGqls(gql: string, gqlName: string, gqlType: string) {
   try {
     // 在这里验证一哈选择过来的gql接口是不是正确选择的
     parse(gql).definitions[0]

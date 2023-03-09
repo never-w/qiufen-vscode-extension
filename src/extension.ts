@@ -12,7 +12,7 @@ import { gqlDocCloseCommandId, gqlDocMockCloseCommandId, gqlDocMockCommandId, gq
 import { startServer } from "./server-mock/src"
 import readLocalSchemaTypeDefs from "./utils/readLocalSchemaTypeDefs"
 import { fillOneKeyMessageSignNull, fillOneKeyMessageSignSuccess, MessageEnum } from "./config/postMessage"
-import { readWorkspaceAndSetGqls } from "./utils/readWorkspaceAndSetGqls"
+import { setWorkspaceGqls } from "./utils/readWorkspaceOperations"
 
 let serverMock: Server
 let docStatusBarItem: vscode.StatusBarItem
@@ -100,7 +100,7 @@ export function activate(context: vscode.ExtensionContext) {
                 break
               default:
                 const { gqlStr, gqlName, gqlType } = message
-                readWorkspaceAndSetGqls(gqlStr, gqlName, gqlType).then((res) => {
+                setWorkspaceGqls(gqlStr, gqlName, gqlType).then((res) => {
                   currentPanel!.webview.postMessage(res ? fillOneKeyMessageSignSuccess : fillOneKeyMessageSignNull)
                 })
             }
