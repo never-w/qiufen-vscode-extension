@@ -11,7 +11,7 @@ import { defaultQiufenConfig } from "./config"
 import { gqlDocCloseCommandId, gqlDocMockCloseCommandId, gqlDocMockCommandId, gqlDocStartCommandId } from "./config/commands"
 import { startServer } from "./server-mock/src"
 import readLocalSchemaTypeDefs from "./utils/readLocalSchemaTypeDefs"
-import { fillOneKeyMessageSign, MessageEnum } from "./config/postMessage"
+import { fillOneKeyMessageSignNull, fillOneKeyMessageSignSuccess, MessageEnum } from "./config/postMessage"
 import { readWorkspaceAndSetGqls } from "./utils/readWorkspaceAndSetGqls"
 
 let serverMock: Server
@@ -100,8 +100,11 @@ export function activate(context: vscode.ExtensionContext) {
                 break
               default:
                 const { gqlStr, gqlName, gqlType } = message
-                readWorkspaceAndSetGqls(gqlStr, gqlName, gqlType)
-                currentPanel!.webview.postMessage(fillOneKeyMessageSign)
+                readWorkspaceAndSetGqls(gqlStr, gqlName, gqlType).then((res) => {
+                  console.log(res, ";sas;a;sa;sa;sa")
+
+                  currentPanel!.webview.postMessage(res ? fillOneKeyMessageSignSuccess : fillOneKeyMessageSignNull)
+                })
             }
           },
           undefined,

@@ -17,7 +17,7 @@ import printOperationNodeForField from "@/utils/printOperationNodeForField"
 import { traverseOperationTreeGetParentAndChildSelectedKeys, getDefaultRowKeys } from "@/utils/traverseTree"
 import { useUpdate } from "@fruits-chain/hooks-laba"
 import { FetchDirectiveArg } from "@/utils/interface"
-import { fillOneKeyMessageSign, MessageEnum } from "@/config/postMessage"
+import { fillOneKeyMessageSignSuccess, MessageEnum } from "@/config/postMessage"
 
 interface IProps {
   operation: TypedOperation
@@ -271,10 +271,12 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
     // 接受插件发送过来的信息
     window.addEventListener("message", (evt) => {
       const data = evt.data as string
-      if (data === fillOneKeyMessageSign) {
-        setSpinIcon(false)
+      if (data === fillOneKeyMessageSignSuccess) {
         message.success("一键填入成功")
+        console.log("1111111111111111111")
+        setSpinIcon(false)
       }
+      setSpinIcon(false)
     })
   }, [defaultSelectedKeys, operation, schema, vscode])
 

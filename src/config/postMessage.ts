@@ -4,4 +4,6 @@ export enum MessageEnum {
   ONE_KEY_FILL = "ONE_KEY_FILL",
 }
 
-export const fillOneKeyMessageSign = "fill-success"
+export const fillOneKeyMessageSignSuccess = "fill-success"
+
+export const fillOneKeyMessageSignNull = "fill-null"
