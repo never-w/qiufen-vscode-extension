@@ -1,4 +1,4 @@
-export const gqlDocStartCommandId = "gqlDoc.start"
-export const gqlDocCloseCommandId = "gqlDoc.close"
-export const gqlDocMockCloseCommandId = "gqlDoc.mockClose"
-export const gqlDocMockCommandId = "gqlDoc.mock"
+export const GraphqlQiufenProStartDocCommandId = "graphql-qiufen-pro.startDoc"
+export const GraphqlQiufenProCloseDocCommandId = "graphql-qiufen-pro.closeDoc"
+export const GraphqlQiufenProCloseMockCommandId = "graphql-qiufen-pro.mockClose"
+export const GraphqlQiufenProStartMockCommandId = "graphql-qiufen-pro.mock"

@@ -8,7 +8,7 @@ import getWorkspaceConfig from "./utils/getWorkspaceConfig"
 import fetchRemoteSchemaTypeDefs from "./utils/fetchRemoteSchemaTypeDefs"
 import { updateStatusBarItem, loadingStatusBarItem } from "./utils/updateStatusBarItem"
 import { defaultQiufenConfig } from "./config"
-import { gqlDocCloseCommandId, gqlDocMockCloseCommandId, gqlDocMockCommandId, gqlDocStartCommandId } from "./config/commands"
+import { GraphqlQiufenProCloseDocCommandId, GraphqlQiufenProCloseMockCommandId, GraphqlQiufenProStartMockCommandId, GraphqlQiufenProStartDocCommandId } from "./config/commands"
 import { startServer } from "./server-mock/src"
 import readLocalSchemaTypeDefs from "./utils/readLocalSchemaTypeDefs"
 import { fillOneKeyMessageSignNull, fillOneKeyMessageSignSuccess, MessageEnum } from "./config/postMessage"
@@ -21,7 +21,7 @@ let currentPanel: vscode.WebviewPanel | undefined
 
 export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
-    vscode.commands.registerCommand(gqlDocStartCommandId, async () => {
+    vscode.commands.registerCommand(GraphqlQiufenProStartDocCommandId, async () => {
       const jsonSettings = vscode.workspace.getConfiguration("graphql-qiufen-pro")
 
       const columnToShowIn = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined
@@ -32,7 +32,7 @@ export function activate(context: vscode.ExtensionContext) {
       if (!currentPanel) {
         loadingStatusBarItem(docStatusBarItem, "Doc")
         const { url, port } = getWorkspaceConfig(() => {
-          updateStatusBarItem(gqlDocStartCommandId, `$(target) Doc`, docStatusBarItem)
+          updateStatusBarItem(GraphqlQiufenProStartDocCommandId, `$(target) Doc`, docStatusBarItem)
         })
 
         // 获取远程schema typeDefs
@@ -40,7 +40,7 @@ export function activate(context: vscode.ExtensionContext) {
         try {
           backendTypeDefs = await fetchRemoteSchemaTypeDefs(url)
         } catch (e) {
-          updateStatusBarItem(gqlDocStartCommandId, `$(target) Doc`, docStatusBarItem)
+          updateStatusBarItem(GraphqlQiufenProStartDocCommandId, `$(target) Doc`, docStatusBarItem)
           throw e
         }
         const schema = buildSchema(backendTypeDefs)
@@ -49,7 +49,7 @@ export function activate(context: vscode.ExtensionContext) {
           return
         }
 
-        currentPanel = vscode.window.createWebviewPanel("gqlDoc", "Gql Doc", columnToShowIn!, {
+        currentPanel = vscode.window.createWebviewPanel("graphql-qiufen-pro", "Graphql Qiufen Pro", columnToShowIn!, {
           retainContextWhenHidden: true, // 保证 Webview 所在页面进入后台时不被释放
           enableScripts: true,
         })
@@ -121,13 +121,13 @@ export function activate(context: vscode.ExtensionContext) {
           context.subscriptions
         )
 
-        updateStatusBarItem(gqlDocCloseCommandId, `$(target) Close Doc`, docStatusBarItem, "yellow")
+        updateStatusBarItem(GraphqlQiufenProCloseDocCommandId, `$(target) Close Doc`, docStatusBarItem, "yellow")
 
         // 当前面板被关闭后重置
         currentPanel.onDidDispose(
           () => {
             currentPanel = undefined
-            updateStatusBarItem(gqlDocStartCommandId, `$(target) Doc`, docStatusBarItem)
+            updateStatusBarItem(GraphqlQiufenProStartDocCommandId, `$(target) Doc`, docStatusBarItem)
           },
           null,
           context.subscriptions
@@ -135,26 +135,26 @@ export function activate(context: vscode.ExtensionContext) {
       }
     }),
     // 关闭gql doc命令注册
-    vscode.commands.registerCommand(gqlDocCloseCommandId, () => {
+    vscode.commands.registerCommand(GraphqlQiufenProCloseDocCommandId, () => {
       if (currentPanel) {
         currentPanel?.dispose()
-        updateStatusBarItem(gqlDocStartCommandId, `$(target) Doc`, docStatusBarItem)
+        updateStatusBarItem(GraphqlQiufenProStartDocCommandId, `$(target) Doc`, docStatusBarItem)
       }
     }),
     // Close Mock命令注册
-    vscode.commands.registerCommand(gqlDocMockCloseCommandId, () => {
+    vscode.commands.registerCommand(GraphqlQiufenProCloseMockCommandId, () => {
       serverMock.close()
-      updateStatusBarItem(gqlDocMockCommandId, `$(play) Mock`, mockStatusBarItem)
+      updateStatusBarItem(GraphqlQiufenProStartMockCommandId, `$(play) Mock`, mockStatusBarItem)
     }),
     // Start Mock命令注册
-    vscode.commands.registerCommand(gqlDocMockCommandId, async () => {
+    vscode.commands.registerCommand(GraphqlQiufenProStartMockCommandId, async () => {
       const { isExistConfigFile, url, port, qiufenConfig } = getWorkspaceConfig()
       loadingStatusBarItem(mockStatusBarItem, "Mock")
       if (isExistConfigFile) {
         try {
           serverMock = await startServer(qiufenConfig!)
         } catch (err) {
-          updateStatusBarItem(gqlDocMockCommandId, `$(play) Mock`, mockStatusBarItem)
+          updateStatusBarItem(GraphqlQiufenProStartMockCommandId, `$(play) Mock`, mockStatusBarItem)
           throw err
         }
       } else {
@@ -167,7 +167,7 @@ export function activate(context: vscode.ExtensionContext) {
             ...defaultQiufenConfig,
           })
         } catch (err) {
-          updateStatusBarItem(gqlDocMockCommandId, `$(play) Mock`, mockStatusBarItem)
+          updateStatusBarItem(GraphqlQiufenProStartMockCommandId, `$(play) Mock`, mockStatusBarItem)
           throw err
         }
       }
@@ -185,7 +185,7 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.env.openExternal(vscode.Uri.parse(`http://localhost:${port}`))
       }
 
-      updateStatusBarItem(gqlDocMockCloseCommandId, `$(play) Close Mock`, mockStatusBarItem, "yellow")
+      updateStatusBarItem(GraphqlQiufenProCloseMockCommandId, `$(play) Close Mock`, mockStatusBarItem, "yellow")
     })
   )
 
@@ -193,9 +193,9 @@ export function activate(context: vscode.ExtensionContext) {
   docStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left)
   mockStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left)
   context.subscriptions.push(docStatusBarItem, mockStatusBarItem)
-  updateStatusBarItem(gqlDocStartCommandId, `$(target) Doc`, docStatusBarItem)
+  updateStatusBarItem(GraphqlQiufenProStartDocCommandId, `$(target) Doc`, docStatusBarItem)
   docStatusBarItem.show()
-  updateStatusBarItem(gqlDocMockCommandId, `$(play) Mock`, mockStatusBarItem)
+  updateStatusBarItem(GraphqlQiufenProStartMockCommandId, `$(play) Mock`, mockStatusBarItem)
   mockStatusBarItem.show()
 }
 
@@ -220,7 +220,7 @@ function getWebviewContent(srcUrl: vscode.Uri) {
 }
 
 // TODO 暂时不删除以防后面记忆
-// const gqlDocSettingCommandId = "gqlDoc.settings"
+// const gqlDocSettingCommandId = "graphql-qiufen-pro.settings"
 // vscode.commands.registerCommand(gqlDocSettingCommandId, () => {
 //   vscode.commands.executeCommand("workbench.action.openSettings", "@ext:never-w.graphql-qiufen-pro")
 // }),

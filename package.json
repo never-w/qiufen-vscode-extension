@@ -4,7 +4,7 @@
   "description": "Graphql Graphql-tool Graphql-Doc schema Operations Ast",
   "author": "never-w",
   "publisher": "never-w",
-  "version": "0.0.8",
+  "version": "1.0.0",
   "engines": {
     "vscode": "^1.62.0"
   },
@@ -23,39 +23,39 @@
   "contributes": {
     "commands": [
       {
-        "command": "gqlDoc.start",
-        "title": "Start gql doc",
-        "category": "gqlDoc"
+        "command": "graphql-qiufen-pro.startDoc",
+        "title": "start graphql-qiufen-pro operations doc",
+        "category": "Graphql Qiufen Pro"
       },
       {
-        "command": "gqlDoc.close",
-        "title": "Close gql doc",
-        "category": "gqlDoc"
+        "command": "graphql-qiufen-pro.closeDoc",
+        "title": "close graphql-qiufen-pro operations doc",
+        "category": "Graphql Qiufen Pro"
       },
       {
-        "command": "gqlDoc.mock",
-        "title": "Mock gql",
-        "category": "gqlDoc"
+        "command": "graphql-qiufen-pro.mock",
+        "title": "start mocking graphql-qiufen-pro operations",
+        "category": "Graphql Qiufen Pro"
       },
       {
-        "command": "gqlDoc.mockClose",
-        "title": "Close mock gql",
-        "category": "gqlDoc"
+        "command": "graphql-qiufen-pro.mockClose",
+        "title": "close mocking graphql-qiufen-pro operations",
+        "category": "Graphql Qiufen Pro"
       }
     ],
     "configuration": {
       "properties": {
-        "gql-doc.endpointUrl": {
+        "graphql-qiufen-pro.endpointUrl": {
           "type": "string",
           "default": "",
           "description": "backend service endpointUrl"
         },
-        "gql-doc.port": {
+        "graphql-qiufen-pro.port": {
           "type": "number",
           "default": 9400,
           "description": "backend service port"
         },
-        "gql-doc.directive": {
+        "graphql-qiufen-pro.directive": {
           "type": "string",
           "default": "fetchField",
           "description": "custom backed directive"
