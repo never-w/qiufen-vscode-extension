@@ -1,3 +1,4 @@
+import * as vscode from "vscode"
 import { ApolloServer } from "@apollo/server"
 import { addMocksToSchema } from "@graphql-tools/mock"
 import { makeExecutableSchema } from "@graphql-tools/schema"
@@ -12,6 +13,7 @@ import { getOperationsBySchema } from "../src/utils/operation"
 
 export async function startServer(config: GraphqlKitConfig) {
   const { endpoint, port, mock } = config
+  const jsonSettings = vscode.workspace.getConfiguration("graphql-qiufen-pro")
 
   const app = express()
 
@@ -28,9 +30,10 @@ export async function startServer(config: GraphqlKitConfig) {
   app.use("/graphql", cors<cors.CorsRequest>(), json(), expressMiddleware(server))
 
   app.get("/operations", async (req, res) => {
-    const schema = buildSchema(backendTypeDefs)
+    const backendTypeDefs1 = await fetchRemoteSchemaTypeDefs(endpoint.url)
+    const schema = buildSchema(backendTypeDefs1)
     const operations = getOperationsBySchema(schema)
-    res.send(operations)
+    res.send({ backendTypeDefs, directive: jsonSettings.directive, operations })
   })
 
   app.use(express.static(path.resolve(__dirname, "../dist-page-view")))

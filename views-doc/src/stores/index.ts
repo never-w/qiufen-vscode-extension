@@ -6,6 +6,8 @@ interface MessageEvent {
   operations: TypedOperation[]
   isDisplaySidebar: boolean
   port: number
+  backendTypeDefs: string
+  directive: string
 }
 
 interface BearState extends MessageEvent {
@@ -18,15 +20,15 @@ const useBearStore = create<BearState>((set) => {
   return {
     port: 9400,
     operations: [],
+    directive: 'fetchField',
     isDisplaySidebar: true,
+    backendTypeDefs: '',
     fetchOperations() {
       return new Promise((resolve) => {
         fetch(`${fetchUrl}/operations`)
           .then((response) => response.json())
           .then((data) => {
-            set({
-              operations: data,
-            })
+            set(data)
             resolve(true)
           })
       })
@@ -37,7 +39,7 @@ const useBearStore = create<BearState>((set) => {
         fetch(`${fetchUrl}/operations`)
           .then((response) => response.json())
           .then((data) => {
-            set({ operations: data })
+            set(data)
             resolve(true)
           })
       })

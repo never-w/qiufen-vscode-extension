@@ -1,9 +1,9 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useRef } from 'react'
 import { message, Space, Table, Tooltip, Switch, Divider, Tag, Button } from 'antd'
 import { CopyOutlined, MenuFoldOutlined } from '@ant-design/icons'
 import ClipboardJS from 'clipboard'
 import { genGQLStr } from '@fruits-chain/qiufen-helpers'
-import { useToggle } from '@fruits-chain/hooks-laba'
+import { useToggle, useUpdate } from '@fruits-chain/hooks-laba'
 import AceEditor from 'react-ace'
 import obj2str from 'stringify-object'
 import styles from './index.module.less'
@@ -11,12 +11,20 @@ import type { TypedOperation, ArgTypeDef, ObjectFieldTypeDef } from '@fruits-cha
 import type { ColumnsType } from 'antd/lib/table'
 import type { FC } from 'react'
 import useBearStore from '@/stores'
+import { ArgumentNode, buildSchema, ConstDirectiveNode, StringValueNode } from 'graphql'
+import { getDefaultRowKeys, traverseOperationTreeGetParentAndChildSelectedKeys } from '@/utils/traverseTree'
+import { printGqlOperation } from '@/utils/visitOperationTransformer'
+
+enum FetchDirectiveArg {
+  LOADER = 'loader',
+  FETCH = 'fetch',
+}
 
 interface IProps {
   operation: TypedOperation
 }
 
-type ArgColumnRecord = {
+export type ArgColumnRecord = {
   key: string
   name: ArgTypeDef['name']
   type: ArgTypeDef['type']['name']
@@ -24,6 +32,7 @@ type ArgColumnRecord = {
   description: ArgTypeDef['description']
   deprecationReason?: ArgTypeDef['deprecationReason']
   children: ArgColumnRecord[] | null
+  directives?: ConstDirectiveNode[]
 }
 
 const getArgsTreeData = (args: ArgTypeDef[], keyPrefix = '') => {
@@ -104,11 +113,25 @@ const columnGen = (field: 'arguments' | 'return'): ColumnsType<ArgColumnRecord> 
       dataIndex: 'name',
       width: '35%',
       render(value, record) {
+        const tmpIsDirective = !!record.directives?.find((itm) => itm.name.value === 'fetchField')
+        const directivesArgs = record.directives?.find((itm) => itm.name.value === 'fetchField')
+          ?.arguments as ArgumentNode[]
+        const firstArgValue = (directivesArgs?.[0]?.value as StringValueNode)?.value
+
+        const isYellow = FetchDirectiveArg.LOADER === firstArgValue
+        const colorStyle: React.CSSProperties | undefined = tmpIsDirective
+          ? { color: isYellow ? '#FF9900' : 'red' }
+          : undefined
+
         const deprecationReason = record.deprecationReason
         if (deprecationReason) {
-          return <span className={styles.deprecated}>{value}</span>
+          return (
+            <span className={styles.deprecated} style={colorStyle}>
+              {value}
+            </span>
+          )
         }
-        return value
+        return <span style={colorStyle}>{value}</span>
       },
     },
     {
@@ -175,8 +198,10 @@ export const copy = (selector: string) => {
 }
 
 const OperationDoc: FC<IProps> = ({ operation }) => {
-  const { isDisplaySidebar, setState } = useBearStore((ste: any) => ste)
+  const { isDisplaySidebar, setState, directive, backendTypeDefs } = useBearStore((ste: any) => ste)
   const [mode, { toggle: toggleMode }] = useToggle<'TABLE', 'EDITOR'>('TABLE', 'EDITOR')
+  const selectedRowKeys = useRef<string[] | null>(null)
+  const update = useUpdate()
 
   const argsTreeData = useMemo(() => {
     return getArgsTreeData(operation.args)
@@ -195,6 +220,23 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
   const gqlStr = useMemo(() => {
     return genGQLStr(operation)
   }, [operation])
+
+  const defaultSelectedRowKeys = useMemo(() => {
+    const keys: string[] = []
+    getDefaultRowKeys(objectFieldsTreeData, keys, directive)
+    return keys
+  }, [directive, objectFieldsTreeData])
+
+  // 获取初始化页面默认值时选择的operation filed
+  const defaultSelectedKeys = useMemo(() => {
+    const tmpSelectedKeys: string[] = []
+    objectFieldsTreeData.forEach((node) => {
+      traverseOperationTreeGetParentAndChildSelectedKeys(node, defaultSelectedRowKeys, [], tmpSelectedKeys)
+    })
+    // 去重
+    const resultUniqKeys = [...new Set(tmpSelectedKeys)]
+    return resultUniqKeys
+  }, [defaultSelectedRowKeys, objectFieldsTreeData])
 
   return (
     <Space id={operation.name} className={styles.operationDoc} direction="vertical">
@@ -226,9 +268,14 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
           <Tooltip title="Copy GQL">
             <Space
               id="copy"
-              data-clipboard-text={gqlStr}
+              data-clipboard-text={printGqlOperation(
+                buildSchema(backendTypeDefs),
+                operation,
+                !selectedRowKeys.current ? defaultSelectedKeys : selectedRowKeys.current,
+              )}
               className={styles.copyBtn}
               onClick={() => {
+                update()
                 copy('#copy')
               }}
             >
@@ -251,7 +298,7 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
         <>
           <Divider className={styles.divider} />
           <div className={styles.paramsText}>Params: </div>
-          {mode === 'TABLE' ? (
+          <div style={{ display: mode === 'TABLE' ? 'block' : 'none' }}>
             <Table
               columns={argsColumns}
               defaultExpandAllRows
@@ -260,7 +307,8 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
               pagination={false}
               bordered
             />
-          ) : (
+          </div>
+          <div style={{ display: mode !== 'TABLE' ? 'block' : 'none' }}>
             <AceEditor
               theme="tomorrow"
               mode="javascript"
@@ -269,20 +317,35 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
               maxLines={Infinity}
               value={obj2str(operation.argsExample)}
             />
-          )}
+          </div>
         </>
       )}
       <div>Response: </div>
-      {mode === 'TABLE' ? (
+      <div style={{ display: mode === 'TABLE' ? 'block' : 'none' }}>
         <Table
+          rowSelection={{
+            defaultSelectedRowKeys,
+            hideSelectAll: true,
+            checkStrictly: false,
+            onChange: (selectedKeys) => {
+              const tmpSelectedKeys: string[] = []
+              objectFieldsTreeData.forEach((node) => {
+                traverseOperationTreeGetParentAndChildSelectedKeys(node, selectedKeys as string[], [], tmpSelectedKeys)
+              })
+              // 去重
+              const uniqTmpSelectedKeys = [...new Set(tmpSelectedKeys)]
+              selectedRowKeys.current = uniqTmpSelectedKeys
+            },
+          }}
           columns={objectFieldsColumns}
-          defaultExpandAllRows
           className={styles.table}
           dataSource={objectFieldsTreeData}
           pagination={false}
+          defaultExpandedRowKeys={defaultSelectedKeys}
           bordered
         />
-      ) : (
+      </div>
+      <div style={{ display: mode !== 'TABLE' ? 'block' : 'none' }}>
         <AceEditor
           theme="tomorrow"
           mode="javascript"
@@ -294,7 +357,7 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
             $blockScrolling: false,
           }}
         />
-      )}
+      </div>
     </Space>
   )
 }
