@@ -102,6 +102,15 @@ export function getWorkspaceGqlFileInfo(files: string[]) {
   const result = files.map((file) => {
     const content = fs.readFileSync(file, "utf8")
 
+    // 这里过滤一下空文件
+    if (!content) {
+      return {
+        filename: file,
+        operationsAsts: [],
+        operationNames: "",
+      }
+    }
+
     // 得到本地每个gql文件的operations ast
     const operationsAstArr = parse(content, {
       noLocation: true,
