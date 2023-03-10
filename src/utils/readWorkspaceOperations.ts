@@ -111,6 +111,18 @@ export function getWorkspaceGqlFileInfo(files: string[]) {
       }
     }
 
+    // 这里验证一下本地 gql 接口语法错误没有
+    try {
+      parse(content)
+    } catch {
+      window.showErrorMessage(`${file}: GraphQL Syntax Error`)
+      return {
+        filename: file,
+        operationsAsts: [],
+        operationNames: "",
+      }
+    }
+
     // 得到本地每个gql文件的operations ast
     const operationsAstArr = parse(content, {
       noLocation: true,
