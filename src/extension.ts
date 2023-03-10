@@ -9,10 +9,11 @@ import fetchRemoteSchemaTypeDefs from "./utils/fetchRemoteSchemaTypeDefs"
 import { updateStatusBarItem, loadingStatusBarItem } from "./utils/updateStatusBarItem"
 import { defaultQiufenConfig } from "./config"
 import { GraphqlQiufenProCloseDocCommandId, GraphqlQiufenProCloseMockCommandId, GraphqlQiufenProStartMockCommandId, GraphqlQiufenProStartDocCommandId } from "./config/commands"
-import { startServer } from "./server-mock/src"
+// import { startServer } from "./server-mock/src"
 import readLocalSchemaTypeDefs from "./utils/readLocalSchemaTypeDefs"
 import { fillOneKeyMessageSignNull, fillOneKeyMessageSignSuccess, MessageEnum } from "./config/postMessage"
 import { getLocalAllGqlResolveFilePaths, getWorkspaceGqlFileInfo, setWorkspaceGqls } from "./utils/readWorkspaceOperations"
+import { startServer } from "../mock_server/index"
 
 let serverMock: Server
 let docStatusBarItem: vscode.StatusBarItem

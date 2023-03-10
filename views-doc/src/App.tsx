@@ -15,7 +15,6 @@ const App: FC<IProps> = () => {
     fetchOperations: handlefetchOperations,
     reloadOperations,
     isDisplaySidebar,
-    fetchIp,
   } = useBearStore((state) => state)
 
   const [operationData, setOperationData] = useState<TypedOperation | null>(null)
@@ -31,7 +30,6 @@ const App: FC<IProps> = () => {
   useMemo(async () => {
     setLoading(true)
     await handlefetchOperations()
-    await fetchIp()
     setLoading(false)
   }, [])
 

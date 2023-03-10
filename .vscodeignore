@@ -3,6 +3,7 @@
 out/**
 node_modules/**
 src/**
+mock_server/**
 views-doc/**
 .gitignore
 .yarnrc

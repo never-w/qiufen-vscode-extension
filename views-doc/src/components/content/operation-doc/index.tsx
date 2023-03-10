@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react'
 import { message, Space, Table, Tooltip, Switch, Divider, Tag, Button } from 'antd'
-import { CopyOutlined, PlayCircleOutlined, MenuFoldOutlined } from '@ant-design/icons'
+import { CopyOutlined, MenuFoldOutlined } from '@ant-design/icons'
 import ClipboardJS from 'clipboard'
 import { genGQLStr } from '@fruits-chain/qiufen-helpers'
 import { useToggle } from '@fruits-chain/hooks-laba'
@@ -175,7 +175,7 @@ export const copy = (selector: string) => {
 }
 
 const OperationDoc: FC<IProps> = ({ operation }) => {
-  const { IpAddress, isDisplaySidebar, setState, port } = useBearStore((ste: any) => ste)
+  const { isDisplaySidebar, setState } = useBearStore((ste: any) => ste)
   const [mode, { toggle: toggleMode }] = useToggle<'TABLE', 'EDITOR'>('TABLE', 'EDITOR')
 
   const argsTreeData = useMemo(() => {
@@ -235,19 +235,6 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
               <CopyOutlined />
               <span className={styles.text}>Copy GQL</span>
             </Space>
-          </Tooltip>
-          <Tooltip title="Debug">
-            <a
-              target="view_window"
-              href={`http://${IpAddress}:${port}/playground?operationName=${encodeURIComponent(
-                operation.name,
-              )}&operationType=${encodeURIComponent(operation.operationType)}`}
-            >
-              <Space className={styles.copyBtn}>
-                <PlayCircleOutlined />
-                <span className={styles.text}>Debug</span>
-              </Space>
-            </a>
           </Tooltip>
           <Switch
             size="default"
