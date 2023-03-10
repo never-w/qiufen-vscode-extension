@@ -124,7 +124,7 @@ export const copy = (selector: string) => {
 }
 
 const OperationDoc: FC<IProps> = ({ operation }) => {
-  const { IpAddress, isDisplaySidebar, setState, vscode, port, directive, typeDefs, localTypeDefs } = useBearStore((ste) => ste)
+  const { isDisplaySidebar, setState, vscode, directive, typeDefs, localTypeDefs } = useBearStore((ste) => ste)
   const [mode, setMode] = useState<SwitchToggleEnum>(SwitchToggleEnum.TABLE)
   const [spinIcon, setSpinIcon] = useState(false)
   const selectedRowKeys = useRef<string[] | null>(null)
@@ -332,14 +332,15 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
               <span className={styles.text}>Copy GQL</span>
             </Space>
           </Tooltip>
-          <Tooltip title="Debug">
+          {/* TODO 注释掉 应该不用了 */}
+          {/* <Tooltip title="Debug">
             <a href={`http://${IpAddress}:${port}/playground?operationName=${encodeURIComponent(operation.name)}&operationType=${encodeURIComponent(operation.operationType)}`}>
               <Space className={styles.copyBtn}>
                 <PlayCircleOutlined />
                 <span className={styles.text}>Debug</span>
               </Space>
             </a>
-          </Tooltip>
+          </Tooltip> */}
           <div className={styles.switch_box}>
             <Switch
               className={styles.switch_diff}
