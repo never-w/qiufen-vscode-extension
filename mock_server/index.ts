@@ -30,6 +30,7 @@ export async function startServer(config: GraphqlKitConfig) {
   app.use("/graphql", cors<cors.CorsRequest>(), json(), expressMiddleware(server))
 
   app.get("/operations", async (req, res) => {
+    // 这里再次获取后端sdl，是因为web网页在reload时要及时更新
     const backendTypeDefs1 = await fetchRemoteSchemaTypeDefs(endpoint.url)
     const schema = buildSchema(backendTypeDefs1)
     const operations = getOperationsBySchema(schema)

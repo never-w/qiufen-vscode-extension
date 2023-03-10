@@ -106,85 +106,6 @@ const getObjectFieldsTreeData = (objectFields: ObjectFieldTypeDef[], keyPrefix =
   return result
 }
 
-const columnGen = (field: 'arguments' | 'return'): ColumnsType<ArgColumnRecord> => {
-  return [
-    {
-      title: 'Name',
-      dataIndex: 'name',
-      width: '35%',
-      render(value, record) {
-        const tmpIsDirective = !!record.directives?.find((itm) => itm.name.value === 'fetchField')
-        const directivesArgs = record.directives?.find((itm) => itm.name.value === 'fetchField')
-          ?.arguments as ArgumentNode[]
-        const firstArgValue = (directivesArgs?.[0]?.value as StringValueNode)?.value
-
-        const isYellow = FetchDirectiveArg.LOADER === firstArgValue
-        const colorStyle: React.CSSProperties | undefined = tmpIsDirective
-          ? { color: isYellow ? '#FF9900' : 'red' }
-          : undefined
-
-        const deprecationReason = record.deprecationReason
-        if (deprecationReason) {
-          return (
-            <span className={styles.deprecated} style={colorStyle}>
-              {value}
-            </span>
-          )
-        }
-        return <span style={colorStyle}>{value}</span>
-      },
-    },
-    {
-      title: 'Description',
-      dataIndex: 'description',
-      width: '25%',
-      render(val, record) {
-        const deprecationReason = record.deprecationReason
-        if (deprecationReason) {
-          return (
-            <>
-              {val}
-              <span className={styles.warning}>{deprecationReason}</span>
-            </>
-          )
-        }
-        return val
-      },
-    },
-    {
-      title: field === 'arguments' ? 'Required' : 'Nullable',
-      dataIndex: 'type',
-      width: '20%',
-      render(val: string) {
-        let result = !val?.endsWith('!')
-        if (field === 'arguments') {
-          result = !!val?.endsWith('!')
-        }
-        if (result === true) {
-          return (
-            <Tag style={{ borderRadius: 4 }} color="success">
-              True
-            </Tag>
-          )
-        }
-        return (
-          <Tag style={{ borderRadius: 4 }} color="error">
-            False
-          </Tag>
-        )
-      },
-    },
-    {
-      title: 'Type',
-      dataIndex: 'type',
-      width: '20%',
-      render(value: string) {
-        return value?.endsWith('!') ? value.slice(0, value.length - 1) : value
-      },
-    },
-  ]
-}
-
 export const copy = (selector: string) => {
   const clipboard = new ClipboardJS(selector)
   clipboard.on('success', () => {
@@ -203,19 +124,100 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
   const selectedRowKeys = useRef<string[] | null>(null)
   const update = useUpdate()
 
+  const columnGen = useMemo(() => {
+    return (field: 'arguments' | 'return'): ColumnsType<ArgColumnRecord> => {
+      return [
+        {
+          title: 'Name',
+          dataIndex: 'name',
+          width: '35%',
+          render(value, record) {
+            const tmpIsDirective = !!record.directives?.find((itm) => itm.name.value === directive)
+            const directivesArgs = record.directives?.find((itm) => itm.name.value === directive)
+              ?.arguments as ArgumentNode[]
+            const firstArgValue = (directivesArgs?.[0]?.value as StringValueNode)?.value
+
+            const isYellow = FetchDirectiveArg.LOADER === firstArgValue
+            const colorStyle: React.CSSProperties | undefined = tmpIsDirective
+              ? { color: isYellow ? '#FF9900' : 'red' }
+              : undefined
+
+            const deprecationReason = record.deprecationReason
+            if (deprecationReason) {
+              return (
+                <span className={styles.deprecated} style={colorStyle}>
+                  {value}
+                </span>
+              )
+            }
+            return <span style={colorStyle}>{value}</span>
+          },
+        },
+        {
+          title: 'Description',
+          dataIndex: 'description',
+          width: '25%',
+          render(val, record) {
+            const deprecationReason = record.deprecationReason
+            if (deprecationReason) {
+              return (
+                <>
+                  {val}
+                  <span className={styles.warning}>{deprecationReason}</span>
+                </>
+              )
+            }
+            return val
+          },
+        },
+        {
+          title: field === 'arguments' ? 'Required' : 'Nullable',
+          dataIndex: 'type',
+          width: '20%',
+          render(val: string) {
+            let result = !val?.endsWith('!')
+            if (field === 'arguments') {
+              result = !!val?.endsWith('!')
+            }
+            if (result === true) {
+              return (
+                <Tag style={{ borderRadius: 4 }} color="success">
+                  True
+                </Tag>
+              )
+            }
+            return (
+              <Tag style={{ borderRadius: 4 }} color="error">
+                False
+              </Tag>
+            )
+          },
+        },
+        {
+          title: 'Type',
+          dataIndex: 'type',
+          width: '20%',
+          render(value: string) {
+            return value?.endsWith('!') ? value.slice(0, value.length - 1) : value
+          },
+        },
+      ]
+    }
+  }, [])
+
   const argsTreeData = useMemo(() => {
     return getArgsTreeData(operation.args)
   }, [operation.args])
   const argsColumns: ColumnsType<ArgColumnRecord> = useMemo(() => {
     return columnGen('arguments')
-  }, [operation])
+  }, [operation, columnGen])
 
   const objectFieldsTreeData = useMemo(() => {
     return getObjectFieldsTreeData([operation])
   }, [operation])
   const objectFieldsColumns: ColumnsType<ArgColumnRecord> = useMemo(() => {
     return columnGen('return')
-  }, [operation])
+  }, [operation, columnGen])
 
   const gqlStr = useMemo(() => {
     return genGQLStr(operation)
