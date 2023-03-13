@@ -59,6 +59,11 @@
           "type": "string",
           "default": "fetchField",
           "description": "custom backed directive"
+        },
+        "graphql-qiufen-pro.patternRelativePath": {
+          "type": "string",
+          "default": "src/graphql/operations",
+          "description": "pattern relative path"
         }
       }
     }

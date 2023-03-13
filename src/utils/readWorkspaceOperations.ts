@@ -52,9 +52,12 @@ function fillOperationInLocal(filePath: string, gql: string, gqlName: string, gq
 }
 
 export function getLocalAllGqlResolveFilePaths() {
+  const { patternRelativePath = "" } = vscode.workspace.getConfiguration("graphql-qiufen-pro")
   const workspaceRootPath = workspace.workspaceFolders?.[0].uri.fsPath
-  const gqlFiles = glob.sync("**/*.gql", { cwd: workspaceRootPath })
-  const resolveGqlFiles = gqlFiles.map((file) => path.join(workspaceRootPath!, file))
+  const cwdPath = path.join(workspaceRootPath!, patternRelativePath)
+
+  const gqlFiles = glob.sync("**/*.gql", { cwd: cwdPath })
+  const resolveGqlFiles = gqlFiles.map((file) => path.join(cwdPath, file))
   return resolveGqlFiles
 }
 
