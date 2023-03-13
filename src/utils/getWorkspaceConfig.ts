@@ -29,10 +29,12 @@ function getWorkspaceConfig(tryCatchCallback?: VoidFunction) {
   }
 
   if (!port) {
-    throw vscode.window.showErrorMessage("请在项目根目录 .vscode/settings.json 中配置port！！！")
+    tryCatchCallback?.()
+    throw Error("The configuration was not read")
   }
   if (!url) {
-    throw vscode.window.showErrorMessage("请在项目根目录 .vscode/settings.json 中配置schema地址！！！")
+    tryCatchCallback?.()
+    throw Error("The configuration was not read")
   }
 
   return { workspaceRootPath, qiufenConfigPath, isExistConfigFile, port, url, qiufenConfig }
