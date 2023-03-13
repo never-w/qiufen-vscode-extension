@@ -122,11 +122,7 @@ const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, opera
                     })}
                   >
                     <Space direction="horizontal">
-                      {workspaceGqlNames.includes(operation.name) && (
-                        <Tooltip title="The operation existed in the local">
-                          <CheckCircleTwoTone twoToneColor="#52c41a" />
-                        </Tooltip>
-                      )}
+                      <CheckCircleTwoTone style={{ visibility: workspaceGqlNames.includes(operation.name) ? "visible" : "hidden" }} twoToneColor="#52c41a" />
                       {operation.description || operation.name}
                       {!!deprecatedReason && <span className={styles.warning}>{deprecatedReason}</span>}
                     </Space>
