@@ -1202,10 +1202,10 @@
   resolved "https://registry.npmjs.org/@types/stringify-object/-/stringify-object-4.0.2.tgz#0923f386858af27cbd5b0239f8a177acc60d75cf"
   integrity sha512-8ZJwc0CTd9oA09Ug+kmlM1KeIctDTCmLUq77VqKveIdyyCw/kowfKBiJaNq8e4F73UBquRE4xsnHGmRq7sVOBA==
 
-"@types/vscode@^1.76.0":
-  version "1.76.0"
-  resolved "https://registry.npmjs.org/@types/vscode/-/vscode-1.76.0.tgz#967c0fbe09921818bbf201f1cbcb81b981c6249c"
-  integrity sha512-CQcY3+Fe5hNewHnOEAVYj4dd1do/QHliXaknAEYSXx2KEHUzFibDZSKptCon+HPgK55xx20pR+PBJjf0MomnBA==
+"@types/vscode@1.62.0":
+  version "1.62.0"
+  resolved "https://registry.npmjs.org/@types/vscode/-/vscode-1.62.0.tgz#b4d6d192d5aeb75e91d0adef689c3ecef9879da7"
+  integrity sha512-iGlQJ1w5e3qPUryroO6v4lxg3ql1ztdTCwQW3xEwFawdyPLoeUSv48SYfMwc7kQA7h6ThUqflZIjgKAykeF9oA==
 
 "@types/ws@^8.0.0":
   version "8.5.4"
