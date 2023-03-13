@@ -23,10 +23,6 @@ function getUpdateOperationNode(ast: DefinitionNode, operationName: string) {
   let childNode: FieldNode | undefined
   visit(ast, {
     enter(node, key, parent, path, ancestors) {
-      // let isOperationType: boolean | undefined
-      if (node.kind === Kind.OPERATION_DEFINITION) {
-        // isOperationType = node.operation === gqlType
-      }
       if (node.kind === Kind.FIELD && node.name.value === operationName) {
         childNode = node
         return BREAK

@@ -1,7 +1,7 @@
 import * as vscode from "vscode"
 import * as path from "path"
 import type { Server } from "http"
-import { buildSchema } from "graphql"
+import { buildSchema, GraphQLSchema } from "graphql"
 import getIpAddress from "./utils/getIpAddress"
 import { getOperationsBySchema } from "./utils/operation"
 import getWorkspaceConfig from "./utils/getWorkspaceConfig"
@@ -38,13 +38,15 @@ export function activate(context: vscode.ExtensionContext) {
 
         // 获取远程schema typeDefs
         let backendTypeDefs: string | undefined
+        let schema: GraphQLSchema
         try {
           backendTypeDefs = await fetchRemoteSchemaTypeDefs(url)
+          schema = buildSchema(backendTypeDefs!)
         } catch (e) {
           updateStatusBarItem(GraphqlQiufenProStartDocCommandId, `$(target) Doc`, docStatusBarItem)
           throw e
         }
-        const schema = buildSchema(backendTypeDefs)
+
         const operations = getOperationsBySchema(schema)
         if (!operations) {
           return

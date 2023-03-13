@@ -64,6 +64,11 @@
           "type": "string",
           "default": "src/graphql/operations",
           "description": "pattern relative path"
+        },
+        "graphql-qiufen-pro.isIntrospection": {
+          "type": "boolean",
+          "default": true,
+          "description": "whether to enable introspection"
         }
       }
     }
