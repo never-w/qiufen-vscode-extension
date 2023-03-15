@@ -136,7 +136,9 @@ function buildOperationAndCollectVariables({
   /** eg. search--GraphQLField */
   const field = type.getFields()[fieldName]
 
-  const operationName = capitalizeFirstLetter(fieldName)
+  // TODO 注释掉首字母大写
+  // const operationName = capitalizeFirstLetter(fieldName)
+  const operationName = fieldName
 
   if (field.args) {
     for (const arg of field.args) {

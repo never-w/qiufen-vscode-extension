@@ -266,6 +266,7 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
     setSpinIcon(true)
     // 向插件发送信息
     vscode.postMessage({
+      typeDefs,
       type: MessageEnum.ONE_KEY_FILL,
       gqlStr: printGqlOperation(schema, operation, !selectedRowKeys.current ? defaultSelectedKeys : selectedRowKeys.current),
       gqlName: operation.name,
@@ -283,7 +284,7 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
       setSpinIcon(false)
       window.removeEventListener("message", listener)
     }
-  }, [defaultSelectedKeys, operation, schema, vscode])
+  }, [defaultSelectedKeys, operation, schema, typeDefs, vscode])
 
   return (
     <Space id={operation.name} className={styles.operationDoc} direction="vertical">

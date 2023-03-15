@@ -3,26 +3,77 @@ import glob from "glob"
 import fs from "fs"
 import { workspace, window } from "vscode"
 import path from "path"
-import { DefinitionNode, parse, visit, Kind, print, FieldNode, OperationDefinitionNode, BREAK } from "graphql"
+import { DefinitionNode, parse, visit, Kind, print, FieldNode, OperationDefinitionNode, BREAK, VariableDefinitionNode, buildSchema, OperationTypeNode } from "graphql"
+import printOperationNodeForField from "./printOperationNodeForField"
 
-function visitOperationTransformer(ast: DefinitionNode, updateOperationNode: FieldNode, operationName: string, gqlType: string) {
-  return visit(ast, {
-    enter(node, key, parent, path, ancestors) {
-      //  这里判断等于需要更新的接口替换ast
-      if (node.kind === Kind.FIELD && node.name.value === operationName) {
-        const rootOperationType = (ancestors[0] as OperationDefinitionNode).operation
-        if (rootOperationType === gqlType) {
-          return updateOperationNode
+function visitOperationTransformer(
+  ast: DefinitionNode,
+  updateOperationNode: FieldNode,
+  variablesNode: VariableDefinitionNode[],
+  operationName: string,
+  gqlType: string,
+  typeDefs: string
+) {
+  // 是否是合并的大接口
+  const isCombineOperation = (ast as any).selectionSet?.selections?.length >= 2
+
+  if (isCombineOperation) {
+    const schema = buildSchema(typeDefs)
+    const operationNameList = (ast as any).selectionSet?.selections?.map((item: any) => item?.name?.value)
+    const operationStrGqls = operationNameList?.map((name: string) => {
+      const operationDefinitionNodeAst = parse(
+        printOperationNodeForField({
+          schema,
+          kind: gqlType as OperationTypeNode,
+          field: name,
+        }),
+        {
+          noLocation: true,
         }
+      ).definitions[0] as OperationDefinitionNode
+      console.log(operationDefinitionNodeAst?.variableDefinitions, "////////////")
+
+      return {
+        operationName: name,
+        operationAst: operationDefinitionNodeAst,
+        variableDefinitions: operationDefinitionNodeAst?.variableDefinitions,
       }
-    },
-  })
+    })
+
+    console.log(operationStrGqls, ";;;;;;;;;;;;;;;;;;;;;;;")
+  } else {
+    return visit(ast, {
+      OperationDefinition(operationDefinitionNode) {
+        // 这里去遍历节点拿到当前operation name相同的那个接口再去根据最新的传进来的 参数替换原来的参数
+        let isSameOperationName = false
+        const newOperationDefinitionNode = visit(operationDefinitionNode, {
+          enter(node, key, parent, path, ancestors) {
+            //  这里判断等于需要更新的接口替换对应ast
+            if (node.kind === Kind.FIELD && node.name.value === operationName && operationDefinitionNode.operation === gqlType) {
+              isSameOperationName = true
+              return updateOperationNode
+            }
+          },
+        })
+
+        return {
+          ...newOperationDefinitionNode,
+          variableDefinitions: isSameOperationName ? variablesNode : operationDefinitionNode.variableDefinitions,
+        }
+      },
+    })
+  }
 }
 
 function getUpdateOperationNode(ast: DefinitionNode, operationName: string) {
   let childNode: FieldNode | undefined
+  let variablesNode: VariableDefinitionNode[] = []
   visit(ast, {
     enter(node, key, parent, path, ancestors) {
+      if (node.kind === Kind.OPERATION_DEFINITION) {
+        variablesNode = node.variableDefinitions as VariableDefinitionNode[]
+      }
+
       if (node.kind === Kind.FIELD && node.name.value === operationName) {
         childNode = node
         return BREAK
@@ -31,17 +82,17 @@ function getUpdateOperationNode(ast: DefinitionNode, operationName: string) {
   })
 
   // 返回当前需要更新的operation的node
-  return childNode
+  return [childNode, variablesNode] as const
 }
 
-function fillOperationInLocal(filePath: string, gql: string, gqlName: string, gqlType: string) {
-  const updateOperationFieldNode = getUpdateOperationNode(parse(gql).definitions[0], gqlName)
+function fillOperationInLocal(filePath: string, gql: string, gqlName: string, gqlType: string, typeDefs: string) {
+  const [childNode, variablesNode] = getUpdateOperationNode(parse(gql).definitions[0], gqlName)
 
   const content = fs.readFileSync(filePath, "utf8")
   const operationsAstArr = parse(content).definitions
 
   const operationsStrArr = operationsAstArr.map((operationAst) => {
-    return print(visitOperationTransformer(operationAst, updateOperationFieldNode!, gqlName, gqlType))
+    return print(visitOperationTransformer(operationAst, childNode!, variablesNode, gqlName, gqlType, typeDefs)!) /* TODO: 暂时这样因为还没有处理上的情况 */
   })
   const newContent = operationsStrArr.join("\n\n")
   fs.writeFileSync(filePath, newContent)
@@ -57,7 +108,7 @@ export function getLocalAllGqlResolveFilePaths() {
   return resolveGqlFiles
 }
 
-export async function setWorkspaceGqls(gql: string, gqlName: string, gqlType: string) {
+export async function setWorkspaceGqls(gql: string, gqlName: string, gqlType: string, typeDefs: string) {
   try {
     // 在这里验证一哈选择过来的gql接口是不是正确选择的
     parse(gql).definitions[0]
@@ -87,11 +138,11 @@ export async function setWorkspaceGqls(gql: string, gqlName: string, gqlType: st
     }
 
     res.forEach((fileResolvePath) => {
-      fillOperationInLocal(fileResolvePath, gql, gqlName, gqlType)
+      fillOperationInLocal(fileResolvePath, gql, gqlName, gqlType, typeDefs)
     })
     return Promise.resolve(true)
   } else {
-    fillOperationInLocal(filterWorkspaceGqlFiles[0], gql, gqlName, gqlType)
+    fillOperationInLocal(filterWorkspaceGqlFiles[0], gql, gqlName, gqlType, typeDefs)
     return Promise.resolve(true)
   }
 }
