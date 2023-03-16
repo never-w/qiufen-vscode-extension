@@ -171,7 +171,7 @@ function fillOperationInLocal(filePath: string, gql: string, gqlName: string, gq
   }).definitions as OperationDefinitionNode[]
 
   const operationsStrArr = operationsAstArr.map((operationAst) => {
-    return print(visitOperationTransformer(operationAst, childNode!, variablesNode, gqlName, gqlType, typeDefs)!) /* TODO: 暂时这样因为还没有处理上的情况 */
+    return print(visitOperationTransformer(operationAst, childNode!, variablesNode, gqlName, gqlType, typeDefs))
   })
   const newContent = operationsStrArr.join("\n\n")
   fs.writeFileSync(filePath, newContent)
