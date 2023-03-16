@@ -27,7 +27,7 @@ import {
   isEnumType,
   Kind,
 } from "graphql"
-import { capitalizeFirstLetter } from "./dealWordFirstLetter"
+// import { capitalizeFirstLetter } from "./dealWordFirstLetter"
 
 import { getDefinedRootType, getRootTypeNames } from "./rootTypes"
 

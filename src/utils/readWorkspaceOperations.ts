@@ -3,44 +3,121 @@ import glob from "glob"
 import fs from "fs"
 import { workspace, window } from "vscode"
 import path from "path"
-import { DefinitionNode, parse, visit, Kind, print, FieldNode, OperationDefinitionNode, BREAK, VariableDefinitionNode, buildSchema, OperationTypeNode } from "graphql"
+import {
+  DefinitionNode,
+  parse,
+  visit,
+  Kind,
+  print,
+  ValueNode,
+  ArgumentNode,
+  FieldNode,
+  OperationDefinitionNode,
+  BREAK,
+  VariableDefinitionNode,
+  buildSchema,
+  OperationTypeNode,
+  VariableNode,
+} from "graphql"
 import printOperationNodeForField from "./printOperationNodeForField"
+import { capitalizeFirstLetter } from "./dealWordFirstLetter"
 
 function visitOperationTransformer(
-  ast: DefinitionNode,
+  ast: OperationDefinitionNode,
   updateOperationNode: FieldNode,
-  variablesNode: VariableDefinitionNode[],
+  updateVariablesNode: VariableDefinitionNode[],
   operationName: string,
   gqlType: string,
   typeDefs: string
 ) {
   // 是否是合并的大接口
-  const isCombineOperation = (ast as any).selectionSet?.selections?.length >= 2
+  const isCombineOperation = ast.selectionSet?.selections?.length >= 2
 
   if (isCombineOperation) {
-    const schema = buildSchema(typeDefs)
-    const operationNameList = (ast as any).selectionSet?.selections?.map((item: any) => item?.name?.value)
-    const operationStrGqls = operationNameList?.map((name: string) => {
-      const operationDefinitionNodeAst = parse(
-        printOperationNodeForField({
-          schema,
-          kind: gqlType as OperationTypeNode,
-          field: name,
-        }),
-        {
-          noLocation: true,
+    const workspaceAllOperationsVariablesNode = ast.variableDefinitions
+    const workspaceFields = ast.selectionSet.selections as FieldNode[]
+
+    // 这里是过滤得到不需要更新接口的fields
+    const filterOtherFields = workspaceFields.filter((operation) => operation.name.value !== operationName)
+    // 这里是得到不需要更新的接口的 field 层级上的参数
+    const workspaceOtherFieldArgNames = filterOtherFields.map((itm) => itm.arguments?.map((arg) => (arg.value as VariableNode).name.value)).flat(Infinity) as string[]
+    // 这里是得到大接口不需要更新的接口在 Operation 层级上的参数
+    const filterWorkspaceOperationVariables = workspaceAllOperationsVariablesNode?.filter((varItm) => workspaceOtherFieldArgNames.includes(varItm.variable.name.value)) || []
+
+    const newUpdateOperationVariablesObj = updateVariablesNode.map((itm) => {
+      // 这里是当更新接口参数与工作区已存在不需要更新的接口参数同名冲突时
+      if (workspaceOtherFieldArgNames.includes(itm.variable.name.value)) {
+        return {
+          isConflict: true,
+          old: itm,
+          new: {
+            ...itm,
+            variable: {
+              ...itm.variable,
+              name: {
+                ...itm.variable.name,
+                value: `${operationName}${capitalizeFirstLetter(itm.variable.name.value)}`,
+              },
+            },
+          },
         }
-      ).definitions[0] as OperationDefinitionNode
-      console.log(operationDefinitionNodeAst?.variableDefinitions, "////////////")
+      }
 
       return {
-        operationName: name,
-        operationAst: operationDefinitionNodeAst,
-        variableDefinitions: operationDefinitionNodeAst?.variableDefinitions,
+        isConflict: false,
+        old: null,
+        new: itm,
       }
     })
 
-    console.log(operationStrGqls, ";;;;;;;;;;;;;;;;;;;;;;;")
+    // 拿到冲突项的参数 obj
+    const conflictVariablesObj = newUpdateOperationVariablesObj.filter((itm) => itm.isConflict)
+    const conflictVariablesName = conflictVariablesObj.map((item) => ({
+      oldName: item.old?.variable.name.value,
+      newName: item.new?.variable.name.value,
+    }))
+
+    const newUpdateOperationVariables = newUpdateOperationVariablesObj.map((item) => item.new)
+
+    return visit(ast, {
+      OperationDefinition(operationDefinitionNode) {
+        // 这里去遍历节点拿到当前operation name相同的那个接口再去根据最新的传进来的 参数替换原来的参数
+        let isSameOperationName = false
+        const newOperationDefinitionNode = visit(operationDefinitionNode, {
+          enter(node, key, parent, path, ancestors) {
+            //  这里判断等于需要更新的接口替换对应ast
+            if (node.kind === Kind.FIELD && node.name.value === operationName && operationDefinitionNode.operation === gqlType) {
+              isSameOperationName = true
+              return {
+                ...updateOperationNode,
+                arguments: updateOperationNode.arguments?.map((itm) => {
+                  const isConflictArgName = conflictVariablesName.find((varName) => varName.oldName === (itm.value as VariableNode).name.value)
+
+                  if (conflictVariablesObj?.length && isConflictArgName) {
+                    return {
+                      ...itm,
+                      value: {
+                        ...itm.value,
+                        name: {
+                          ...(itm.value as VariableNode).name,
+                          value: isConflictArgName.newName,
+                          kind: Kind.NAME,
+                        },
+                      },
+                    }
+                  }
+                  return itm
+                }),
+              }
+            }
+          },
+        })
+        return {
+          ...newOperationDefinitionNode,
+          variableDefinitions: isSameOperationName ? [...newUpdateOperationVariables, ...filterWorkspaceOperationVariables] : operationDefinitionNode.variableDefinitions,
+        }
+      },
+    })
   } else {
     return visit(ast, {
       OperationDefinition(operationDefinitionNode) {
@@ -58,7 +135,7 @@ function visitOperationTransformer(
 
         return {
           ...newOperationDefinitionNode,
-          variableDefinitions: isSameOperationName ? variablesNode : operationDefinitionNode.variableDefinitions,
+          variableDefinitions: isSameOperationName ? updateVariablesNode : operationDefinitionNode.variableDefinitions,
         }
       },
     })
@@ -89,7 +166,9 @@ function fillOperationInLocal(filePath: string, gql: string, gqlName: string, gq
   const [childNode, variablesNode] = getUpdateOperationNode(parse(gql).definitions[0], gqlName)
 
   const content = fs.readFileSync(filePath, "utf8")
-  const operationsAstArr = parse(content).definitions
+  const operationsAstArr = parse(content, {
+    noLocation: true,
+  }).definitions as OperationDefinitionNode[]
 
   const operationsStrArr = operationsAstArr.map((operationAst) => {
     return print(visitOperationTransformer(operationAst, childNode!, variablesNode, gqlName, gqlType, typeDefs)!) /* TODO: 暂时这样因为还没有处理上的情况 */
