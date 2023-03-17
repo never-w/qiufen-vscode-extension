@@ -4,7 +4,7 @@
   "description": "Graphql Graphql-tool Graphql-Doc schema Operations Ast",
   "author": "never-w",
   "publisher": "never-w",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "engines": {
     "vscode": "^1.62.0"
   },
@@ -83,6 +83,7 @@
     "pretest": "yarn run compile-tests && yarn run compile && yarn run lint",
     "lint": "eslint src --ext ts",
     "publish": "vsce publish",
+    "login": "vsce login never-w",
     "test": "node ./out/test/runTest.js"
   },
   "devDependencies": {
