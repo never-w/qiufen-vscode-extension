@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import React, { useCallback, useMemo, useState } from 'react'
 import { Spin } from 'antd'
 import { FC, useEffect } from 'react'
