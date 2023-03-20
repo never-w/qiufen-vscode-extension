@@ -12,7 +12,7 @@ import { GraphqlQiufenProCloseDocCommandId, GraphqlQiufenProCloseMockCommandId, 
 // import { startServer } from "./server-mock/src"
 import readLocalSchemaTypeDefs from "./utils/readLocalSchemaTypeDefs"
 import { fillOneKeyMessageSignNull, fillOneKeyMessageSignSuccess, MessageEnum } from "./config/postMessage"
-import { getLocalAllGqlResolveFilePaths, getWorkspaceGqlFileInfo, setWorkspaceGqls } from "./utils/readWorkspaceOperations"
+import { getWorkspaceAllGqlResolveFilePaths, getWorkspaceGqlFileInfo, setWorkspaceGqls } from "./utils/readWorkspaceOperations"
 import { startServer } from "../mock_server/index"
 
 let serverMock: Server
@@ -66,10 +66,9 @@ export function activate(context: vscode.ExtensionContext) {
           (message) => {
             switch (message.type) {
               case MessageEnum.FETCH:
-                const resolveGqlFiles = getLocalAllGqlResolveFilePaths()
-                const workspaceGqlNames = getWorkspaceGqlFileInfo(resolveGqlFiles)
-                  .map((itm) => itm.operationNames)
-                  .flat(Infinity)
+                const resolveGqlFiles = getWorkspaceAllGqlResolveFilePaths()
+                const workspaceGqlFileInfo = getWorkspaceGqlFileInfo(resolveGqlFiles)
+                const workspaceGqlNames = workspaceGqlFileInfo.map((itm) => itm.operationNames).flat(Infinity) as string[]
 
                 // 读取本地的schema类型定义
                 const localTypeDefs = readLocalSchemaTypeDefs()
@@ -78,6 +77,7 @@ export function activate(context: vscode.ExtensionContext) {
                   directive: jsonSettings.directive,
                   localTypeDefs,
                   workspaceGqlNames,
+                  workspaceGqlFileInfo,
                   port,
                   operations,
                   IpAddress: getIpAddress(),
@@ -86,10 +86,9 @@ export function activate(context: vscode.ExtensionContext) {
                 currentPanel!.webview.postMessage(messageObj)
                 break
               case MessageEnum.REFETCH:
-                const resolveGqlFiles1 = getLocalAllGqlResolveFilePaths()
-                const workspaceGqlNames1 = getWorkspaceGqlFileInfo(resolveGqlFiles1)
-                  .map((itm) => itm.operationNames)
-                  .flat(Infinity)
+                const resolveGqlFiles1 = getWorkspaceAllGqlResolveFilePaths()
+                const workspaceGqlFileInfo1 = getWorkspaceGqlFileInfo(resolveGqlFiles1)
+                const workspaceGqlNames1 = workspaceGqlFileInfo1.map((itm) => itm.operationNames).flat(Infinity) as string[]
 
                 fetchRemoteSchemaTypeDefs(url)
                   .then((resTypeDefs) => {
@@ -101,6 +100,7 @@ export function activate(context: vscode.ExtensionContext) {
                       directive: jsonSettings.directive,
                       typeDefs: resTypeDefs,
                       workspaceGqlNames: workspaceGqlNames1,
+                      workspaceGqlFileInfo: workspaceGqlFileInfo1,
                       localTypeDefs,
                       port,
                       operations,

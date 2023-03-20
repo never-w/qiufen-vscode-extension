@@ -177,7 +177,7 @@ function fillOperationInLocal(filePath: string, gql: string, gqlName: string, gq
   fs.writeFileSync(filePath, newContent)
 }
 
-export function getLocalAllGqlResolveFilePaths() {
+export function getWorkspaceAllGqlResolveFilePaths() {
   const { patternRelativePath = "" } = vscode.workspace.getConfiguration("graphql-qiufen-pro")
   const workspaceRootPath = workspace.workspaceFolders?.[0].uri.fsPath
   const cwdPath = path.join(workspaceRootPath!, patternRelativePath)
@@ -196,7 +196,7 @@ export async function setWorkspaceGqls(gql: string, gqlName: string, gqlType: st
     return Promise.reject("GraphQLError: Syntax Error")
   }
 
-  const resolveGqlFiles = getLocalAllGqlResolveFilePaths()
+  const resolveGqlFiles = getWorkspaceAllGqlResolveFilePaths()
   const workspaceGqlFileInfo = getWorkspaceGqlFileInfo(resolveGqlFiles)
   const filterWorkspaceGqlFiles = workspaceGqlFileInfo.filter((gqlFileItm) => gqlFileItm.operationNames.includes(gqlName)).map((itm) => itm.filename)
 
@@ -236,7 +236,8 @@ export function getWorkspaceGqlFileInfo(files: string[]) {
       return {
         filename: file,
         operationsAsts: [],
-        operationNames: "",
+        operationNames: [],
+        content: "",
       }
     }
 
@@ -248,7 +249,8 @@ export function getWorkspaceGqlFileInfo(files: string[]) {
       return {
         filename: file,
         operationsAsts: [],
-        operationNames: "",
+        operationNames: [],
+        content: "",
       }
     }
 
@@ -266,6 +268,7 @@ export function getWorkspaceGqlFileInfo(files: string[]) {
 
     return {
       filename: file,
+      content,
       operationsAsts: operationsAstArr,
       operationNames: fileItemOperationNames,
     }

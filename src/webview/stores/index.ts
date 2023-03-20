@@ -1,7 +1,14 @@
 import { MessageEnum } from "@/config/postMessage"
 import { TypedOperation } from "@fruits-chain/qiufen-helpers"
+import { DefinitionNode } from "graphql"
 import create, { SetState } from "zustand"
 
+export type WorkspaceGqlFileInfoType = {
+  filename: string
+  operationsAsts: readonly DefinitionNode[]
+  operationNames: string[]
+  content: string
+}
 interface MessageEvent {
   operations: TypedOperation[]
   vscode: any
@@ -12,6 +19,7 @@ interface MessageEvent {
   localTypeDefs: string
   directive: string
   workspaceGqlNames: string[]
+  workspaceGqlFileInfo: WorkspaceGqlFileInfoType[]
 }
 
 interface BearState extends MessageEvent {
@@ -29,6 +37,7 @@ const useBearStore = create<BearState>((set, get) => {
     IpAddress: "",
     typeDefs: "",
     workspaceGqlNames: [],
+    workspaceGqlFileInfo: [],
     isDisplaySidebar: true,
     vscode: (window as unknown as VscodeGlobal).acquireVsCodeApi(),
     captureMessage() {

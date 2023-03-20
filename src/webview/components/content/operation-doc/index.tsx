@@ -1,12 +1,12 @@
 import React, { useCallback, useMemo, useRef, useState } from "react"
 import type { FC } from "react"
-import { ArgumentNode, buildSchema, ConstDirectiveNode, GraphQLSchema, StringValueNode } from "graphql"
+import { ArgumentNode, buildSchema, ConstDirectiveNode, FieldNode, GraphQLSchema, OperationDefinitionNode, StringValueNode } from "graphql"
 import { message, Space, Table, Tooltip, Switch, Divider, Tag, Button } from "antd"
 import type { ColumnsType } from "antd/lib/table"
 import ReactDiffViewer, { DiffMethod } from "react-diff-viewer"
 import AceEditor from "react-ace"
 import obj2str from "stringify-object"
-import { CopyOutlined, PlayCircleOutlined, LoadingOutlined, MenuFoldOutlined, EditOutlined } from "@ant-design/icons"
+import { CopyOutlined, LoadingOutlined, MenuFoldOutlined, EditOutlined } from "@ant-design/icons"
 import ClipboardJS from "clipboard"
 import styles from "./index.module.less"
 import { getOperationsBySchema } from "@/utils/operation"
@@ -14,7 +14,7 @@ import { printGqlOperation } from "@/utils/visitOperationTransformer"
 import type { TypedOperation, ArgTypeDef, ObjectFieldTypeDef } from "@fruits-chain/qiufen-helpers"
 import useBearStore from "@/webview/stores"
 import printOperationNodeForField from "@/utils/printOperationNodeForField"
-import { traverseOperationTreeGetParentAndChildSelectedKeys, getDefaultRowKeys } from "@/utils/traverseTree"
+import { traverseOperationTreeGetParentAndChildSelectedKeys, visitDocumentNodeAstGetKeys } from "@/utils/traverseTree"
 import { useUpdate } from "@fruits-chain/hooks-laba"
 import { FetchDirectiveArg } from "@/utils/interface"
 import { fillOneKeyMessageSignSuccess, MessageEnum } from "@/config/postMessage"
@@ -124,7 +124,8 @@ export const copy = (selector: string) => {
 }
 
 const OperationDoc: FC<IProps> = ({ operation }) => {
-  const { isDisplaySidebar, setState, vscode, directive, typeDefs, localTypeDefs } = useBearStore((ste) => ste)
+  const { isDisplaySidebar, setState, vscode, directive, typeDefs, localTypeDefs, workspaceGqlFileInfo } = useBearStore((ste) => ste)
+
   const [mode, setMode] = useState<SwitchToggleEnum>(SwitchToggleEnum.TABLE)
   const [spinIcon, setSpinIcon] = useState(false)
   const selectedRowKeys = useRef<string[] | null>(null)
@@ -244,11 +245,32 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
 
   const localOperation = getOperationsBySchema(localSchema!).find((operationItem) => operationItem.name === operation.name) || null
 
+  // 默认勾选中的key不包含parent keys
   const defaultSelectedRowKeys = useMemo(() => {
-    const keys: string[] = []
-    getDefaultRowKeys(objectFieldsTreeData, keys, directive)
-    return keys
-  }, [directive, objectFieldsTreeData])
+    // TODO 暂时后端不支持 自定义指令
+    // const keys: string[] = []
+    // getDefaultRowKeys(objectFieldsTreeData, keys, directive)
+    // return keys
+
+    const filtrationWorkspaceGqlFileInfo = workspaceGqlFileInfo.filter((item) => item.operationNames.includes(operation.name))
+    if (filtrationWorkspaceGqlFileInfo?.length >= 2) {
+      return []
+    }
+
+    const operationDefinitionNodes = filtrationWorkspaceGqlFileInfo[0]?.operationsAsts as OperationDefinitionNode[]
+    let operationNameFieldNode: FieldNode | undefined
+    operationDefinitionNodes?.forEach((operationNode) => {
+      const sameOperationNameFieldNode = (operationNode.selectionSet.selections as FieldNode[])?.find((itm) => itm.name.value === operation.name)
+      if (!!sameOperationNameFieldNode) {
+        operationNameFieldNode = sameOperationNameFieldNode
+      }
+    })
+
+    const resultKeys = [] as string[]
+    visitDocumentNodeAstGetKeys(operationNameFieldNode, resultKeys)
+
+    return resultKeys
+  }, [operation.name, workspaceGqlFileInfo])
 
   // 获取初始化页面默认值时选择的operation filed
   const defaultSelectedKeys = useMemo(() => {

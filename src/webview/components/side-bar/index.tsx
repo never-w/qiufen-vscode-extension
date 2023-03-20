@@ -10,7 +10,6 @@ import type { CollapseProps } from "antd"
 import type { TypedOperation } from "@fruits-chain/qiufen-helpers"
 import type { FC } from "react"
 import useBearStore from "@/webview/stores"
-import { includes } from "lodash"
 
 export const copy = (selector: string) => {
   const clipboard = new ClipboardJS(selector)
@@ -37,8 +36,9 @@ export interface IProps {
 
 const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, operations, onSelect, selectedOperationId, setActiveItemKey, handleReload }) => {
   const [top, setTop] = useState(0)
+  const [flag, setFlag] = useState(false)
   const [isFocus, setIsFocus] = useState(false)
-  const { workspaceGqlNames } = useBearStore((ste) => ste)
+  const { workspaceGqlNames, workspaceGqlFileInfo } = useBearStore((ste) => ste)
 
   const onScroll = useThrottleFn(
     (evt) => {
@@ -104,6 +104,8 @@ const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, opera
               />
             </Tooltip>
             {operationList.map((operation, index) => {
+              const filtrationWorkspaceGqlFileInfo = workspaceGqlFileInfo.filter((item) => item.operationNames.includes(operation.name))
+              const isMoreExist = filtrationWorkspaceGqlFileInfo?.length > 1
               const deprecatedReason = operation.deprecationReason
               return (
                 <div
@@ -122,8 +124,11 @@ const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, opera
                     })}
                   >
                     <Space direction="horizontal">
-                      <CheckCircleTwoTone style={{ visibility: workspaceGqlNames.includes(operation.name) ? "visible" : "hidden" }} twoToneColor="#52c41a" />
-                      {operation.description || operation.name}
+                      <CheckCircleTwoTone
+                        style={{ visibility: workspaceGqlNames.includes(operation.name) ? "visible" : "hidden" }}
+                        twoToneColor={isMoreExist ? "#FE9800" : "#52c41a"}
+                      />
+                      {flag ? operation.name : operation.description || operation.name}
                       {!!deprecatedReason && <span className={styles.warning}>{deprecatedReason}</span>}
                     </Space>
                   </div>
@@ -134,7 +139,7 @@ const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, opera
         </Collapse.Panel>
       )
     })
-  }, [groupedOperations, keyword, activeKey, activeItemKey, workspaceGqlNames, onSelect, setActiveItemKey])
+  }, [groupedOperations, keyword, activeKey, workspaceGqlFileInfo, activeItemKey, workspaceGqlNames, flag, onSelect, setActiveItemKey])
 
   return (
     <div className={styles.sidebar}>
@@ -170,6 +175,17 @@ const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, opera
           {contentJSX}
         </Collapse>
       </div>
+      <Tooltip title="switching operation language">
+        <div
+          onClick={() => {
+            setFlag(!flag)
+          }}
+          style={{ bottom: 200 }}
+          className={classnames(styles.topBtn, styles.show)}
+        >
+          <img src="https://pic.imgdb.cn/item/64189a40a682492fccf8840e.png" alt="切换operations name" />
+        </div>
+      </Tooltip>
       <Tooltip title="reload doc">
         <div onClick={handleReload} style={{ bottom: 150 }} className={classnames(styles.topBtn, styles.show)}>
           <img src="https://pic.imgdb.cn/item/63d72e6eface21e9ef36b62f.png" alt="刷新文档" />
