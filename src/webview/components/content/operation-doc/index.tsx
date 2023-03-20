@@ -253,6 +253,7 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
     // return keys
 
     const filtrationWorkspaceGqlFileInfo = workspaceGqlFileInfo.filter((item) => item.operationNames.includes(operation.name))
+    // 这个接口在工作区存在于多个文件夹，这种情况我不管它
     if (filtrationWorkspaceGqlFileInfo?.length >= 2) {
       return []
     }
