@@ -65,80 +65,157 @@ const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, opera
   }, [groupedOperations, selectedOperationId, setActiveItemKey])
 
   const contentJSX = useMemo(() => {
-    return Object.entries(groupedOperations).map(([groupName, operationData]) => {
-      let operationList = operationData
-      const pattern = new RegExp(keyword, "i")
-      // search by group name
-      if (pattern.test(groupName)) {
-        // break
-      } else if (keyword.trim()) {
-        operationList = operationData.filter((item) => {
-          return (
-            // search by name
-            pattern.test(item.name) ||
-            // search by description
-            pattern.test(item.description || "") ||
-            // search by arg type
-            item.args.some((arg) => pattern.test(arg.type.name)) ||
-            // search by return type
-            pattern.test(item.output.name)
-          )
-        })
-      }
+    const newKeyword = keyword.trim()
+    const groupedOperationsEntries = Object.entries(groupedOperations)
 
-      if (!operationList.length) {
-        return null
-      }
+    let exactGroupedOperationsEntries = [] as [string, TypedOperation[]][]
+    if (newKeyword) {
+      exactGroupedOperationsEntries = groupedOperationsEntries.filter(([groupName, operationData]) => {
+        const names = operationData.map((i) => i.name)
+        return names.includes(newKeyword)
+      })
+    }
 
-      return (
-        <Collapse.Panel key={groupName} header={groupName} className={activeKey.includes(groupName) ? styles.collapse_active : ""}>
-          <div className={styles.operationList}>
-            <Tooltip title="Copy GQL">
-              <CopyOutlined
-                id={groupName}
-                data-clipboard-text={genGQLStrInGroup(groupName, operationList)}
-                className={styles.copyBtn}
-                onClick={() => {
-                  copy(`#${groupName}`)
-                }}
-              />
-            </Tooltip>
-            {operationList.map((operation, index) => {
-              const filtrationWorkspaceGqlFileInfo = workspaceGqlFileInfo.filter((item) => item.operationNames.includes(operation.name))
-              const isMoreExist = filtrationWorkspaceGqlFileInfo?.length > 1
-              const deprecatedReason = operation.deprecationReason
-              return (
-                <div
-                  key={index}
-                  className={classnames(styles.operationItem, {
-                    [styles.active]: operation.operationType + operation.name === activeItemKey,
-                  })}
+    // 精确匹配operation name
+    if (exactGroupedOperationsEntries.length) {
+      return exactGroupedOperationsEntries.map(([groupName, operationData]) => {
+        let operationList = operationData
+
+        if (newKeyword) {
+          operationList = operationData.filter((item) => {
+            return item.name === newKeyword
+          })
+        }
+
+        if (!operationList.length) {
+          return null
+        }
+
+        return (
+          <Collapse.Panel key={groupName} header={groupName} className={activeKey.includes(groupName) ? styles.collapse_active : ""}>
+            <div className={styles.operationList}>
+              <Tooltip title="Copy GQL">
+                <CopyOutlined
+                  id={groupName}
+                  data-clipboard-text={genGQLStrInGroup(groupName, operationList)}
+                  className={styles.copyBtn}
                   onClick={() => {
-                    onSelect(operation)
-                    setActiveItemKey(operation.operationType + operation.name)
+                    copy(`#${groupName}`)
                   }}
-                >
+                />
+              </Tooltip>
+              {operationList.map((operation, index) => {
+                const filtrationWorkspaceGqlFileInfo = workspaceGqlFileInfo.filter((item) => item.operationNames.includes(operation.name))
+                const isMoreExist = filtrationWorkspaceGqlFileInfo?.length > 1
+                const deprecatedReason = operation.deprecationReason
+                return (
                   <div
-                    className={classnames({
-                      [styles.deprecated]: !!deprecatedReason,
+                    key={index}
+                    className={classnames(styles.operationItem, {
+                      [styles.active]: operation.operationType + operation.name === activeItemKey,
                     })}
+                    onClick={() => {
+                      onSelect(operation)
+                      setActiveItemKey(operation.operationType + operation.name)
+                    }}
                   >
-                    <Space direction="horizontal">
-                      <CheckCircleTwoTone
-                        style={{ visibility: workspaceGqlNames.includes(operation.name) ? "visible" : "hidden" }}
-                        twoToneColor={isMoreExist ? "#FE9800" : "#52c41a"}
-                      />
-                      {flag ? operation.name : operation.description || operation.name}
-                      {!!deprecatedReason && <span className={styles.warning}>{deprecatedReason}</span>}
-                    </Space>
+                    <div
+                      className={classnames({
+                        [styles.deprecated]: !!deprecatedReason,
+                      })}
+                    >
+                      <Space direction="horizontal">
+                        <CheckCircleTwoTone
+                          style={{ visibility: workspaceGqlNames.includes(operation.name) ? "visible" : "hidden" }}
+                          twoToneColor={isMoreExist ? "#FE9800" : "#52c41a"}
+                        />
+                        {flag ? operation.name : operation.description || operation.name}
+                        {!!deprecatedReason && <span className={styles.warning}>{deprecatedReason}</span>}
+                      </Space>
+                    </div>
                   </div>
-                </div>
-              )
-            })}
-          </div>
-        </Collapse.Panel>
-      )
-    })
+                )
+              })}
+            </div>
+          </Collapse.Panel>
+        )
+      })
+    } else {
+      return groupedOperationsEntries.map(([groupName, operationData]) => {
+        let operationList = operationData
+        const pattern = new RegExp(keyword, "i")
+        // search by group name
+        if (pattern.test(groupName)) {
+          // break
+        } else if (newKeyword) {
+          operationList = operationData.filter((item) => {
+            return (
+              // search by name
+              pattern.test(item.name) ||
+              // search by description
+              pattern.test(item.description || "") ||
+              // search by arg type
+              item.args.some((arg) => pattern.test(arg.type.name)) ||
+              // search by return type
+              pattern.test(item.output.name)
+            )
+          })
+        }
+
+        if (!operationList.length) {
+          return null
+        }
+
+        return (
+          <Collapse.Panel key={groupName} header={groupName} className={activeKey.includes(groupName) ? styles.collapse_active : ""}>
+            <div className={styles.operationList}>
+              <Tooltip title="Copy GQL">
+                <CopyOutlined
+                  id={groupName}
+                  data-clipboard-text={genGQLStrInGroup(groupName, operationList)}
+                  className={styles.copyBtn}
+                  onClick={() => {
+                    copy(`#${groupName}`)
+                  }}
+                />
+              </Tooltip>
+              {operationList.map((operation, index) => {
+                const filtrationWorkspaceGqlFileInfo = workspaceGqlFileInfo.filter((item) => item.operationNames.includes(operation.name))
+                const isMoreExist = filtrationWorkspaceGqlFileInfo?.length > 1
+                const deprecatedReason = operation.deprecationReason
+                return (
+                  <div
+                    key={index}
+                    className={classnames(styles.operationItem, {
+                      [styles.active]: operation.operationType + operation.name === activeItemKey,
+                    })}
+                    onClick={() => {
+                      onSelect(operation)
+                      setActiveItemKey(operation.operationType + operation.name)
+                    }}
+                  >
+                    <div
+                      className={classnames({
+                        [styles.deprecated]: !!deprecatedReason,
+                      })}
+                    >
+                      <Space direction="horizontal">
+                        <CheckCircleTwoTone
+                          style={{ visibility: workspaceGqlNames.includes(operation.name) ? "visible" : "hidden" }}
+                          twoToneColor={isMoreExist ? "#FE9800" : "#52c41a"}
+                        />
+                        {flag ? operation.name : operation.description || operation.name}
+                        {!!deprecatedReason && <span className={styles.warning}>{deprecatedReason}</span>}
+                      </Space>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </Collapse.Panel>
+        )
+      })
+    }
   }, [groupedOperations, keyword, activeKey, workspaceGqlFileInfo, activeItemKey, workspaceGqlNames, flag, onSelect, setActiveItemKey])
 
   return (
