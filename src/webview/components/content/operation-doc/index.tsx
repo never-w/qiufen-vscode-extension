@@ -1,6 +1,6 @@
-import React, { useCallback, useMemo, useRef, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import type { FC } from "react"
-import { ArgumentNode, buildSchema, ConstDirectiveNode, FieldNode, GraphQLSchema, OperationDefinitionNode, StringValueNode } from "graphql"
+import { ArgumentNode, buildSchema, ConstDirectiveNode, FieldNode, getOperationAST, GraphQLSchema, Kind, OperationDefinitionNode, parse, SelectionNode, StringValueNode } from "graphql"
 import { message, Space, Table, Tooltip, Switch, Divider, Tag, Button } from "antd"
 import type { ColumnsType } from "antd/lib/table"
 import ReactDiffViewer, { DiffMethod } from "react-diff-viewer"
@@ -10,7 +10,7 @@ import { CopyOutlined, LoadingOutlined, MenuFoldOutlined, EditOutlined } from "@
 import ClipboardJS from "clipboard"
 import styles from "./index.module.less"
 import { getOperationsBySchema } from "@/utils/operation"
-import { printGqlOperation } from "@/utils/visitOperationTransformer"
+import { printGqlOperation, printOperation } from "@/utils/visitOperationTransformer"
 import type { TypedOperation, ArgTypeDef, ObjectFieldTypeDef } from "@fruits-chain/qiufen-helpers"
 import useBearStore from "@/webview/stores"
 import printOperationNodeForField from "@/utils/printOperationNodeForField"
@@ -18,6 +18,8 @@ import { traverseOperationTreeGetParentAndChildSelectedKeys, visitDocumentNodeAs
 import { useUpdate } from "@fruits-chain/hooks-laba"
 import { FetchDirectiveArg } from "@/utils/interface"
 import { fillOneKeyMessageSignSuccess, MessageEnum } from "@/config/postMessage"
+import { buildOperationNodeForField } from "@/utils/buildOperationNodeForField"
+import { addCheckedToOperationDefAst } from "@/utils/addCheckedToOperationDefAst"
 
 interface IProps {
   operation: TypedOperation
@@ -125,7 +127,6 @@ export const copy = (selector: string) => {
 
 const OperationDoc: FC<IProps> = ({ operation }) => {
   const { isDisplaySidebar, setState, vscode, directive, typeDefs, localTypeDefs, workspaceGqlFileInfo } = useBearStore((ste) => ste)
-
   const [mode, setMode] = useState<SwitchToggleEnum>(SwitchToggleEnum.TABLE)
   const [spinIcon, setSpinIcon] = useState(false)
   const selectedRowKeys = useRef<string[] | null>(null)
@@ -230,7 +231,7 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
     localSchema = buildSchema(
       // 读取本地schema文件失败设置一个默认值
       localTypeDefs ||
-        `
+      `
   schema {
     query: Query
   }
@@ -308,6 +309,19 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
       window.removeEventListener("message", listener)
     }
   }, [defaultSelectedKeys, operation, schema, typeDefs, vscode])
+
+
+
+  useEffect(() => {
+    const operationDefNodeAst = buildOperationNodeForField({
+      schema,
+      kind: operation.operationType,
+      field: operation.name,
+    })
+    console.log(operationDefNodeAst, '   ---operationDefNodeAst');
+
+    console.log(addCheckedToOperationDefAst(operationDefNodeAst));
+  }, [operation, schema])
 
   return (
     <Space id={operation.name} className={styles.operationDoc} direction="vertical">
@@ -483,10 +497,10 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
               oldValue={
                 localOperation
                   ? printOperationNodeForField({
-                      schema: localSchema!,
-                      kind: localOperation.operationType,
-                      field: localOperation.name,
-                    })
+                    schema: localSchema!,
+                    kind: localOperation.operationType,
+                    field: localOperation.name,
+                  })
                   : "nothings..."
               }
               newValue={printOperationNodeForField({

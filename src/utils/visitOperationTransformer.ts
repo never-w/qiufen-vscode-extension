@@ -36,3 +36,13 @@ export function printGqlOperation(schema: GraphQLSchema, operation: TypedOperati
   const operationAst = visitOperationTransformer(documentNode, uniqTmpSelectedKeys)
   return print(operationAst)
 }
+
+export function printOperation(schema: GraphQLSchema, operation: TypedOperation) {
+  const operationStr = printOperationNodeForField({
+    schema,
+    kind: operation.operationType,
+    field: operation.name,
+  })
+
+return operationStr
+}
