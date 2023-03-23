@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import React, { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react"
 import type { FC } from "react"
 import { ArgumentNode, buildSchema, ConstDirectiveNode, FieldNode, getOperationAST, GraphQLSchema, Kind, OperationDefinitionNode, parse, SelectionNode, StringValueNode } from "graphql"
 import { message, Space, Table, Tooltip, Switch, Divider, Tag, Button } from "antd"
@@ -19,7 +19,7 @@ import { useUpdate } from "@fruits-chain/hooks-laba"
 import { FetchDirectiveArg } from "@/utils/interface"
 import { fillOneKeyMessageSignSuccess, MessageEnum } from "@/config/postMessage"
 import { buildOperationNodeForField } from "@/utils/buildOperationNodeForField"
-import { addCheckedToOperationDefAst } from "@/utils/addCheckedToOperationDefAst"
+import { formatOperationDefAst, NewAstType } from "@/utils/formatOperationDefAst"
 
 interface IProps {
   operation: TypedOperation
@@ -127,10 +127,12 @@ export const copy = (selector: string) => {
 
 const OperationDoc: FC<IProps> = ({ operation }) => {
   const { isDisplaySidebar, setState, vscode, directive, typeDefs, localTypeDefs, workspaceGqlFileInfo } = useBearStore((ste) => ste)
-  const [mode, setMode] = useState<SwitchToggleEnum>(SwitchToggleEnum.TABLE)
   const [spinIcon, setSpinIcon] = useState(false)
   const selectedRowKeys = useRef<string[] | null>(null)
   const update = useUpdate()
+
+
+  const [operationDefsAstTree, setOperationDefsAstTree] = useState<NewAstType | null>(null)
 
   const columnGen = useMemo(() => {
     return (field: "arguments" | "return"): ColumnsType<ArgColumnRecord> => {
@@ -244,7 +246,7 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
     message.error(`${error}`)
   }
 
-  const localOperation = getOperationsBySchema(localSchema!).find((operationItem) => operationItem.name === operation.name) || null
+  // const localOperation = getOperationsBySchema(localSchema!).find((operationItem) => operationItem.name === operation.name) || null
 
   // 默认勾选中的key不包含parent keys
   const defaultSelectedRowKeys = useMemo(() => {
@@ -311,17 +313,20 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
   }, [defaultSelectedKeys, operation, schema, typeDefs, vscode])
 
 
-
-  useEffect(() => {
-    const operationDefNodeAst = buildOperationNodeForField({
+  const operationDefNodeAst = useMemo(() => {
+    return buildOperationNodeForField({
       schema,
       kind: operation.operationType,
       field: operation.name,
     })
-    console.log(operationDefNodeAst, '   ---operationDefNodeAst');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
-    console.log(addCheckedToOperationDefAst(operationDefNodeAst));
-  }, [operation, schema])
+  useLayoutEffect(() => {
+    const operationDefsAstTreeTmp = formatOperationDefAst(operationDefNodeAst, false, "")
+
+    setOperationDefsAstTree(operationDefsAstTreeTmp)
+  }, [operationDefNodeAst])
 
   return (
     <Space id={operation.name} className={styles.operationDoc} direction="vertical">
@@ -370,155 +375,37 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
               <span className={styles.text}>Copy GQL</span>
             </Space>
           </Tooltip>
-          {/* TODO 注释掉 应该不用了 */}
-          {/* <Tooltip title="Debug">
-            <a href={`http://${IpAddress}:${port}/playground?operationName=${encodeURIComponent(operation.name)}&operationType=${encodeURIComponent(operation.operationType)}`}>
-              <Space className={styles.copyBtn}>
-                <PlayCircleOutlined />
-                <span className={styles.text}>Debug</span>
-              </Space>
-            </a>
-          </Tooltip> */}
-          <div className={styles.switch_box}>
-            <Switch
-              className={styles.switch_diff}
-              size="default"
-              checked={mode === SwitchToggleEnum.DIFF}
-              checkedChildren="diff"
-              unCheckedChildren="diff"
-              onClick={(checked) => {
-                if (checked) {
-                  setMode(SwitchToggleEnum.DIFF)
-                } else {
-                  setMode(SwitchToggleEnum.TABLE)
-                }
-              }}
-            />
-            <Switch
-              size="default"
-              checked={mode === SwitchToggleEnum.EDITOR}
-              checkedChildren="editor"
-              unCheckedChildren="table"
-              onClick={(checked) => {
-                if (checked) {
-                  setMode(SwitchToggleEnum.EDITOR)
-                } else {
-                  setMode(SwitchToggleEnum.TABLE)
-                }
-              }}
-            />
-          </div>
         </Space>
       </div>
+
       <>
         {!!argsTreeData.length && (
           <>
             <Divider className={styles.divider} />
             <div className={styles.paramsText}>Params: </div>
-            {/* 因为这里table tree selected不是受控的所以需要用样式来显示隐藏组件，起到缓存作用 */}
-            <div style={{ display: mode === SwitchToggleEnum.TABLE ? "block" : "none" }}>
-              <Table columns={argsColumns} defaultExpandAllRows className={styles.table} dataSource={argsTreeData} pagination={false} bordered />
-            </div>
-            <div style={{ display: mode === SwitchToggleEnum.EDITOR ? "block" : "none" }}>
-              <AceEditor theme="tomorrow" mode="javascript" width="100%" readOnly maxLines={Infinity} value={obj2str(operation.argsExample)} />
-            </div>
-            <div style={{ display: mode === SwitchToggleEnum.DIFF ? "block" : "none" }}>
-              <ReactDiffViewer
-                oldValue={localOperation ? obj2str(localOperation.argsExample) : "nothings..."}
-                newValue={obj2str(operation.argsExample)}
-                splitView={true}
-                compareMethod={DiffMethod.SENTENCES}
-                showDiffOnly={false}
-                hideLineNumbers
-                leftTitle="Old-Diff"
-                rightTitle="New-Diff"
-                renderContent={(codeStr) => {
-                  return <div className={styles.diff_viewer_div}>{codeStr}</div>
-                }}
-              />
-            </div>
+            <Table columns={argsColumns} defaultExpandAllRows className={styles.table} dataSource={argsTreeData} pagination={false} bordered />
           </>
         )}
         <>
           <div>Response: </div>
-          {/* 因为这里table tree selected不是受控的所以需要用样式来显示隐藏组件，起到缓存作用 */}
-          <div style={{ display: mode === SwitchToggleEnum.TABLE ? "block" : "none" }}>
-            <Table
-              rowSelection={{
-                defaultSelectedRowKeys,
-                hideSelectAll: true,
-                checkStrictly: false,
-                onChange: (selectedKeys) => {
-                  const tmpSelectedKeys: string[] = []
-                  objectFieldsTreeData.forEach((node) => {
-                    traverseOperationTreeGetParentAndChildSelectedKeys(node, selectedKeys as string[], [], tmpSelectedKeys)
-                  })
-                  // 去重
-                  const uniqTmpSelectedKeys = [...new Set(tmpSelectedKeys)]
-                  selectedRowKeys.current = uniqTmpSelectedKeys
-                },
-              }}
-              columns={objectFieldsColumns}
-              className={styles.table}
-              dataSource={objectFieldsTreeData}
-              pagination={false}
-              defaultExpandedRowKeys={defaultSelectedKeys}
-              bordered
-            />
-          </div>
-          <div style={{ display: mode === SwitchToggleEnum.EDITOR ? "block" : "none" }}>
-            <AceEditor
-              theme="textmate"
-              mode="javascript"
-              width="100%"
-              fontSize={13}
-              showPrintMargin={true}
-              showGutter={true}
-              highlightActiveLine={true}
-              name={`${operation.name}_${operation.operationType}`}
-              maxLines={Infinity}
-              value={printOperationNodeForField({
-                schema,
-                kind: operation.operationType,
-                field: operation.name,
-              })}
-              setOptions={{
-                theme: "textmate",
-                enableBasicAutocompletion: true,
-                enableLiveAutocompletion: true,
-                enableSnippets: true,
-                showLineNumbers: true,
-                tabSize: 2,
-              }}
-            />
-          </div>
-          <div style={{ display: mode === SwitchToggleEnum.DIFF ? "block" : "none" }}>
-            <ReactDiffViewer
-              oldValue={
-                localOperation
-                  ? printOperationNodeForField({
-                    schema: localSchema!,
-                    kind: localOperation.operationType,
-                    field: localOperation.name,
-                  })
-                  : "nothings..."
-              }
-              newValue={printOperationNodeForField({
-                schema,
-                kind: operation.operationType,
-                field: operation.name,
-              })}
-              splitView={true}
-              compareMethod={DiffMethod.SENTENCES}
-              showDiffOnly={false}
-              hideLineNumbers
-              leftTitle="Old-Diff"
-              rightTitle="New-Diff"
-              renderContent={(codeStr) => {
-                return <div className={styles.diff_viewer_div}>{codeStr}</div>
-              }}
-            />
-          </div>
+          <Table
+            rowSelection={{
+              hideSelectAll: true,
+              onSelect: (record, selected, selectedRows) => {
+                const key = record.key
+                const operationDefsAstTreeTmp = formatOperationDefAst(operationDefNodeAst, selected, key)
+
+                // TODO: 明天继续，这里已经实现ast tree格式化选项，继续受控实现
+                console.log(operationDefsAstTreeTmp);
+              },
+            }}
+            columns={objectFieldsColumns}
+            className={styles.table}
+            dataSource={objectFieldsTreeData}
+            pagination={false}
+            defaultExpandAllRows
+            bordered
+          />
         </>
       </>
     </Space>

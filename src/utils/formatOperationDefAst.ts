@@ -1,19 +1,19 @@
 import { FieldNode, Kind, OperationDefinitionNode, SelectionNode } from "graphql";
 
 type AstNodeType = OperationDefinitionNode | FieldNode
-type NewAstType = AstNodeType & {
-    flag: boolean
+export type NewAstType = AstNodeType & {
+    checked: boolean
     key: string
 }
 
 
-export function addCheckedToOperationDefAst(ast: OperationDefinitionNode | FieldNode, path: AstNodeType[] = []) {
+export function formatOperationDefAst(ast: OperationDefinitionNode | FieldNode, checked: boolean, key: string, path: AstNodeType[] = []) {
     if (!ast) {
         return null;
     }
 
     const newAst = { ...ast } as NewAstType
-    newAst.flag = true;
+    newAst.checked = false;
 
     if (ast.kind === Kind.OPERATION_DEFINITION) {
         newAst.key = ast.operation + ast.name?.value
@@ -34,13 +34,26 @@ export function addCheckedToOperationDefAst(ast: OperationDefinitionNode | Field
         }
     }
 
-    const newPath = [...path, newAst];
 
+    if (newAst.key === key) {
+        newAst.checked = checked;
+    }
+
+    const newPath = [...path, newAst];
     if (newAst?.selectionSet) {
-        newAst.selectionSet.selections = newAst?.selectionSet?.selections?.map((selection) => addCheckedToOperationDefAst(selection as FieldNode, newPath)
+        newAst.selectionSet.selections = newAst?.selectionSet?.selections?.map((selection) => formatOperationDefAst(selection as FieldNode, checked, key, newPath)
         ) as SelectionNode[]
     }
 
+
+    if (newAst?.selectionSet) {
+        const flag = (newAst.selectionSet.selections as NewAstType[])?.some(itm => itm.checked)
+        if (flag) {
+            newAst.checked = true
+        } else {
+            newAst.checked = false
+        }
+    }
 
     return newAst;
 }
