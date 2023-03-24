@@ -19,7 +19,7 @@ import { useUpdate } from "@fruits-chain/hooks-laba"
 import { FetchDirectiveArg } from "@/utils/interface"
 import { fillOneKeyMessageSignSuccess, MessageEnum } from "@/config/postMessage"
 import { buildOperationNodeForField } from "@/utils/buildOperationNodeForField"
-import { formatOperationDefAst, NewAstType } from "@/utils/formatOperationDefAst"
+import { formatOperationDefAst, getOperationDefsAstKeys, NewAstType } from "@/utils/formatOperationDefAst"
 
 interface IProps {
   operation: TypedOperation
@@ -328,6 +328,9 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
     setOperationDefsAstTree(operationDefsAstTreeTmp)
   }, [operationDefNodeAst])
 
+  console.log(getOperationDefsAstKeys(operationDefsAstTree!), 'pppppp');
+
+
   return (
     <Space id={operation.name} className={styles.operationDoc} direction="vertical">
       <div className={styles.name}>
@@ -390,13 +393,12 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
           <div>Response: </div>
           <Table
             rowSelection={{
+              selectedRowKeys: getOperationDefsAstKeys(operationDefsAstTree!),
               hideSelectAll: true,
               onSelect: (record, selected, selectedRows) => {
                 const key = record.key
                 const operationDefsAstTreeTmp = formatOperationDefAst(operationDefNodeAst, selected, key)
-
-                // TODO: 明天继续，这里已经实现ast tree格式化选项，继续受控实现
-                console.log(operationDefsAstTreeTmp);
+                setOperationDefsAstTree(operationDefsAstTreeTmp)
               },
             }}
             columns={objectFieldsColumns}

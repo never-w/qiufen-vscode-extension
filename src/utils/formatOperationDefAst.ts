@@ -57,3 +57,22 @@ export function formatOperationDefAst(ast: OperationDefinitionNode | FieldNode, 
 
     return newAst;
 }
+
+
+
+export function getOperationDefsAstKeys(ast: NewAstType, keys: string[] = []) {
+    if (!ast) {
+        return []
+    }
+
+    if (ast?.checked) {
+        keys.push(ast.key)
+    }
+
+    if (ast?.selectionSet) {
+        ast?.selectionSet?.selections?.forEach((selection) => getOperationDefsAstKeys(selection as NewAstType, keys)
+        )
+    }
+
+    return keys
+}
