@@ -1,19 +1,18 @@
-import * as vscode from "vscode"
-import * as path from "path"
-import type { Server } from "http"
-import { buildSchema, GraphQLSchema } from "graphql"
-import getIpAddress from "./utils/getIpAddress"
-import { getOperationsBySchema } from "./utils/operation"
-import getWorkspaceConfig from "./utils/getWorkspaceConfig"
-import fetchRemoteSchemaTypeDefs from "./utils/fetchRemoteSchemaTypeDefs"
-import { updateStatusBarItem, loadingStatusBarItem } from "./utils/updateStatusBarItem"
-import { defaultQiufenConfig } from "./config"
-import { GraphqlQiufenProCloseDocCommandId, GraphqlQiufenProCloseMockCommandId, GraphqlQiufenProStartMockCommandId, GraphqlQiufenProStartDocCommandId } from "./config/commands"
-// import { startServer } from "./server-mock/src"
-import readLocalSchemaTypeDefs from "./utils/readLocalSchemaTypeDefs"
-import { fillOneKeyMessageSignNull, fillOneKeyMessageSignSuccess, MessageEnum } from "./config/postMessage"
-import { getWorkspaceAllGqlResolveFilePaths, getWorkspaceGqlFileInfo, setWorkspaceGqls } from "./utils/readWorkspaceOperations"
-import { startServer } from "../mock_server/index"
+import * as vscode from 'vscode'
+import * as path from 'path'
+import type { Server } from 'http'
+import { buildSchema, GraphQLSchema } from 'graphql'
+import getIpAddress from './utils/getIpAddress'
+import { getOperationsBySchema } from './utils/operation'
+import getWorkspaceConfig from './utils/getWorkspaceConfig'
+import fetchRemoteSchemaTypeDefs from './utils/fetchRemoteSchemaTypeDefs'
+import { updateStatusBarItem, loadingStatusBarItem } from './utils/updateStatusBarItem'
+import { defaultQiufenConfig } from './config'
+import { GraphqlQiufenProCloseDocCommandId, GraphqlQiufenProCloseMockCommandId, GraphqlQiufenProStartMockCommandId, GraphqlQiufenProStartDocCommandId } from './config/commands'
+import readLocalSchemaTypeDefs from './utils/readLocalSchemaTypeDefs'
+import { fillOneKeyMessageSignNull, fillOneKeyMessageSignSuccess, MessageEnum } from './config/postMessage'
+import { getWorkspaceAllGqlResolveFilePaths, getWorkspaceGqlFileInfo, setWorkspaceGqls } from './utils/readWorkspaceOperations'
+import { startServer } from '../mock_server/index'
 
 let serverMock: Server
 let docStatusBarItem: vscode.StatusBarItem
@@ -23,7 +22,7 @@ let currentPanel: vscode.WebviewPanel | undefined
 export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand(GraphqlQiufenProStartDocCommandId, async () => {
-      const jsonSettings = vscode.workspace.getConfiguration("graphql-qiufen-pro")
+      const jsonSettings = vscode.workspace.getConfiguration('graphql-qiufen-pro')
 
       const columnToShowIn = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined
       if (currentPanel) {
@@ -31,7 +30,7 @@ export function activate(context: vscode.ExtensionContext) {
       }
 
       if (!currentPanel) {
-        loadingStatusBarItem(docStatusBarItem, "Doc")
+        loadingStatusBarItem(docStatusBarItem, 'Doc')
         const { url, port } = getWorkspaceConfig(() => {
           updateStatusBarItem(GraphqlQiufenProStartDocCommandId, `$(target) Doc`, docStatusBarItem)
         })
@@ -52,13 +51,13 @@ export function activate(context: vscode.ExtensionContext) {
           return
         }
 
-        currentPanel = vscode.window.createWebviewPanel("graphql-qiufen-pro", "Graphql Qiufen Pro", columnToShowIn!, {
+        currentPanel = vscode.window.createWebviewPanel('graphql-qiufen-pro', 'Graphql Qiufen Pro', columnToShowIn!, {
           retainContextWhenHidden: true, // 保证 Webview 所在页面进入后台时不被释放
           enableScripts: true,
         })
-        currentPanel.iconPath = vscode.Uri.file(path.join(context.extensionPath, "assets/logo", "qiufen-logo.png"))
+        currentPanel.iconPath = vscode.Uri.file(path.join(context.extensionPath, 'assets/logo', 'qiufen-logo.png'))
         // 获取磁盘上的资源路径且，获取在webview中使用的特殊URI
-        const srcUrl = currentPanel.webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, "dist", "webview.js")))
+        const srcUrl = currentPanel.webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, 'dist', 'webview.js')))
         currentPanel.webview.html = getWebviewContent(srcUrl)
 
         // 接受webview发送的信息，且再向webview发送信息，这样做为了解决它们两者通信有时不得行的bug
@@ -125,10 +124,10 @@ export function activate(context: vscode.ExtensionContext) {
             }
           },
           undefined,
-          context.subscriptions
+          context.subscriptions,
         )
 
-        updateStatusBarItem(GraphqlQiufenProCloseDocCommandId, `$(target) Close Doc`, docStatusBarItem, "yellow")
+        updateStatusBarItem(GraphqlQiufenProCloseDocCommandId, `$(target) Close Doc`, docStatusBarItem, 'yellow')
 
         // 当前面板被关闭后重置
         currentPanel.onDidDispose(
@@ -137,7 +136,7 @@ export function activate(context: vscode.ExtensionContext) {
             updateStatusBarItem(GraphqlQiufenProStartDocCommandId, `$(target) Doc`, docStatusBarItem)
           },
           null,
-          context.subscriptions
+          context.subscriptions,
         )
       }
     }),
@@ -156,7 +155,7 @@ export function activate(context: vscode.ExtensionContext) {
     // Start Mock命令注册
     vscode.commands.registerCommand(GraphqlQiufenProStartMockCommandId, async () => {
       const { isExistConfigFile, url, port, qiufenConfig } = getWorkspaceConfig()
-      loadingStatusBarItem(mockStatusBarItem, "Mock")
+      loadingStatusBarItem(mockStatusBarItem, 'Mock')
       if (isExistConfigFile) {
         try {
           serverMock = await startServer(qiufenConfig!)
@@ -180,11 +179,11 @@ export function activate(context: vscode.ExtensionContext) {
       }
 
       const res = await vscode.window.showInformationMessage(
-        "是否打开 Mock 网页Doc？",
+        '是否打开 Mock 网页Doc？',
         {
           modal: true,
         },
-        "确定"
+        '确定',
       )
 
       // 当点击确定时才打开网页
@@ -192,8 +191,8 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.env.openExternal(vscode.Uri.parse(`http://localhost:${port}`))
       }
 
-      updateStatusBarItem(GraphqlQiufenProCloseMockCommandId, `$(play) Close Mock`, mockStatusBarItem, "yellow")
-    })
+      updateStatusBarItem(GraphqlQiufenProCloseMockCommandId, `$(play) Close Mock`, mockStatusBarItem, 'yellow')
+    }),
   )
 
   // 设置底部bar图标

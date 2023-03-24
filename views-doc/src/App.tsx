@@ -9,12 +9,7 @@ import Content from './components/content'
 interface IProps {}
 
 const App: FC<IProps> = () => {
-  const {
-    operations,
-    fetchOperations: handleFetchOperations,
-    reloadOperations,
-    isDisplaySidebar,
-  } = useBearStore((state) => state)
+  const { operations, fetchOperations: handleFetchOperations, reloadOperations, isDisplaySidebar } = useBearStore((state) => state)
 
   const [operationData, setOperationData] = useState<TypedOperation | null>(null)
   const [keyword, setKeyword] = useState<string>('')

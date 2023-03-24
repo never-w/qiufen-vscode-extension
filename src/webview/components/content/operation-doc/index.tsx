@@ -1,5 +1,5 @@
-import React, { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react"
-import type { FC } from "react"
+import React, { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import type { FC } from 'react'
 import {
   ArgumentNode,
   buildSchema,
@@ -12,26 +12,26 @@ import {
   parse,
   SelectionNode,
   StringValueNode,
-} from "graphql"
-import { message, Space, Table, Tooltip, Switch, Divider, Tag, Button } from "antd"
-import type { ColumnsType } from "antd/lib/table"
-import ReactDiffViewer, { DiffMethod } from "react-diff-viewer"
-import AceEditor from "react-ace"
-import obj2str from "stringify-object"
-import { CopyOutlined, LoadingOutlined, MenuFoldOutlined, EditOutlined } from "@ant-design/icons"
-import ClipboardJS from "clipboard"
-import styles from "./index.module.less"
-import { getOperationsBySchema } from "@/utils/operation"
-import { printGqlOperation } from "@/utils/visitOperationTransformer"
-import type { TypedOperation, ArgTypeDef, ObjectFieldTypeDef } from "@fruits-chain/qiufen-helpers"
-import useBearStore from "@/webview/stores"
-import printOperationNodeForField from "@/utils/printOperationNodeForField"
-import { traverseOperationTreeGetParentAndChildSelectedKeys, visitDocumentNodeAstGetKeys } from "@/utils/traverseTree"
-import { FetchDirectiveArg } from "@/utils/interface"
-import { fillOneKeyMessageSignSuccess, MessageEnum } from "@/config/postMessage"
-import { buildOperationNodeForField } from "@/utils/buildOperationNodeForField"
-import { formatOperationDefAst, getOperationDefsAstKeys, NewAstType } from "@/utils/formatOperationDefAst"
-import { defaultLocalTypeDefs } from "@/config/const"
+} from 'graphql'
+import { message, Space, Table, Tooltip, Switch, Divider, Tag, Button } from 'antd'
+import type { ColumnsType } from 'antd/lib/table'
+import ReactDiffViewer, { DiffMethod } from 'react-diff-viewer'
+import AceEditor from 'react-ace'
+import obj2str from 'stringify-object'
+import { CopyOutlined, LoadingOutlined, MenuFoldOutlined, EditOutlined } from '@ant-design/icons'
+import ClipboardJS from 'clipboard'
+import styles from './index.module.less'
+import { getOperationsBySchema } from '@/utils/operation'
+import { printGqlOperation } from '@/utils/visitOperationTransformer'
+import type { TypedOperation, ArgTypeDef, ObjectFieldTypeDef } from '@fruits-chain/qiufen-helpers'
+import useBearStore from '@/webview/stores'
+import printOperationNodeForField from '@/utils/printOperationNodeForField'
+import { traverseOperationTreeGetParentAndChildSelectedKeys, visitDocumentNodeAstGetKeys } from '@/utils/traverseTree'
+import { FetchDirectiveArg } from '@/utils/interface'
+import { fillOneKeyMessageSignSuccess, MessageEnum } from '@/config/postMessage'
+import { buildOperationNodeForField } from '@/utils/buildOperationNodeForField'
+import { formatOperationDefAst, getOperationDefsAstKeys, NewAstType } from '@/utils/formatOperationDefAst'
+import { defaultLocalTypeDefs } from '@/config/const'
 
 interface IProps {
   operation: TypedOperation
@@ -39,11 +39,11 @@ interface IProps {
 
 export type ArgColumnRecord = {
   key: string
-  name: ArgTypeDef["name"]
-  type: ArgTypeDef["type"]["name"]
-  defaultValue: ArgTypeDef["defaultValue"]
-  description: ArgTypeDef["description"]
-  deprecationReason?: ArgTypeDef["deprecationReason"]
+  name: ArgTypeDef['name']
+  type: ArgTypeDef['type']['name']
+  defaultValue: ArgTypeDef['defaultValue']
+  description: ArgTypeDef['description']
+  deprecationReason?: ArgTypeDef['deprecationReason']
   children: ArgColumnRecord[] | null
   directives?: ConstDirectiveNode[]
 }
@@ -54,22 +54,22 @@ enum SwitchToggleEnum {
   DIFF,
 }
 
-const getArgsTreeData = (args: ArgTypeDef[], keyPrefix = "") => {
+const getArgsTreeData = (args: ArgTypeDef[], keyPrefix = '') => {
   const result: ArgColumnRecord[] = args.map(({ type, ...originData }) => {
     const key = `${keyPrefix}${originData.name}`
-    let children: ArgColumnRecord["children"] = []
+    let children: ArgColumnRecord['children'] = []
     switch (type.kind) {
-      case "Scalar":
+      case 'Scalar':
         children = null
         break
-      case "InputObject":
+      case 'InputObject':
         children = getArgsTreeData(type.fields, key)
         break
-      case "Enum":
+      case 'Enum':
         children = type.values.map((item) => ({
           key: key + item.value,
           name: item.name,
-          type: "",
+          type: '',
           defaultValue: item.value,
           description: item.description,
           deprecationReason: item.deprecationReason,
@@ -87,18 +87,18 @@ const getArgsTreeData = (args: ArgTypeDef[], keyPrefix = "") => {
   return result
 }
 
-const getObjectFieldsTreeData = (objectFields: ObjectFieldTypeDef[], keyPrefix = "") => {
+const getObjectFieldsTreeData = (objectFields: ObjectFieldTypeDef[], keyPrefix = '') => {
   const result: ArgColumnRecord[] = objectFields.map(({ output, ...originData }) => {
     const key = `${keyPrefix}${originData.name}`
-    let children: ArgColumnRecord["children"] = []
+    let children: ArgColumnRecord['children'] = []
     switch (output.kind) {
-      case "Scalar":
+      case 'Scalar':
         children = []
         break
-      case "Object":
+      case 'Object':
         children = getObjectFieldsTreeData(output.fields, key)
         break
-      case "Enum":
+      case 'Enum':
         // TODO: 枚举干掉
         // children = output.values.map((item) => ({
         //   key: key + item.value,
@@ -112,7 +112,7 @@ const getObjectFieldsTreeData = (objectFields: ObjectFieldTypeDef[], keyPrefix =
 
         children = []
         break
-      case "Union":
+      case 'Union':
         output.types.forEach((type) => {
           children = [...(children || []), ...getObjectFieldsTreeData(type.fields, key)]
         })
@@ -130,12 +130,12 @@ const getObjectFieldsTreeData = (objectFields: ObjectFieldTypeDef[], keyPrefix =
 
 export const copy = (selector: string) => {
   const clipboard = new ClipboardJS(selector)
-  clipboard.on("success", () => {
-    message.success("success")
+  clipboard.on('success', () => {
+    message.success('success')
     clipboard.destroy()
   })
-  clipboard.on("error", () => {
-    message.error("failed")
+  clipboard.on('error', () => {
+    message.error('failed')
     clipboard.destroy()
   })
 }
@@ -148,19 +148,19 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
   const [selectedKeys, setSelectedKeys] = useState<string[]>([])
 
   const columnGen = useMemo(() => {
-    return (field: "arguments" | "return"): ColumnsType<ArgColumnRecord> => {
+    return (field: 'arguments' | 'return'): ColumnsType<ArgColumnRecord> => {
       return [
         {
-          title: "Name",
-          dataIndex: "name",
-          width: "35%",
+          title: 'Name',
+          dataIndex: 'name',
+          width: '35%',
           render(value, record) {
             const tmpIsDirective = !!record.directives?.find((itm) => itm.name.value === directive)
             const directivesArgs = record.directives?.find((itm) => itm.name.value === directive)?.arguments as ArgumentNode[]
             const firstArgValue = (directivesArgs?.[0]?.value as StringValueNode)?.value
 
             const isYellow = FetchDirectiveArg.LOADER === firstArgValue
-            const colorStyle: React.CSSProperties | undefined = tmpIsDirective ? { color: isYellow ? "#FF9900" : "red" } : undefined
+            const colorStyle: React.CSSProperties | undefined = tmpIsDirective ? { color: isYellow ? '#FF9900' : 'red' } : undefined
 
             const deprecationReason = record.deprecationReason
             if (deprecationReason) {
@@ -174,9 +174,9 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
           },
         },
         {
-          title: "Description",
-          dataIndex: "description",
-          width: "25%",
+          title: 'Description',
+          dataIndex: 'description',
+          width: '25%',
           render(val, record) {
             const deprecationReason = record.deprecationReason
             if (deprecationReason) {
@@ -191,13 +191,13 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
           },
         },
         {
-          title: field === "arguments" ? "Required" : "Nullable",
-          dataIndex: "type",
-          width: "20%",
+          title: field === 'arguments' ? 'Required' : 'Nullable',
+          dataIndex: 'type',
+          width: '20%',
           render(val: string) {
-            let result = !val?.endsWith("!")
-            if (field === "arguments") {
-              result = !!val?.endsWith("!")
+            let result = !val?.endsWith('!')
+            if (field === 'arguments') {
+              result = !!val?.endsWith('!')
             }
             if (result === true) {
               return (
@@ -214,11 +214,11 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
           },
         },
         {
-          title: "Type",
-          dataIndex: "type",
-          width: "20%",
+          title: 'Type',
+          dataIndex: 'type',
+          width: '20%',
           render(value: string) {
-            return value?.endsWith("!") ? value.slice(0, value.length - 1) : value
+            return value?.endsWith('!') ? value.slice(0, value.length - 1) : value
           },
         },
       ]
@@ -230,14 +230,14 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
     return getArgsTreeData(operation.args)
   }, [operation.args])
   const argsColumns: ColumnsType<ArgColumnRecord> = useMemo(() => {
-    return columnGen("arguments")
+    return columnGen('arguments')
   }, [columnGen])
 
   const objectFieldsTreeData = useMemo(() => {
     return getObjectFieldsTreeData([operation])
   }, [operation])
   const objectFieldsColumns: ColumnsType<ArgColumnRecord> = useMemo(() => {
-    return columnGen("return")
+    return columnGen('return')
   }, [columnGen])
 
   const schema = useMemo(() => buildSchema(typeDefs), [typeDefs])
@@ -261,16 +261,16 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
       gqlType: operation.operationType,
     })
     // 接受插件发送过来的信息
-    window.addEventListener("message", listener)
+    window.addEventListener('message', listener)
 
     function listener(evt: any) {
       const data = evt.data as string
       if (data === fillOneKeyMessageSignSuccess) {
-        message.success("一键填入成功")
+        message.success('一键填入成功')
         setSpinIcon(false)
       }
       setSpinIcon(false)
-      window.removeEventListener("message", listener)
+      window.removeEventListener('message', listener)
     }
   }, [operation, schema, selectedKeys, typeDefs, vscode])
 
@@ -301,7 +301,7 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
       visitDocumentNodeAstGetKeys(operationNameFieldNode, resultKeys)
     }
 
-    const operationDefsAstTreeTmp = formatOperationDefAst(operationDefNodeAst, false, "")
+    const operationDefsAstTreeTmp = formatOperationDefAst(operationDefNodeAst, false, '')
     operationDefsAstTreeRef.current = operationDefsAstTreeTmp
 
     const keys = getOperationDefsAstKeys(operationDefsAstTreeTmp!)
@@ -348,7 +348,7 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
               data-clipboard-text={printGqlOperation(schema, operation, selectedKeys)}
               className={styles.copyBtn}
               onClick={() => {
-                copy("#copy")
+                copy('#copy')
               }}
             >
               <CopyOutlined />
@@ -395,7 +395,7 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
             {mode === SwitchToggleEnum.EDITOR && <AceEditor theme="tomorrow" mode="javascript" width="100%" readOnly maxLines={Infinity} value={obj2str(operation.argsExample)} />}
             {mode === SwitchToggleEnum.DIFF && (
               <ReactDiffViewer
-                oldValue={localOperation ? obj2str(localOperation.argsExample) : "nothings..."}
+                oldValue={localOperation ? obj2str(localOperation.argsExample) : 'nothings...'}
                 newValue={obj2str(operation.argsExample)}
                 splitView={true}
                 compareMethod={DiffMethod.SENTENCES}
@@ -458,7 +458,7 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
                 field: operation.name,
               })}
               setOptions={{
-                theme: "textmate",
+                theme: 'textmate',
                 enableBasicAutocompletion: true,
                 enableLiveAutocompletion: true,
                 enableSnippets: true,
@@ -476,7 +476,7 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
                       kind: localOperation.operationType,
                       field: localOperation.name,
                     })
-                  : "nothings..."
+                  : 'nothings...'
               }
               newValue={printOperationNodeForField({
                 schema,
