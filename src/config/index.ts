@@ -1,13 +1,13 @@
-import Mock from "mockjs"
+import Mock from 'mockjs'
 const { Random } = Mock
 
 export const defaultQiufenConfig = {
   playground: {
     headers: {
-      Authorization: "",
-      appversioncode: "33",
-      "app-version": "33",
-      platform: "ios",
+      Authorization: '',
+      appversioncode: '33',
+      'app-version': '33',
+      platform: 'ios',
     },
   },
   mock: {

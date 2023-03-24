@@ -1,0 +1,15 @@
+node_modules
+# OS
+.DS_Store
+.idea
+.editorconfig
+.npmrc
+package-lock.json
+*.log
+*.md
+*.svg
+*.png
+*ignore
+dist
+dist-page-view
+.vscode

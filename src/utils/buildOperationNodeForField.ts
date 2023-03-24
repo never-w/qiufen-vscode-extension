@@ -26,10 +26,10 @@ import {
   isInterfaceType,
   isEnumType,
   Kind,
-} from "graphql"
+} from 'graphql'
 // import { capitalizeFirstLetter } from "./dealWordFirstLetter"
 
-import { getDefinedRootType, getRootTypeNames } from "./rootTypes"
+import { getDefinedRootType, getRootTypeNames } from './rootTypes'
 
 let operationVariables: VariableDefinitionNode[] = []
 let fieldTypeMap = new Map()
@@ -212,7 +212,7 @@ function resolveSelectionSet({
   argNames?: string[]
   rootTypeNames: Set<string>
 }): SelectionSetNode | void {
-  if (typeof selectedFields === "boolean" && depth > depthLimit) {
+  if (typeof selectedFields === 'boolean' && depth > depthLimit) {
     return
   }
   if (isUnionType(type)) {
@@ -225,7 +225,7 @@ function resolveSelectionSet({
           (t) =>
             !hasCircularRef([...ancestors, t], {
               depth: circularReferenceDepth,
-            })
+            }),
         )
         .map<InlineFragmentNode>((t) => {
           return {
@@ -268,7 +268,7 @@ function resolveSelectionSet({
           (t) =>
             !hasCircularRef([...ancestors, t], {
               depth: circularReferenceDepth,
-            })
+            }),
         )
         .map<InlineFragmentNode>((t) => {
           return {
@@ -313,7 +313,7 @@ function resolveSelectionSet({
             kind: Kind.FIELD,
             name: {
               kind: Kind.NAME,
-              value: "id",
+              value: 'id',
             },
           },
         ],
@@ -343,7 +343,7 @@ function resolveSelectionSet({
           })
         })
         .map((fieldName) => {
-          const selectedSubFields = typeof selectedFields === "object" ? selectedFields[fieldName] : true
+          const selectedSubFields = typeof selectedFields === 'object' ? selectedFields[fieldName] : true
           if (selectedSubFields) {
             return resolveField({
               type,
@@ -366,7 +366,7 @@ function resolveSelectionSet({
         .filter((f): f is SelectionNode => {
           if (f == null) {
             return false
-          } else if ("selectionSet" in f) {
+          } else if ('selectionSet' in f) {
             return !!f.selectionSet?.selections?.length
           }
           return true
@@ -419,7 +419,7 @@ function resolveVariable(arg: GraphQLArgument, name?: string): VariableDefinitio
 }
 
 function getArgumentName(name: string, path: string[]): string {
-  return [...path, name].join("_")
+  return [...path, name].join('_')
 }
 
 function resolveField({
@@ -496,10 +496,10 @@ function resolveField({
   }
 
   const fieldPath = [...path, field.name]
-  const fieldPathStr = fieldPath.join(".")
+  const fieldPathStr = fieldPath.join('.')
   let fieldName = field.name
   if (fieldTypeMap.has(fieldPathStr) && fieldTypeMap.get(fieldPathStr) !== field.type.toString()) {
-    fieldName += (field.type as any).toString().replace("!", "NonNull").replace("[", "List").replace("]", "")
+    fieldName += (field.type as any).toString().replace('!', 'NonNull').replace('[', 'List').replace(']', '')
   }
   fieldTypeMap.set(fieldPathStr, field.type.toString())
 
@@ -551,7 +551,7 @@ function hasCircularRef(
     depth: number
   } = {
     depth: 1,
-  }
+  },
 ): boolean {
   const type = types[types.length - 1]
 

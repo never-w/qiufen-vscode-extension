@@ -33,7 +33,7 @@ interface MockConfig {
   resolvers?: any
 }
 
-type SchemaPolicy = "local" | "remote"
+type SchemaPolicy = 'local' | 'remote'
 
 interface PlaygroundConfig {
   /** request headers */

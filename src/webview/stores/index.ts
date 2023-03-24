@@ -1,7 +1,7 @@
-import { MessageEnum } from "@/config/postMessage"
-import { TypedOperation } from "@fruits-chain/qiufen-helpers"
-import { DefinitionNode } from "graphql"
-import create, { SetState } from "zustand"
+import { MessageEnum } from '@/config/postMessage'
+import { TypedOperation } from '@fruits-chain/qiufen-helpers'
+import { DefinitionNode } from 'graphql'
+import create, { SetState } from 'zustand'
 
 export type WorkspaceGqlFileInfoType = {
   filename: string
@@ -31,11 +31,11 @@ interface BearState extends MessageEvent {
 const useBearStore = create<BearState>((set, get) => {
   return {
     port: 9400,
-    directive: "",
-    localTypeDefs: "",
+    directive: '',
+    localTypeDefs: '',
     operations: [],
-    IpAddress: "",
-    typeDefs: "",
+    IpAddress: '',
+    typeDefs: '',
     workspaceGqlNames: [],
     workspaceGqlFileInfo: [],
     isDisplaySidebar: true,
@@ -47,13 +47,13 @@ const useBearStore = create<BearState>((set, get) => {
         // 向插件发送信息
         vscode.postMessage({ type: MessageEnum.FETCH })
         // 接受插件发送过来的信息
-        window.addEventListener("message", listener)
+        window.addEventListener('message', listener)
 
         function listener(evt: globalThis.MessageEvent) {
           const data = evt.data as MessageEvent
           set(data)
           resolve(true)
-          window.removeEventListener("message", listener)
+          window.removeEventListener('message', listener)
         }
       })
     },
@@ -65,13 +65,13 @@ const useBearStore = create<BearState>((set, get) => {
         vscode.postMessage({
           type: MessageEnum.REFETCH,
         })
-        window.addEventListener("message", listener)
+        window.addEventListener('message', listener)
 
         function listener(evt: globalThis.MessageEvent) {
           const data = evt.data as MessageEvent
           set(data)
           resolve(true)
-          window.removeEventListener("message", listener)
+          window.removeEventListener('message', listener)
         }
       })
     },

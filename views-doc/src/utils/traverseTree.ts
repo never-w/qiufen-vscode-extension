@@ -19,22 +19,13 @@ function dfsOperationTree(node: ArgColumnRecord, selectedKeys: string[], isDirec
   }
 }
 
-export function getDefaultRowKeys(
-  objectFieldsTreeData: ArgColumnRecord[],
-  defaultRowKeys: string[] = [],
-  directive = '',
-) {
+export function getDefaultRowKeys(objectFieldsTreeData: ArgColumnRecord[], defaultRowKeys: string[] = [], directive = '') {
   objectFieldsTreeData.forEach((node) => {
     dfsOperationTree(node, defaultRowKeys, false, directive)
   })
 }
 
-export function traverseOperationTreeGetParentAndChildSelectedKeys(
-  node: ArgColumnRecord,
-  selectedKeys: string[],
-  path: ArgColumnRecord[] = [],
-  shouldSelectedKeys: string[] = [],
-) {
+export function traverseOperationTreeGetParentAndChildSelectedKeys(node: ArgColumnRecord, selectedKeys: string[], path: ArgColumnRecord[] = [], shouldSelectedKeys: string[] = []) {
   const parentKeys = path?.map((pathItm) => pathItm.key)
   path.push(node)
 

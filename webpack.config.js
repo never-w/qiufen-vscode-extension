@@ -1,6 +1,6 @@
-const path = require("path")
-const { DefinePlugin } = require("webpack")
-const { CleanWebpackPlugin } = require("clean-webpack-plugin")
+const path = require('path')
+const { DefinePlugin } = require('webpack')
+const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 // const CopyWebpackPlugin = require("copy-webpack-plugin")
 
 //@ts-check
@@ -8,38 +8,38 @@ const { CleanWebpackPlugin } = require("clean-webpack-plugin")
 
 /** @type WebpackConfig */
 const extensionConfig = {
-  target: "node",
-  mode: "development",
+  target: 'node',
+  mode: 'development',
   entry: {
-    mock_server: "./mock_server/index.ts",
-    extension: "./src/extension.ts",
+    mock_server: './mock_server/index.ts',
+    extension: './src/extension.ts',
     webview: {
-      import: "./src/webview/index.tsx",
+      import: './src/webview/index.tsx',
       library: {
-        type: "this",
+        type: 'this',
       },
     },
   },
   externals: {},
   output: {
-    path: path.resolve(__dirname, "dist"),
-    filename: "[name].js",
-    libraryTarget: "commonjs-module",
+    path: path.resolve(__dirname, 'dist'),
+    filename: '[name].js',
+    libraryTarget: 'commonjs-module',
   },
   externals: {
-    vscode: "commonjs vscode",
+    vscode: 'commonjs vscode',
   },
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "src"), // 这样配置后 @ 可以指向 src 目录
+      '@': path.resolve(__dirname, 'src'), // 这样配置后 @ 可以指向 src 目录
     },
-    extensions: [".ts", ".tsx", ".js", ".jsx", ".css"],
+    extensions: ['.ts', '.tsx', '.js', '.jsx', '.css'],
   },
   plugins: [
     // 解决react开发的嵌套webview缺失node环境下的process.env
     new DefinePlugin({
-      "process.env": {
-        NODE_ENV: JSON.stringify((process.env.NODE_ENV = "production")),
+      'process.env': {
+        NODE_ENV: JSON.stringify((process.env.NODE_ENV = 'production')),
       },
     }),
     new CleanWebpackPlugin(),
@@ -56,24 +56,24 @@ const extensionConfig = {
     rules: [
       {
         test: /\.tsx?$/,
-        use: "ts-loader",
-        exclude: "/node_modules/",
+        use: 'ts-loader',
+        exclude: '/node_modules/',
       },
       {
         test: /\.css$/,
-        use: ["style-loader", "css-loader"],
+        use: ['style-loader', 'css-loader'],
       },
       {
         test: /\.module\.less$/,
         use: [
           // compiles Less to CSS
-          "style-loader",
-          "css-loader",
-          "less-loader",
+          'style-loader',
+          'css-loader',
+          'less-loader',
           {
-            loader: "style-resources-loader",
+            loader: 'style-resources-loader',
             options: {
-              patterns: ["./src/webview/styles/*.less"],
+              patterns: ['./src/webview/styles/*.less'],
             },
           },
         ],
@@ -81,20 +81,20 @@ const extensionConfig = {
       {
         test: /\.(jpg|png|gif)$/, // 针对这三种格式的文件使用file-loader处理
         use: {
-          loader: "file-loader",
+          loader: 'file-loader',
           options: {
             // 定义打包后文件的名称；
             // [name]:原文件名，[hash]:hash字符串（如果不定义名称，默认就以hash命名，[ext]:原文件的后缀名）
-            name: "[name].[ext]",
-            outputPath: "images/", //  定义图片输出的文件夹名（在output.path目录下）
+            name: '[name].[ext]',
+            outputPath: 'images/', //  定义图片输出的文件夹名（在output.path目录下）
           },
         },
       },
     ],
   },
-  devtool: "inline-source-map",
+  devtool: 'inline-source-map',
   infrastructureLogging: {
-    level: "log", // enables logging required for problem matchers
+    level: 'log', // enables logging required for problem matchers
   },
 }
 

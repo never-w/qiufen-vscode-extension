@@ -1,5 +1,5 @@
-import { getNamedType, isEnumType, isScalarType, isUnionType, OperationTypeNode, Kind, parse, print } from "graphql"
-import type { InputType, ObjectTypeDef, OutputType } from "./interface"
+import { getNamedType, isEnumType, isScalarType, isUnionType, OperationTypeNode, Kind, parse, print } from 'graphql'
+import type { InputType, ObjectTypeDef, OutputType } from './interface'
 import type {
   GraphQLField,
   GraphQLSchema,
@@ -10,8 +10,8 @@ import type {
   SelectionSetNode,
   DocumentNode,
   DirectiveNode,
-} from "graphql"
-import type { Operation, TypedOperation, ScalarMap } from "./interface"
+} from 'graphql'
+import type { Operation, TypedOperation, ScalarMap } from './interface'
 
 function _normalizeGraphqlInputType(type: GraphQLInputType, refChain: string[] = []): InputType {
   const namedType = getNamedType(type)
@@ -22,14 +22,14 @@ function _normalizeGraphqlInputType(type: GraphQLInputType, refChain: string[] =
 
   if (isScalarType(namedType)) {
     return {
-      kind: "Scalar",
+      kind: 'Scalar',
       name: typeName,
       ofName: ofTypeName,
     }
   }
   if (isEnumType(namedType)) {
     return {
-      kind: "Enum",
+      kind: 'Enum',
       name: typeName,
       ofName: ofTypeName,
       values: namedType.getValues().map((item) => ({
@@ -42,7 +42,7 @@ function _normalizeGraphqlInputType(type: GraphQLInputType, refChain: string[] =
     }
   }
   return {
-    kind: "InputObject",
+    kind: 'InputObject',
     name: typeName,
     ofName: ofTypeName,
     fields:
@@ -65,7 +65,7 @@ function _normalizeObjectType(
   type: GraphQLInterfaceType | GraphQLObjectType<unknown, unknown>,
   typeName: string,
   refChain: string[] = [],
-  scalarMap: ScalarMap = {}
+  scalarMap: ScalarMap = {},
 ): ObjectTypeDef {
   const refCount = refChain.filter((item) => item === type.name).length
 
@@ -84,7 +84,7 @@ function _normalizeObjectType(
   const tmpFields = { ...fields, ..._interfacesFields }
 
   return {
-    kind: "Object",
+    kind: 'Object',
     name: typeName,
     ofName: type.name,
     fields:
@@ -104,14 +104,14 @@ function _normalizeGraphqlOutputType(type: GraphQLOutputType, refChain: string[]
 
   if (isScalarType(namedType)) {
     return {
-      kind: "Scalar",
+      kind: 'Scalar',
       name: typeName,
       ofName: ofTypeName,
     }
   }
   if (isEnumType(namedType)) {
     return {
-      kind: "Enum",
+      kind: 'Enum',
       name: typeName,
       ofName: ofTypeName,
       values: namedType.getValues().map((item) => ({
@@ -125,7 +125,7 @@ function _normalizeGraphqlOutputType(type: GraphQLOutputType, refChain: string[]
   }
   if (isUnionType(namedType)) {
     return {
-      kind: "Union",
+      kind: 'Union',
       name: typeName,
       ofName: ofTypeName,
       types: namedType.getTypes().map((item) => {
@@ -142,7 +142,7 @@ function _normalizeGraphqlOutputType(type: GraphQLOutputType, refChain: string[]
  * @param scalarMap - a value map used to set the default value for each scalar type
  */
 export function normalizeGraphqlField(graphQLField: GraphQLField<unknown, unknown>, scalarMap: ScalarMap, refChain: string[] = []): Operation {
-  const args: Operation["args"] = graphQLField?.args.map((item) => {
+  const args: Operation['args'] = graphQLField?.args.map((item) => {
     return {
       name: item.name,
       description: item.description,
@@ -154,7 +154,7 @@ export function normalizeGraphqlField(graphQLField: GraphQLField<unknown, unknow
   })
   const argsExample = genArgsExample(args, scalarMap)
 
-  const output: Operation["output"] = _normalizeGraphqlOutputType(graphQLField.type, refChain, scalarMap)
+  const output: Operation['output'] = _normalizeGraphqlOutputType(graphQLField.type, refChain, scalarMap)
   const outputExample = genOutputExample(output, scalarMap)
   return {
     name: graphQLField.name,
@@ -201,7 +201,7 @@ export function getOperationsBySchema(schema: GraphQLSchema, scalarMap: ScalarMa
  * @param operation - the operation need to be grouped
  */
 const _groupBy: GroupByFn = (operation: TypedOperation) => {
-  const [groupName, description] = operation.description?.includes(":") ? operation.description.split(/[:]\s*/) : ["default", operation.description]
+  const [groupName, description] = operation.description?.includes(':') ? operation.description.split(/[:]\s*/) : ['default', operation.description]
   const groupOperation = { ...operation, description }
   return { groupName, operation: groupOperation }
 }
@@ -245,20 +245,20 @@ function genListTypeValue(typeName: string, value: unknown) {
  * @param args - the arguments of operation
  * @param scalarMap - a map contains the default value of scalar type
  */
-export const genArgsExample = (args: Operation["args"], scalarMap: ScalarMap) => {
+export const genArgsExample = (args: Operation['args'], scalarMap: ScalarMap) => {
   const argsExample: Record<string, unknown> = {}
   args.forEach(({ name, type }) => {
     let result
     let scalarHandler
     switch (type.kind) {
-      case "Scalar":
+      case 'Scalar':
         scalarHandler = scalarMap[type.ofName]
-        result = scalarHandler ? (typeof scalarHandler === "function" ? scalarHandler() : scalarHandler) : null
+        result = scalarHandler ? (typeof scalarHandler === 'function' ? scalarHandler() : scalarHandler) : null
         break
-      case "Enum":
+      case 'Enum':
         result = type.values[0].value
         break
-      case "InputObject":
+      case 'InputObject':
         result = genArgsExample(type.fields, scalarMap)
         break
     }
@@ -272,26 +272,26 @@ export const genArgsExample = (args: Operation["args"], scalarMap: ScalarMap) =>
  * @param returnData - the return data of operation
  * @param scalarMap - a map contains the default value of scalar type
  */
-export const genOutputExample = (output: Operation["output"], scalarMap: ScalarMap) => {
+export const genOutputExample = (output: Operation['output'], scalarMap: ScalarMap) => {
   let result: unknown
   let scalarHandler
   const typeName = output.name
 
   switch (output.kind) {
-    case "Scalar":
+    case 'Scalar':
       scalarHandler = scalarMap[output.ofName]
-      result = scalarHandler ? (typeof scalarHandler === "function" ? scalarHandler() : scalarHandler) : null
+      result = scalarHandler ? (typeof scalarHandler === 'function' ? scalarHandler() : scalarHandler) : null
       break
-    case "Enum":
+    case 'Enum':
       result = output.values[0].value
       break
-    case "Object":
+    case 'Object':
       result = {}
       output.fields.forEach((field) => {
         ;(result as Record<string, unknown>)[field.name] = genOutputExample(field.output, scalarMap)
       })
       break
-    case "Union":
+    case 'Union':
       result = {}
       output.types[0].fields.forEach((field) => {
         ;(result as Record<string, unknown>)[field.name] = genOutputExample(field.output, scalarMap)
@@ -302,7 +302,7 @@ export const genOutputExample = (output: Operation["output"], scalarMap: ScalarM
 }
 
 function _noneMock(directive: DirectiveNode) {
-  return directive.name.value !== "mock"
+  return directive.name.value !== 'mock'
 }
 function _removeMockFromSelectionSet(selectionSet: SelectionSetNode): SelectionSetNode {
   return {
@@ -316,7 +316,7 @@ function _removeMockFromSelectionSet(selectionSet: SelectionSetNode): SelectionS
               ...item,
               directives: item.directives?.filter(_noneMock),
             },
-            item.selectionSet ? { selectionSet: _removeMockFromSelectionSet(item.selectionSet) } : null
+            item.selectionSet ? { selectionSet: _removeMockFromSelectionSet(item.selectionSet) } : null,
           )
         default:
           return {
@@ -332,7 +332,7 @@ function _removeMockFromSelectionSet(selectionSet: SelectionSetNode): SelectionS
  * @param document request document
  */
 export const removeMockDirectivesFromDocument = (document: string | DocumentNode) => {
-  const documentAst = typeof document === "string" ? parse(document, { noLocation: true }) : document
+  const documentAst = typeof document === 'string' ? parse(document, { noLocation: true }) : document
   const definitions = documentAst.definitions.map((item) => {
     switch (item.kind) {
       case Kind.FRAGMENT_DEFINITION:

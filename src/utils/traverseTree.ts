@@ -1,5 +1,5 @@
-import { ArgColumnRecord } from "@/webview/components/content/operation-doc"
-import { FieldNode, visit } from "graphql"
+import { ArgColumnRecord } from '@/webview/components/content/operation-doc'
+import { FieldNode, visit } from 'graphql'
 
 // TODO 根据自定义指令去得到子集节点keys，暂时后端支持不了
 function dfsOperationTree(node: ArgColumnRecord, selectedKeys: string[], isDirective: boolean, directive: string) {
@@ -20,7 +20,7 @@ function dfsOperationTree(node: ArgColumnRecord, selectedKeys: string[], isDirec
     }
   }
 }
-export function getDefaultRowKeys(objectFieldsTreeData: ArgColumnRecord[], defaultRowKeys: string[] = [], directive = "") {
+export function getDefaultRowKeys(objectFieldsTreeData: ArgColumnRecord[], defaultRowKeys: string[] = [], directive = '') {
   objectFieldsTreeData.forEach((node) => {
     dfsOperationTree(node, defaultRowKeys, false, directive)
   })
@@ -39,7 +39,7 @@ export function visitDocumentNodeAstGetKeys(ast: FieldNode | undefined, keys: st
         .filter((_, index) => index % 3 === 0)
         .reduce((pre, cur) => {
           return pre + (cur as FieldNode).name.value
-        }, "")
+        }, '')
       const nameKey = node.name.value
       const nodeKey = prefixKey + nameKey
 

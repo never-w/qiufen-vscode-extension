@@ -1,4 +1,4 @@
-import { FieldNode, Kind, OperationDefinitionNode, SelectionNode } from "graphql"
+import { FieldNode, Kind, OperationDefinitionNode, SelectionNode } from 'graphql'
 
 type AstNodeType = OperationDefinitionNode | FieldNode
 export type NewAstType = AstNodeType & {
@@ -30,7 +30,7 @@ export function formatOperationDefAst(ast: AstNodeType, checked: boolean, key: s
           return itm.name?.value
         })
         .filter(Boolean)
-        .join("")
+        .join('')
 
       newAst.key = prefix + ast.name.value
     }
@@ -46,7 +46,7 @@ export function formatOperationDefAst(ast: AstNodeType, checked: boolean, key: s
   const newPath = [...path, newAst]
   if (newAst?.selectionSet) {
     newAst.selectionSet.selections = newAst?.selectionSet?.selections?.map((selection) =>
-      formatOperationDefAst(selection as FieldNode, checked, key, newPath, isSelectionSetAction)
+      formatOperationDefAst(selection as FieldNode, checked, key, newPath, isSelectionSetAction),
     ) as SelectionNode[]
   }
 

@@ -1,5 +1,5 @@
-import { ASTNode, GraphQLObjectType, GraphQLSchema, OperationTypeNode } from "graphql"
-import { memoize1 } from "./memoize"
+import { ASTNode, GraphQLObjectType, GraphQLSchema, OperationTypeNode } from 'graphql'
+import { memoize1 } from './memoize'
 
 export function getDefinedRootType(schema: GraphQLSchema, operation: OperationTypeNode, nodes?: ASTNode[]): GraphQLObjectType {
   const rootTypeMap = getRootTypeMap(schema)
@@ -31,17 +31,17 @@ export const getRootTypeMap = memoize1(function getRootTypeMap(schema: GraphQLSc
 
   const queryType = schema.getQueryType()
   if (queryType) {
-    rootTypeMap.set("query" as OperationTypeNode, queryType)
+    rootTypeMap.set('query' as OperationTypeNode, queryType)
   }
 
   const mutationType = schema.getMutationType()
   if (mutationType) {
-    rootTypeMap.set("mutation" as OperationTypeNode, mutationType)
+    rootTypeMap.set('mutation' as OperationTypeNode, mutationType)
   }
 
   const subscriptionType = schema.getSubscriptionType()
   if (subscriptionType) {
-    rootTypeMap.set("subscription" as OperationTypeNode, subscriptionType)
+    rootTypeMap.set('subscription' as OperationTypeNode, subscriptionType)
   }
 
   return rootTypeMap

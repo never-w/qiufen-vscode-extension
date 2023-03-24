@@ -1,4 +1,4 @@
-import type { GraphQLArgument, GraphQLEnumValue, GraphQLField, OperationTypeNode, ConstDirectiveNode } from "graphql"
+import type { GraphQLArgument, GraphQLEnumValue, GraphQLField, OperationTypeNode, ConstDirectiveNode } from 'graphql'
 
 export interface BaseTypeDef {
   name: string
@@ -6,28 +6,28 @@ export interface BaseTypeDef {
 }
 
 export interface ScalarTypeDef extends BaseTypeDef {
-  kind: "Scalar"
+  kind: 'Scalar'
 }
 
-export type EnumValueTypeDef = Pick<GraphQLEnumValue, "name" | "description" | "value" | "deprecationReason">
+export type EnumValueTypeDef = Pick<GraphQLEnumValue, 'name' | 'description' | 'value' | 'deprecationReason'>
 
 export interface EnumTypeDef extends BaseTypeDef {
-  kind: "Enum"
+  kind: 'Enum'
   values: EnumValueTypeDef[]
 }
 
 export interface ObjectTypeDef extends BaseTypeDef {
-  kind: "Object"
+  kind: 'Object'
   fields: ObjectFieldTypeDef[]
 }
 
 export interface UnionTypeDef extends BaseTypeDef {
-  kind: "Union"
+  kind: 'Union'
   types: ObjectTypeDef[]
 }
 
 export interface InputObjectTypeDef extends BaseTypeDef {
-  kind: "InputObject"
+  kind: 'InputObject'
   fields: ArgTypeDef[]
 }
 
@@ -35,11 +35,11 @@ export type OutputType = ScalarTypeDef | EnumTypeDef | ObjectTypeDef | UnionType
 
 export type InputType = ScalarTypeDef | EnumTypeDef | InputObjectTypeDef
 
-export interface ArgTypeDef extends Pick<GraphQLArgument, "name" | "description" | "defaultValue" | "deprecationReason"> {
+export interface ArgTypeDef extends Pick<GraphQLArgument, 'name' | 'description' | 'defaultValue' | 'deprecationReason'> {
   type: InputType
 }
 
-export interface ObjectFieldTypeDef extends Pick<GraphQLField<unknown, unknown>, "name" | "description" | "deprecationReason"> {
+export interface ObjectFieldTypeDef extends Pick<GraphQLField<unknown, unknown>, 'name' | 'description' | 'deprecationReason'> {
   directives?: ReadonlyArray<ConstDirectiveNode>
   args: ArgTypeDef[]
   output: OutputType
@@ -57,6 +57,6 @@ export interface TypedOperation extends Operation {
 export type ScalarMap = Record<string, unknown>
 
 export enum FetchDirectiveArg {
-  LOADER = "loader",
-  FETCH = "fetch",
+  LOADER = 'loader',
+  FETCH = 'fetch',
 }

@@ -1,5 +1,5 @@
-import { GraphQLSchema, OperationTypeNode, print } from "graphql"
-import { buildOperationNodeForField, Ignore, SelectedFields } from "./buildOperationNodeForField"
+import { GraphQLSchema, OperationTypeNode, print } from 'graphql'
+import { buildOperationNodeForField, Ignore, SelectedFields } from './buildOperationNodeForField'
 
 export default function printOperationNodeForField({
   schema,
@@ -34,6 +34,6 @@ export default function printOperationNodeForField({
       circularReferenceDepth,
       argNames,
       selectedFields,
-    })
+    }),
   )
 }

@@ -257,9 +257,7 @@ function resolveSelectionSet({
   }
 
   if (isInterfaceType(type)) {
-    const types = Object.values(schema.getTypeMap()).filter(
-      (t: any) => isObjectType(t) && t.getInterfaces().includes(type),
-    ) as GraphQLObjectType[]
+    const types = Object.values(schema.getTypeMap()).filter((t: any) => isObjectType(t) && t.getInterfaces().includes(type)) as GraphQLObjectType[]
 
     return {
       kind: Kind.SELECTION_SET,

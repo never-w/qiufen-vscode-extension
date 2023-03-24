@@ -1,9 +1,9 @@
-import * as vscode from "vscode"
-import { buildClientSchema, getIntrospectionQuery, printSchema } from "graphql"
-import fetch from "node-fetch"
+import * as vscode from 'vscode'
+import { buildClientSchema, getIntrospectionQuery, printSchema } from 'graphql'
+import fetch from 'node-fetch'
 
 async function fetchRemoteSchemaTypeDefs(url: string) {
-  const jsonSettings = vscode.workspace.getConfiguration("graphql-qiufen-pro")
+  const jsonSettings = vscode.workspace.getConfiguration('graphql-qiufen-pro')
   const isIntrospectionMode = jsonSettings.isIntrospection
 
   let timer
@@ -11,18 +11,18 @@ async function fetchRemoteSchemaTypeDefs(url: string) {
     // 这里判断不同模式拉取schema
     isIntrospectionMode
       ? fetch(url, {
-          method: "POST",
+          method: 'POST',
           headers: {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
           },
           body: JSON.stringify({
             query: getIntrospectionQuery().toString(),
           }),
         })
       : fetch(url, {
-          method: "POST",
+          method: 'POST',
           headers: {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
           },
           body: JSON.stringify({
             query: `
@@ -36,7 +36,7 @@ async function fetchRemoteSchemaTypeDefs(url: string) {
         }),
 
     new Promise(function (_, reject) {
-      timer = setTimeout(() => reject(new Error("request timeout")), 15000)
+      timer = setTimeout(() => reject(new Error('request timeout')), 15000)
     }),
   ])
 

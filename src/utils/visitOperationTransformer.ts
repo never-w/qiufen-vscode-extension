@@ -1,6 +1,6 @@
-import { TypedOperation } from "@fruits-chain/qiufen-helpers"
-import { FieldNode, visit, print, GraphQLSchema, OperationDefinitionNode } from "graphql"
-import { buildOperationNodeForField } from "./buildOperationNodeForField"
+import { TypedOperation } from '@fruits-chain/qiufen-helpers'
+import { FieldNode, visit, print, GraphQLSchema, OperationDefinitionNode } from 'graphql'
+import { buildOperationNodeForField } from './buildOperationNodeForField'
 
 function visitOperationTransformer(ast: OperationDefinitionNode, selectedKeys: string[]) {
   return visit(ast, {
@@ -10,7 +10,7 @@ function visitOperationTransformer(ast: OperationDefinitionNode, selectedKeys: s
 
       const prefixKey = filterAncestors.reduce((pre, cur) => {
         return pre + (cur as FieldNode).name.value
-      }, "")
+      }, '')
       const nameKey = node.name.value
       const nodeKey = prefixKey + nameKey
 

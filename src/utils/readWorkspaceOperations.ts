@@ -1,8 +1,8 @@
-import * as vscode from "vscode"
-import glob from "glob"
-import fs from "fs"
-import { workspace, window } from "vscode"
-import path from "path"
+import * as vscode from 'vscode'
+import glob from 'glob'
+import fs from 'fs'
+import { workspace, window } from 'vscode'
+import path from 'path'
 import {
   DefinitionNode,
   parse,
@@ -18,9 +18,9 @@ import {
   buildSchema,
   OperationTypeNode,
   VariableNode,
-} from "graphql"
-import printOperationNodeForField from "./printOperationNodeForField"
-import { capitalizeFirstLetter } from "./dealWordFirstLetter"
+} from 'graphql'
+import printOperationNodeForField from './printOperationNodeForField'
+import { capitalizeFirstLetter } from './dealWordFirstLetter'
 
 function visitOperationTransformer(
   ast: OperationDefinitionNode,
@@ -28,7 +28,7 @@ function visitOperationTransformer(
   updateVariablesNode: VariableDefinitionNode[],
   operationName: string,
   gqlType: string,
-  typeDefs: string
+  typeDefs: string,
 ) {
   // 是否是合并的大接口
   const isCombineOperation = ast.selectionSet?.selections?.length >= 2
@@ -165,7 +165,7 @@ function getUpdateOperationNode(ast: DefinitionNode, operationName: string) {
 function fillOperationInLocal(filePath: string, gql: string, gqlName: string, gqlType: string, typeDefs: string) {
   const [childNode, variablesNode] = getUpdateOperationNode(parse(gql).definitions[0], gqlName)
 
-  const content = fs.readFileSync(filePath, "utf8")
+  const content = fs.readFileSync(filePath, 'utf8')
   const operationsAstArr = parse(content, {
     noLocation: true,
   }).definitions as OperationDefinitionNode[]
@@ -173,16 +173,16 @@ function fillOperationInLocal(filePath: string, gql: string, gqlName: string, gq
   const operationsStrArr = operationsAstArr.map((operationAst) => {
     return print(visitOperationTransformer(operationAst, childNode!, variablesNode, gqlName, gqlType, typeDefs))
   })
-  const newContent = operationsStrArr.join("\n\n")
+  const newContent = operationsStrArr.join('\n\n')
   fs.writeFileSync(filePath, newContent)
 }
 
 export function getWorkspaceAllGqlResolveFilePaths() {
-  const { patternRelativePath = "" } = vscode.workspace.getConfiguration("graphql-qiufen-pro")
+  const { patternRelativePath = '' } = vscode.workspace.getConfiguration('graphql-qiufen-pro')
   const workspaceRootPath = workspace.workspaceFolders?.[0].uri.fsPath
   const cwdPath = path.join(workspaceRootPath!, patternRelativePath)
 
-  const gqlFiles = glob.sync("**/*.gql", { cwd: cwdPath })
+  const gqlFiles = glob.sync('**/*.gql', { cwd: cwdPath })
   const resolveGqlFiles = gqlFiles.map((file) => path.join(cwdPath, file))
   return resolveGqlFiles
 }
@@ -192,8 +192,8 @@ export async function setWorkspaceGqls(gql: string, gqlName: string, gqlType: st
     // 在这里验证一哈选择过来的gql接口是不是正确选择的
     parse(gql).definitions[0]
   } catch (error) {
-    vscode.window.showErrorMessage("GraphQLError: Syntax Error")
-    return Promise.reject("GraphQLError: Syntax Error")
+    vscode.window.showErrorMessage('GraphQLError: Syntax Error')
+    return Promise.reject('GraphQLError: Syntax Error')
   }
 
   const resolveGqlFiles = getWorkspaceAllGqlResolveFilePaths()
@@ -201,7 +201,7 @@ export async function setWorkspaceGqls(gql: string, gqlName: string, gqlType: st
   const filterWorkspaceGqlFiles = workspaceGqlFileInfo.filter((gqlFileItm) => gqlFileItm.operationNames.includes(gqlName)).map((itm) => itm.filename)
 
   if (!filterWorkspaceGqlFiles.length) {
-    vscode.window.showInformationMessage("The operation does not exist in a local file")
+    vscode.window.showInformationMessage('The operation does not exist in a local file')
     return Promise.resolve(false)
   }
 
@@ -229,7 +229,7 @@ export async function setWorkspaceGqls(gql: string, gqlName: string, gqlType: st
 /** 获取本每个gql文件的对应信息 */
 export function getWorkspaceGqlFileInfo(files: string[]) {
   const result = files.map((file) => {
-    const content = fs.readFileSync(file, "utf8")
+    const content = fs.readFileSync(file, 'utf8')
 
     // 这里过滤一下空文件
     if (!content) {
@@ -237,7 +237,7 @@ export function getWorkspaceGqlFileInfo(files: string[]) {
         filename: file,
         operationsAsts: [],
         operationNames: [],
-        content: "",
+        content: '',
       }
     }
 
@@ -250,7 +250,7 @@ export function getWorkspaceGqlFileInfo(files: string[]) {
         filename: file,
         operationsAsts: [],
         operationNames: [],
-        content: "",
+        content: '',
       }
     }
 
