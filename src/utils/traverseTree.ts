@@ -43,9 +43,7 @@ export function visitDocumentNodeAstGetKeys(ast: FieldNode | undefined, keys: st
       const nameKey = node.name.value
       const nodeKey = prefixKey + nameKey
 
-      if (!node?.selectionSet) {
-        keys.push(nodeKey)
-      }
+      keys.push(nodeKey)
     },
   })
 }

@@ -27,7 +27,6 @@ import type { TypedOperation, ArgTypeDef, ObjectFieldTypeDef } from "@fruits-cha
 import useBearStore from "@/webview/stores"
 import printOperationNodeForField from "@/utils/printOperationNodeForField"
 import { traverseOperationTreeGetParentAndChildSelectedKeys, visitDocumentNodeAstGetKeys } from "@/utils/traverseTree"
-import { useUpdate } from "@fruits-chain/hooks-laba"
 import { FetchDirectiveArg } from "@/utils/interface"
 import { fillOneKeyMessageSignSuccess, MessageEnum } from "@/config/postMessage"
 import { buildOperationNodeForField } from "@/utils/buildOperationNodeForField"
@@ -140,6 +139,7 @@ export const copy = (selector: string) => {
 
 const OperationDoc: FC<IProps> = ({ operation }) => {
   const { isDisplaySidebar, setState, vscode, directive, typeDefs, localTypeDefs, workspaceGqlFileInfo } = useBearStore((ste) => ste)
+  const [mode, setMode] = useState<SwitchToggleEnum>(SwitchToggleEnum.TABLE)
   const [spinIcon, setSpinIcon] = useState(false)
   const operationDefsAstTreeRef = useRef<NewAstType | null>(null)
   const [selectedKeys, setSelectedKeys] = useState<string[]>([])
@@ -247,6 +247,7 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
   } catch (error) {
     message.error(`${error}`)
   }
+  const localOperation = getOperationsBySchema(localSchema!).find((operationItem) => operationItem.name === operation.name) || null
 
   // 一键填入事件
   const handleOneKeyFillEvent = useCallback(() => {
@@ -283,12 +284,30 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
   }, [])
 
   useLayoutEffect(() => {
+    let resultKeys = [] as string[]
+    const filtrationWorkspaceGqlFileInfo = workspaceGqlFileInfo.filter((item) => item.operationNames.includes(operation.name))
+    // 这个接口在工作区存在于多个文件夹，这种情况我不管它
+    if (filtrationWorkspaceGqlFileInfo?.length >= 2) {
+      resultKeys = []
+    } else {
+      const operationDefinitionNodes = filtrationWorkspaceGqlFileInfo[0]?.operationsAsts as OperationDefinitionNode[]
+      let operationNameFieldNode: FieldNode | undefined
+      operationDefinitionNodes?.forEach((operationNode) => {
+        const sameOperationNameFieldNode = (operationNode.selectionSet.selections as FieldNode[])?.find((itm) => itm.name.value === operation.name)
+        if (!!sameOperationNameFieldNode) {
+          operationNameFieldNode = sameOperationNameFieldNode
+        }
+      })
+      visitDocumentNodeAstGetKeys(operationNameFieldNode, resultKeys)
+    }
+
     const operationDefsAstTreeTmp = formatOperationDefAst(operationDefNodeAst, false, "")
     operationDefsAstTreeRef.current = operationDefsAstTreeTmp
 
     const keys = getOperationDefsAstKeys(operationDefsAstTreeTmp!)
-    setSelectedKeys(keys)
-  }, [operationDefNodeAst])
+
+    setSelectedKeys(!resultKeys.length && !filtrationWorkspaceGqlFileInfo?.length ? keys : resultKeys)
+  }, [operation.name, operationDefNodeAst, workspaceGqlFileInfo])
 
   return (
     <Space id={operation.name} className={styles.operationDoc} direction="vertical">
@@ -336,6 +355,35 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
               <span className={styles.text}>Copy GQL</span>
             </Space>
           </Tooltip>
+          <div className={styles.switch_box}>
+            <Switch
+              className={styles.switch_diff}
+              size="default"
+              checked={mode === SwitchToggleEnum.DIFF}
+              checkedChildren="diff"
+              unCheckedChildren="diff"
+              onClick={(checked) => {
+                if (checked) {
+                  setMode(SwitchToggleEnum.DIFF)
+                } else {
+                  setMode(SwitchToggleEnum.TABLE)
+                }
+              }}
+            />
+            <Switch
+              size="default"
+              checked={mode === SwitchToggleEnum.EDITOR}
+              checkedChildren="editor"
+              unCheckedChildren="table"
+              onClick={(checked) => {
+                if (checked) {
+                  setMode(SwitchToggleEnum.EDITOR)
+                } else {
+                  setMode(SwitchToggleEnum.TABLE)
+                }
+              }}
+            />
+          </div>
         </Space>
       </div>
       <>
@@ -343,38 +391,109 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
           <>
             <Divider className={styles.divider} />
             <div className={styles.paramsText}>Params: </div>
-            <Table columns={argsColumns} defaultExpandAllRows className={styles.table} dataSource={argsTreeData} pagination={false} bordered />
+            {mode === SwitchToggleEnum.TABLE && <Table columns={argsColumns} defaultExpandAllRows className={styles.table} dataSource={argsTreeData} pagination={false} bordered />}
+            {mode === SwitchToggleEnum.EDITOR && <AceEditor theme="tomorrow" mode="javascript" width="100%" readOnly maxLines={Infinity} value={obj2str(operation.argsExample)} />}
+            {mode === SwitchToggleEnum.DIFF && (
+              <ReactDiffViewer
+                oldValue={localOperation ? obj2str(localOperation.argsExample) : "nothings..."}
+                newValue={obj2str(operation.argsExample)}
+                splitView={true}
+                compareMethod={DiffMethod.SENTENCES}
+                showDiffOnly={false}
+                hideLineNumbers
+                leftTitle="Old-Diff"
+                rightTitle="New-Diff"
+                renderContent={(codeStr) => {
+                  return <div className={styles.diff_viewer_div}>{codeStr}</div>
+                }}
+              />
+            )}
           </>
         )}
         <>
           <div>Response: </div>
-          <Table
-            rowSelection={{
-              selectedRowKeys: selectedKeys,
-              hideSelectAll: true,
-              renderCell: (checked, record, index, originNode) => {
-                // 干掉枚举类型的checked box
-                if (!!record?.defaultValue) {
-                  return null
-                }
+          {mode === SwitchToggleEnum.TABLE && (
+            <Table
+              rowSelection={{
+                selectedRowKeys: selectedKeys,
+                hideSelectAll: true,
+                renderCell: (checked, record, index, originNode) => {
+                  // 干掉枚举类型的checked box
+                  if (!!record?.defaultValue) {
+                    return null
+                  }
 
-                return originNode
-              },
-              onSelect: (record, selected, selectedRows) => {
-                const key = record.key
-                const operationDefsAstTreeTmp = formatOperationDefAst(operationDefsAstTreeRef.current!, selected, key)
+                  return originNode
+                },
+                onSelect: (record, selected, selectedRows) => {
+                  const key = record.key
+                  const operationDefsAstTreeTmp = formatOperationDefAst(operationDefsAstTreeRef.current!, selected, key)
 
-                const keys = getOperationDefsAstKeys(operationDefsAstTreeTmp!)
-                setSelectedKeys(keys)
-              },
-            }}
-            columns={objectFieldsColumns}
-            className={styles.table}
-            dataSource={objectFieldsTreeData}
-            pagination={false}
-            defaultExpandAllRows
-            bordered
-          />
+                  const keys = getOperationDefsAstKeys(operationDefsAstTreeTmp!)
+                  setSelectedKeys(keys)
+                },
+              }}
+              columns={objectFieldsColumns}
+              className={styles.table}
+              dataSource={objectFieldsTreeData}
+              pagination={false}
+              // defaultExpandAllRows
+              bordered
+            />
+          )}
+          {mode === SwitchToggleEnum.EDITOR && (
+            <AceEditor
+              theme="textmate"
+              mode="javascript"
+              width="100%"
+              fontSize={13}
+              showPrintMargin={true}
+              showGutter={true}
+              highlightActiveLine={true}
+              name={`${operation.name}_${operation.operationType}`}
+              maxLines={Infinity}
+              value={printOperationNodeForField({
+                schema,
+                kind: operation.operationType,
+                field: operation.name,
+              })}
+              setOptions={{
+                theme: "textmate",
+                enableBasicAutocompletion: true,
+                enableLiveAutocompletion: true,
+                enableSnippets: true,
+                showLineNumbers: true,
+                tabSize: 2,
+              }}
+            />
+          )}
+          {mode === SwitchToggleEnum.DIFF && (
+            <ReactDiffViewer
+              oldValue={
+                localOperation
+                  ? printOperationNodeForField({
+                      schema: localSchema!,
+                      kind: localOperation.operationType,
+                      field: localOperation.name,
+                    })
+                  : "nothings..."
+              }
+              newValue={printOperationNodeForField({
+                schema,
+                kind: operation.operationType,
+                field: operation.name,
+              })}
+              splitView={true}
+              compareMethod={DiffMethod.SENTENCES}
+              showDiffOnly={false}
+              hideLineNumbers
+              leftTitle="Old-Diff"
+              rightTitle="New-Diff"
+              renderContent={(codeStr) => {
+                return <div className={styles.diff_viewer_div}>{codeStr}</div>
+              }}
+            />
+          )}
         </>
       </>
     </Space>

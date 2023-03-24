@@ -1,0 +1,108 @@
+query getCostOrderDetail($billId: ID!) {
+  getCostOrderDetail(billId: $billId) {
+    billId
+    applyCode
+    warehouseId
+    warehouseName
+    supplierId
+    status
+    statusName
+    supplierName
+    belongType
+    belongId
+    belongName
+    createBy
+    createName
+    phoneNum
+    createTime
+    auditTime
+    auditUser
+    auditUserName
+    commodityType
+    cancelDescription
+    submitBy
+    submitName
+    inOrderTypeName
+    paymentCode
+    paymentActualAmount
+    freightTotalAmount
+    freightCode
+    manualCode
+    commodityItems {
+      itemId
+      commodityId
+      commodityName
+      commoditySpecOptionId
+      commoditySpecOptionName
+      skuId
+      unitType
+      totalType
+      unitQuantity
+      totalQuantity
+      grossUnitQuantity
+      unitTypeName
+      totalTypeName
+      pricePosition
+      priceType
+      priceTypeName
+      unitPrice
+      totalAmount
+      applyUnitQuantity
+      applyTotalQuantity
+      giveUnitQuantity
+      giveTotalQuantity
+      inStockUnitPrice
+      relevancyCode
+      markList
+    }
+    commodityRemark
+    freightCostItem {
+      costId
+      costName
+      ruleId
+      note
+      amount
+      data
+      supplier {
+        supplierId
+        supplierName
+      }
+      ruleFieldList {
+        data
+        dataSourceList
+        dataType
+        decimalPlaces
+        fieldId
+        fieldKey
+        fieldName
+        fieldType
+        isInteger
+        note
+        required
+        billDictItemList {
+          description
+          dictCode
+          dictItemId
+          itemText
+          itemValue
+          sort
+        }
+      }
+    }
+    belongOrg {
+      orgId
+      orgName
+    }
+    billAuditDetailList {
+      status
+      statusName
+      user {
+        userId
+        userName
+        phoneNum
+      }
+      createTime
+      note
+    }
+  }
+}
