@@ -21,7 +21,7 @@ function visitOperationTransformer(ast: OperationDefinitionNode, selectedKeys: s
   })
 }
 
-export function printGqlOperation(schema: GraphQLSchema, operation: TypedOperation, selectedKeys: string[]) {
+export function printOperationStr(schema: GraphQLSchema, operation: TypedOperation, selectedKeys: string[]) {
   const operationDefsNodeAst = buildOperationNodeForField({
     schema,
     kind: operation.operationType,

@@ -22,7 +22,7 @@ import { PlusCircleTwoTone, MinusCircleTwoTone, CopyOutlined, LoadingOutlined, M
 import ClipboardJS from 'clipboard'
 import styles from './index.module.less'
 import { getOperationsBySchema } from '@/utils/operation'
-import { printGqlOperation, visitDocumentNodeAstGetKeys } from '@/utils/visitOperationTransformer'
+import { printOperationStr, visitDocumentNodeAstGetKeys } from '@/utils/visitOperationTransformer'
 import type { TypedOperation, ArgTypeDef, ObjectFieldTypeDef } from '@fruits-chain/qiufen-helpers'
 import useBearStore from '@/webview/stores'
 import printOperationNodeForField from '@/utils/printOperationNodeForField'
@@ -255,7 +255,7 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
     vscode.postMessage({
       typeDefs,
       type: MessageEnum.ONE_KEY_FILL,
-      gqlStr: printGqlOperation(schema, operation, selectedKeys),
+      gqlStr: printOperationStr(schema, operation, selectedKeys),
       gqlName: operation.name,
       gqlType: operation.operationType,
     })
@@ -344,7 +344,7 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
           <Tooltip title="Copy GQL">
             <Space
               id="copy"
-              data-clipboard-text={printGqlOperation(schema, operation, selectedKeys)}
+              data-clipboard-text={printOperationStr(schema, operation, selectedKeys)}
               className={styles.copyBtn}
               onClick={() => {
                 copy('#copy')
