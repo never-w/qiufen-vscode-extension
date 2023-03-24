@@ -1,24 +1,12 @@
 import React, { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { FC } from 'react'
-import {
-  ArgumentNode,
-  buildSchema,
-  ConstDirectiveNode,
-  FieldNode,
-  getOperationAST,
-  GraphQLSchema,
-  Kind,
-  OperationDefinitionNode,
-  parse,
-  SelectionNode,
-  StringValueNode,
-} from 'graphql'
+import { ArgumentNode, buildSchema, ConstDirectiveNode, FieldNode, GraphQLSchema, OperationDefinitionNode, StringValueNode } from 'graphql'
 import { message, Space, Table, Tooltip, Switch, Divider, Tag, Button } from 'antd'
 import type { ColumnsType } from 'antd/lib/table'
 import ReactDiffViewer, { DiffMethod } from 'react-diff-viewer'
 import AceEditor from 'react-ace'
 import obj2str from 'stringify-object'
-import { PlusCircleTwoTone, MinusCircleTwoTone, CopyOutlined, LoadingOutlined, MenuFoldOutlined, EditOutlined } from '@ant-design/icons'
+import { CopyOutlined, LoadingOutlined, MenuFoldOutlined, EditOutlined } from '@ant-design/icons'
 import ClipboardJS from 'clipboard'
 import styles from './index.module.less'
 import { getOperationsBySchema } from '@/utils/operation'
