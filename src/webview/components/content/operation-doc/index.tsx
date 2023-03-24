@@ -1,6 +1,18 @@
 import React, { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react"
 import type { FC } from "react"
-import { ArgumentNode, buildSchema, ConstDirectiveNode, FieldNode, getOperationAST, GraphQLSchema, Kind, OperationDefinitionNode, parse, SelectionNode, StringValueNode } from "graphql"
+import {
+  ArgumentNode,
+  buildSchema,
+  ConstDirectiveNode,
+  FieldNode,
+  getOperationAST,
+  GraphQLSchema,
+  Kind,
+  OperationDefinitionNode,
+  parse,
+  SelectionNode,
+  StringValueNode,
+} from "graphql"
 import { message, Space, Table, Tooltip, Switch, Divider, Tag, Button } from "antd"
 import type { ColumnsType } from "antd/lib/table"
 import ReactDiffViewer, { DiffMethod } from "react-diff-viewer"
@@ -128,11 +140,9 @@ export const copy = (selector: string) => {
 const OperationDoc: FC<IProps> = ({ operation }) => {
   const { isDisplaySidebar, setState, vscode, directive, typeDefs, localTypeDefs, workspaceGqlFileInfo } = useBearStore((ste) => ste)
   const [spinIcon, setSpinIcon] = useState(false)
-  const selectedRowKeys = useRef<string[] | null>(null)
-  const update = useUpdate()
 
-
-  const [operationDefsAstTree, setOperationDefsAstTree] = useState<NewAstType | null>(null)
+  const operationDefsAstTreeRef = useRef<NewAstType | null>(null)
+  const [selectedKeys, setSelectedKeys] = useState<string[]>([])
 
   const columnGen = useMemo(() => {
     return (field: "arguments" | "return"): ColumnsType<ArgColumnRecord> => {
@@ -233,7 +243,7 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
     localSchema = buildSchema(
       // 读取本地schema文件失败设置一个默认值
       localTypeDefs ||
-      `
+        `
   schema {
     query: Query
   }
@@ -248,45 +258,6 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
 
   // const localOperation = getOperationsBySchema(localSchema!).find((operationItem) => operationItem.name === operation.name) || null
 
-  // 默认勾选中的key不包含parent keys
-  const defaultSelectedRowKeys = useMemo(() => {
-    // TODO 暂时后端不支持 自定义指令
-    // const keys: string[] = []
-    // getDefaultRowKeys(objectFieldsTreeData, keys, directive)
-    // return keys
-
-    const filtrationWorkspaceGqlFileInfo = workspaceGqlFileInfo.filter((item) => item.operationNames.includes(operation.name))
-    // 这个接口在工作区存在于多个文件夹，这种情况我不管它
-    if (filtrationWorkspaceGqlFileInfo?.length >= 2) {
-      return []
-    }
-
-    const operationDefinitionNodes = filtrationWorkspaceGqlFileInfo[0]?.operationsAsts as OperationDefinitionNode[]
-    let operationNameFieldNode: FieldNode | undefined
-    operationDefinitionNodes?.forEach((operationNode) => {
-      const sameOperationNameFieldNode = (operationNode.selectionSet.selections as FieldNode[])?.find((itm) => itm.name.value === operation.name)
-      if (!!sameOperationNameFieldNode) {
-        operationNameFieldNode = sameOperationNameFieldNode
-      }
-    })
-
-    const resultKeys = [] as string[]
-    visitDocumentNodeAstGetKeys(operationNameFieldNode, resultKeys)
-
-    return resultKeys
-  }, [operation.name, workspaceGqlFileInfo])
-
-  // 获取初始化页面默认值时选择的operation filed
-  const defaultSelectedKeys = useMemo(() => {
-    const tmpSelectedKeys: string[] = []
-    objectFieldsTreeData.forEach((node) => {
-      traverseOperationTreeGetParentAndChildSelectedKeys(node, defaultSelectedRowKeys, [], tmpSelectedKeys)
-    })
-    // 去重
-    const resultUniqKeys = [...new Set(tmpSelectedKeys)]
-    return resultUniqKeys
-  }, [defaultSelectedRowKeys, objectFieldsTreeData])
-
   // 一键填入事件
   const handleOneKeyFillEvent = useCallback(() => {
     setSpinIcon(true)
@@ -294,7 +265,7 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
     vscode.postMessage({
       typeDefs,
       type: MessageEnum.ONE_KEY_FILL,
-      gqlStr: printGqlOperation(schema, operation, !selectedRowKeys.current ? defaultSelectedKeys : selectedRowKeys.current),
+      gqlStr: printGqlOperation(schema, operation, selectedKeys),
       gqlName: operation.name,
       gqlType: operation.operationType,
     })
@@ -310,8 +281,7 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
       setSpinIcon(false)
       window.removeEventListener("message", listener)
     }
-  }, [defaultSelectedKeys, operation, schema, typeDefs, vscode])
-
+  }, [operation, schema, selectedKeys, typeDefs, vscode])
 
   const operationDefNodeAst = useMemo(() => {
     return buildOperationNodeForField({
@@ -324,12 +294,11 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
 
   useLayoutEffect(() => {
     const operationDefsAstTreeTmp = formatOperationDefAst(operationDefNodeAst, false, "")
+    operationDefsAstTreeRef.current = operationDefsAstTreeTmp
 
-    setOperationDefsAstTree(operationDefsAstTreeTmp)
+    const keys = getOperationDefsAstKeys(operationDefsAstTreeTmp!)
+    setSelectedKeys(keys)
   }, [operationDefNodeAst])
-
-  console.log(getOperationDefsAstKeys(operationDefsAstTree!), 'pppppp');
-
 
   return (
     <Space id={operation.name} className={styles.operationDoc} direction="vertical">
@@ -367,10 +336,9 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
           <Tooltip title="Copy GQL">
             <Space
               id="copy"
-              data-clipboard-text={printGqlOperation(schema, operation, !selectedRowKeys.current ? defaultSelectedKeys : selectedRowKeys.current)}
+              data-clipboard-text={printGqlOperation(schema, operation, selectedKeys)}
               className={styles.copyBtn}
               onClick={() => {
-                update()
                 copy("#copy")
               }}
             >
@@ -393,12 +361,22 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
           <div>Response: </div>
           <Table
             rowSelection={{
-              selectedRowKeys: getOperationDefsAstKeys(operationDefsAstTree!),
+              selectedRowKeys: selectedKeys,
               hideSelectAll: true,
+              renderCell: (checked, record, index, originNode) => {
+                // 干掉枚举类型的checked box
+                if (!!record?.defaultValue) {
+                  return null
+                }
+
+                return originNode
+              },
               onSelect: (record, selected, selectedRows) => {
                 const key = record.key
-                const operationDefsAstTreeTmp = formatOperationDefAst(operationDefNodeAst, selected, key)
-                setOperationDefsAstTree(operationDefsAstTreeTmp)
+                const operationDefsAstTreeTmp = formatOperationDefAst(operationDefsAstTreeRef.current!, selected, key)
+
+                const keys = getOperationDefsAstKeys(operationDefsAstTreeTmp!)
+                setSelectedKeys(keys)
               },
             }}
             columns={objectFieldsColumns}
