@@ -18,15 +18,14 @@ import type { ColumnsType } from 'antd/lib/table'
 import ReactDiffViewer, { DiffMethod } from 'react-diff-viewer'
 import AceEditor from 'react-ace'
 import obj2str from 'stringify-object'
-import { CopyOutlined, LoadingOutlined, MenuFoldOutlined, EditOutlined } from '@ant-design/icons'
+import { PlusCircleTwoTone, MinusCircleTwoTone, CopyOutlined, LoadingOutlined, MenuFoldOutlined, EditOutlined } from '@ant-design/icons'
 import ClipboardJS from 'clipboard'
 import styles from './index.module.less'
 import { getOperationsBySchema } from '@/utils/operation'
-import { printGqlOperation } from '@/utils/visitOperationTransformer'
+import { printGqlOperation, visitDocumentNodeAstGetKeys } from '@/utils/visitOperationTransformer'
 import type { TypedOperation, ArgTypeDef, ObjectFieldTypeDef } from '@fruits-chain/qiufen-helpers'
 import useBearStore from '@/webview/stores'
 import printOperationNodeForField from '@/utils/printOperationNodeForField'
-import { traverseOperationTreeGetParentAndChildSelectedKeys, visitDocumentNodeAstGetKeys } from '@/utils/traverseTree'
 import { FetchDirectiveArg } from '@/utils/interface'
 import { fillOneKeyMessageSignSuccess, MessageEnum } from '@/config/postMessage'
 import { buildOperationNodeForField } from '@/utils/buildOperationNodeForField'
@@ -391,7 +390,9 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
           <>
             <Divider className={styles.divider} />
             <div className={styles.paramsText}>Params: </div>
-            {mode === SwitchToggleEnum.TABLE && <Table columns={argsColumns} defaultExpandAllRows className={styles.table} dataSource={argsTreeData} pagination={false} bordered />}
+            {mode === SwitchToggleEnum.TABLE && (
+              <Table size="small" indentSize={21} columns={argsColumns} defaultExpandAllRows className={styles.table} dataSource={argsTreeData} pagination={false} bordered />
+            )}
             {mode === SwitchToggleEnum.EDITOR && <AceEditor theme="tomorrow" mode="javascript" width="100%" readOnly maxLines={Infinity} value={obj2str(operation.argsExample)} />}
             {mode === SwitchToggleEnum.DIFF && (
               <ReactDiffViewer
@@ -414,6 +415,7 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
           <div>Response: </div>
           {mode === SwitchToggleEnum.TABLE && (
             <Table
+              size="small"
               rowSelection={{
                 selectedRowKeys: selectedKeys,
                 hideSelectAll: true,
@@ -437,8 +439,9 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
               className={styles.table}
               dataSource={objectFieldsTreeData}
               pagination={false}
-              // defaultExpandAllRows
+              defaultExpandAllRows
               bordered
+              indentSize={21}
             />
           )}
           {mode === SwitchToggleEnum.EDITOR && (

@@ -32,12 +32,24 @@ export function printGqlOperation(schema: GraphQLSchema, operation: TypedOperati
   return print(operationAst)
 }
 
-// export function printOperation(schema: GraphQLSchema, operation: TypedOperation) {
-//   const operationStr = printOperationNodeForField({
-//     schema,
-//     kind: operation.operationType,
-//     field: operation.name,
-//   })
+// 本地回显获取keys
+export function visitDocumentNodeAstGetKeys(ast: FieldNode | undefined, keys: string[]) {
+  if (!ast) {
+    keys = []
+    return
+  }
 
-//   return operationStr
-// }
+  return visit(ast, {
+    Field(node, key, parent, path, ancestors) {
+      const prefixKey = ancestors
+        .filter((_, index) => index % 3 === 0)
+        .reduce((pre, cur) => {
+          return pre + (cur as FieldNode).name.value
+        }, '')
+      const nameKey = node.name.value
+      const nodeKey = prefixKey + nameKey
+
+      keys.push(nodeKey)
+    },
+  })
+}
