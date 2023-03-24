@@ -5,7 +5,7 @@ import create, { SetState } from "zustand"
 
 export type WorkspaceGqlFileInfoType = {
   filename: string
-  operationsAsts: readonly DefinitionNode[]
+  operationsAsts: DefinitionNode[]
   operationNames: string[]
   content: string
 }

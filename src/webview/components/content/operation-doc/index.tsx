@@ -99,15 +99,18 @@ const getObjectFieldsTreeData = (objectFields: ObjectFieldTypeDef[], keyPrefix =
         children = getObjectFieldsTreeData(output.fields, key)
         break
       case "Enum":
-        children = output.values.map((item) => ({
-          key: key + item.value,
-          name: item.name,
-          type: "",
-          defaultValue: item.value,
-          description: item.description,
-          deprecationReason: item.deprecationReason,
-          children: null,
-        }))
+        // TODO: 枚举干掉
+        // children = output.values.map((item) => ({
+        //   key: key + item.value,
+        //   name: item.name,
+        //   type: "",
+        //   defaultValue: item.value,
+        //   description: item.description,
+        //   deprecationReason: item.deprecationReason,
+        //   children: null,
+        // }))
+
+        children = []
         break
       case "Union":
         output.types.forEach((type) => {
@@ -240,10 +243,7 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
   const schema = useMemo(() => buildSchema(typeDefs), [typeDefs])
   let localSchema: GraphQLSchema | undefined
   try {
-    localSchema = buildSchema(
-      // 读取本地schema文件失败设置一个默认值
-      localTypeDefs || defaultLocalTypeDefs
-    )
+    localSchema = buildSchema(localTypeDefs || defaultLocalTypeDefs)
   } catch (error) {
     message.error(`${error}`)
   }
@@ -417,14 +417,14 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
               rowSelection={{
                 selectedRowKeys: selectedKeys,
                 hideSelectAll: true,
-                renderCell: (checked, record, index, originNode) => {
-                  // 干掉枚举类型的checked box
-                  if (!!record?.defaultValue) {
-                    return null
-                  }
+                // renderCell: (checked, record, index, originNode) => {
+                //   // 干掉枚举类型的checked box
+                //   if (!!record?.defaultValue) {
+                //     return null
+                //   }
 
-                  return originNode
-                },
+                //   return originNode
+                // },
                 onSelect: (record, selected, selectedRows) => {
                   const key = record.key
                   const operationDefsAstTreeTmp = formatOperationDefAst(operationDefsAstTreeRef.current!, selected, key)
