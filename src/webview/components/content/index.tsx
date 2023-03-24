@@ -13,13 +13,7 @@ const DocContent: FC<IProps> = ({ operation }) => {
       return null
     }
 
-    return (
-      <OperationDoc
-        // TODO 这里给个时间戳key是为了reload operations时树结构表单组件重新渲染
-        key={Date.now()}
-        operation={operation}
-      />
-    )
+    return <OperationDoc operation={operation} />
   }, [operation])
 
   return contentJSX

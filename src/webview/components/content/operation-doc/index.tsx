@@ -22,7 +22,7 @@ import { CopyOutlined, LoadingOutlined, MenuFoldOutlined, EditOutlined } from "@
 import ClipboardJS from "clipboard"
 import styles from "./index.module.less"
 import { getOperationsBySchema } from "@/utils/operation"
-import { printGqlOperation, printOperation } from "@/utils/visitOperationTransformer"
+import { printGqlOperation } from "@/utils/visitOperationTransformer"
 import type { TypedOperation, ArgTypeDef, ObjectFieldTypeDef } from "@fruits-chain/qiufen-helpers"
 import useBearStore from "@/webview/stores"
 import printOperationNodeForField from "@/utils/printOperationNodeForField"
@@ -32,6 +32,7 @@ import { FetchDirectiveArg } from "@/utils/interface"
 import { fillOneKeyMessageSignSuccess, MessageEnum } from "@/config/postMessage"
 import { buildOperationNodeForField } from "@/utils/buildOperationNodeForField"
 import { formatOperationDefAst, getOperationDefsAstKeys, NewAstType } from "@/utils/formatOperationDefAst"
+import { defaultLocalTypeDefs } from "@/config/const"
 
 interface IProps {
   operation: TypedOperation
@@ -140,7 +141,6 @@ export const copy = (selector: string) => {
 const OperationDoc: FC<IProps> = ({ operation }) => {
   const { isDisplaySidebar, setState, vscode, directive, typeDefs, localTypeDefs, workspaceGqlFileInfo } = useBearStore((ste) => ste)
   const [spinIcon, setSpinIcon] = useState(false)
-
   const operationDefsAstTreeRef = useRef<NewAstType | null>(null)
   const [selectedKeys, setSelectedKeys] = useState<string[]>([])
 
@@ -237,26 +237,16 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
     return columnGen("return")
   }, [columnGen])
 
-  const schema = buildSchema(typeDefs)
+  const schema = useMemo(() => buildSchema(typeDefs), [typeDefs])
   let localSchema: GraphQLSchema | undefined
   try {
     localSchema = buildSchema(
       // 读取本地schema文件失败设置一个默认值
-      localTypeDefs ||
-        `
-  schema {
-    query: Query
-  }
-  type Query {
-    qiufenquery: String
-  }
-  `
+      localTypeDefs || defaultLocalTypeDefs
     )
   } catch (error) {
     message.error(`${error}`)
   }
-
-  // const localOperation = getOperationsBySchema(localSchema!).find((operationItem) => operationItem.name === operation.name) || null
 
   // 一键填入事件
   const handleOneKeyFillEvent = useCallback(() => {
@@ -348,7 +338,6 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
           </Tooltip>
         </Space>
       </div>
-
       <>
         {!!argsTreeData.length && (
           <>
