@@ -1,4 +1,4 @@
-import React, { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useLayoutEffect, useMemo, useState } from 'react'
 import type { FC } from 'react'
 import { ArgumentNode, buildSchema, ConstDirectiveNode, FieldNode, GraphQLSchema, OperationDefinitionNode, StringValueNode } from 'graphql'
 import { message, Space, Table, Tooltip, Switch, Divider, Tag, Button } from 'antd'
@@ -17,7 +17,7 @@ import printOperationNodeForField from '@/utils/printOperationNodeForField'
 import { FetchDirectiveArg } from '@/utils/interface'
 import { fillOneKeyMessageSignSuccess, MessageEnum } from '@/config/postMessage'
 import { buildOperationNodeForField } from '@/utils/buildOperationNodeForField'
-import { formatOperationDefAst, getOperationDefsAstKeys, NewAstType } from '@/utils/formatOperationDefAst'
+import { formatOperationDefAst, formatWorkspaceOperationDefsAst, getOperationDefsAstKeys, OperationForFiledNodeAstType } from '@/utils/formatOperationDefAst'
 import { defaultLocalTypeDefs } from '@/config/const'
 
 interface IProps {
@@ -131,7 +131,7 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
   const { isDisplaySidebar, setState, vscode, directive, typeDefs, localTypeDefs, workspaceGqlFileInfo } = useBearStore((ste) => ste)
   const [mode, setMode] = useState<SwitchToggleEnum>(SwitchToggleEnum.TABLE)
   const [spinIcon, setSpinIcon] = useState(false)
-  const operationDefsAstTreeRef = useRef<NewAstType | null>(null)
+  const [operationDefsAstTree, setOperationDefsAstTree] = useState<OperationForFiledNodeAstType | null>(null)
   const [selectedKeys, setSelectedKeys] = useState<string[]>([])
 
   const columnGen = useMemo(() => {
@@ -243,7 +243,7 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
     vscode.postMessage({
       typeDefs,
       type: MessageEnum.ONE_KEY_FILL,
-      gqlStr: printOperationStr(schema, operation, selectedKeys),
+      gqlStr: printOperationStr(operationDefsAstTree!),
       gqlName: operation.name,
       gqlType: operation.operationType,
     })
@@ -259,7 +259,7 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
       setSpinIcon(false)
       window.removeEventListener('message', listener)
     }
-  }, [operation, schema, selectedKeys, typeDefs, vscode])
+  }, [operation.name, operation.operationType, operationDefsAstTree, typeDefs, vscode])
 
   const operationDefNodeAst = useMemo(() => {
     return buildOperationNodeForField({
@@ -276,8 +276,9 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
     // 这个接口在工作区存在于多个文件夹，这种情况我不管它
     if (filtrationWorkspaceGqlFileInfo?.length >= 2) {
       resultKeys = []
-    } else {
+    } else if (filtrationWorkspaceGqlFileInfo?.length === 1) {
       const operationDefinitionNodes = filtrationWorkspaceGqlFileInfo[0]?.operationsAsts as OperationDefinitionNode[]
+
       let operationNameFieldNode: FieldNode | undefined
       operationDefinitionNodes?.forEach((operationNode) => {
         const sameOperationNameFieldNode = (operationNode.selectionSet.selections as FieldNode[])?.find((itm) => itm.name.value === operation.name)
@@ -285,15 +286,19 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
           operationNameFieldNode = sameOperationNameFieldNode
         }
       })
+
       visitDocumentNodeAstGetKeys(operationNameFieldNode, resultKeys)
     }
 
-    const operationDefsAstTreeTmp = formatOperationDefAst(operationDefNodeAst, false, '')
-    operationDefsAstTreeRef.current = operationDefsAstTreeTmp
+    const operationDefsAstTreeTmp = formatWorkspaceOperationDefsAst({
+      ast: operationDefNodeAst,
+      keys: resultKeys,
+    })
 
     const keys = getOperationDefsAstKeys(operationDefsAstTreeTmp!)
 
-    setSelectedKeys(!resultKeys.length && !filtrationWorkspaceGqlFileInfo?.length ? keys : resultKeys)
+    setOperationDefsAstTree(operationDefsAstTreeTmp)
+    setSelectedKeys(keys)
   }, [operation.name, operationDefNodeAst, workspaceGqlFileInfo])
 
   return (
@@ -332,7 +337,7 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
           <Tooltip title="Copy GQL">
             <Space
               id="copy"
-              data-clipboard-text={printOperationStr(schema, operation, selectedKeys)}
+              data-clipboard-text={printOperationStr(operationDefsAstTree!)}
               className={styles.copyBtn}
               onClick={() => {
                 copy('#copy')
@@ -417,7 +422,7 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
                 // },
                 onSelect: (record, selected, selectedRows) => {
                   const key = record.key
-                  const operationDefsAstTreeTmp = formatOperationDefAst(operationDefsAstTreeRef.current!, selected, key)
+                  const operationDefsAstTreeTmp = formatOperationDefAst(operationDefsAstTree!, selected, key)
 
                   const keys = getOperationDefsAstKeys(operationDefsAstTreeTmp!)
                   setSelectedKeys(keys)
