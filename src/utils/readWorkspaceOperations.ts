@@ -3,23 +3,7 @@ import glob from 'glob'
 import fs from 'fs'
 import { workspace, window } from 'vscode'
 import path from 'path'
-import {
-  DefinitionNode,
-  parse,
-  visit,
-  Kind,
-  print,
-  ValueNode,
-  ArgumentNode,
-  FieldNode,
-  OperationDefinitionNode,
-  BREAK,
-  VariableDefinitionNode,
-  buildSchema,
-  OperationTypeNode,
-  VariableNode,
-} from 'graphql'
-import printOperationNodeForField from './printOperationNodeForField'
+import { DefinitionNode, parse, visit, Kind, print, FieldNode, OperationDefinitionNode, BREAK, VariableDefinitionNode, VariableNode } from 'graphql'
 import { capitalizeFirstLetter } from './dealWordFirstLetter'
 
 function visitOperationTransformer(

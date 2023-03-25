@@ -301,6 +301,13 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
     setSelectedKeys(keys)
   }, [operation.name, operationDefNodeAst, workspaceGqlFileInfo])
 
+  console.log(
+    schema.getQueryType()?.getFields()['pageCostOrder'],
+    // .?((i) => i.name === 'pageCostOrder'),
+  )
+
+  console.log(operationDefNodeAst, ' ast')
+
   return (
     <Space id={operation.name} className={styles.operationDoc} direction="vertical">
       <div className={styles.name}>

@@ -504,12 +504,16 @@ function resolveField({
   fieldTypeMap.set(fieldPathStr, field.type.toString())
 
   if (!isScalarType(namedType) && !isEnumType(namedType)) {
+    console.log(isListType(type), type)
+
     return {
       kind: Kind.FIELD,
       name: {
         kind: Kind.NAME,
         value: field.name,
       },
+      type: field.astNode?.type.kind === Kind.LIST_TYPE ? `[${(field.astNode?.type as any)?.type?.name?.value as any}]` : ((field.astNode?.type as any)?.type?.name?.value as any),
+      description: field.description,
       directives: field.astNode?.directives,
       ...(fieldName !== field.name && { alias: { kind: Kind.NAME, value: fieldName } }),
       selectionSet:
@@ -530,7 +534,23 @@ function resolveField({
           rootTypeNames,
         }) || undefined,
       arguments: args,
-    }
+    } as SelectionNode
+  }
+
+  if (isEnumType(namedType)) {
+    return {
+      kind: Kind.FIELD,
+      name: {
+        kind: Kind.NAME,
+        value: field.name,
+      },
+      type: (field.astNode?.type as any)?.name?.value as any,
+      description: field.description,
+      enum: (namedType as any)?._values,
+      directives: field.astNode?.directives,
+      ...(fieldName !== field.name && { alias: { kind: Kind.NAME, value: fieldName } }),
+      arguments: args,
+    } as SelectionNode
   }
 
   return {
@@ -539,10 +559,12 @@ function resolveField({
       kind: Kind.NAME,
       value: field.name,
     },
+    type: (field.astNode?.type as any)?.name?.value as any,
+    description: field.description,
     directives: field.astNode?.directives,
     ...(fieldName !== field.name && { alias: { kind: Kind.NAME, value: fieldName } }),
     arguments: args,
-  }
+  } as SelectionNode
 }
 
 function hasCircularRef(
