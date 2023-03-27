@@ -27,6 +27,7 @@ import {
   isEnumType,
   Kind,
 } from 'graphql'
+import { getFieldNodeType } from './getFieldNodeType'
 // import { capitalizeFirstLetter } from "./dealWordFirstLetter"
 
 import { getDefinedRootType, getRootTypeNames } from './rootTypes'
@@ -152,6 +153,7 @@ function buildOperationAndCollectVariables({
   return {
     kind: Kind.OPERATION_DEFINITION,
     operation: kind,
+    operationDefinitionDescription: field.description,
     name: {
       kind: Kind.NAME,
       value: operationName,
@@ -178,7 +180,7 @@ function buildOperationAndCollectVariables({
         }),
       ],
     },
-  }
+  } as OperationDefinitionNode
 }
 
 function resolveSelectionSet({
@@ -237,6 +239,7 @@ function resolveSelectionSet({
                 value: t.name,
               },
             },
+            description: t.description,
             selectionSet: resolveSelectionSet({
               parent: type,
               type: t,
@@ -280,6 +283,7 @@ function resolveSelectionSet({
                 value: t.name,
               },
             },
+            description: t.description,
             selectionSet: resolveSelectionSet({
               parent: type,
               type: t,
@@ -510,7 +514,7 @@ function resolveField({
         kind: Kind.NAME,
         value: field.name,
       },
-      type: field.astNode?.type.kind === Kind.LIST_TYPE ? `[${(field.astNode?.type as any)?.type?.name?.value as any}]` : ((field.astNode?.type as any)?.name?.value as any),
+      type: getFieldNodeType(field),
       description: field.description,
       directives: field.astNode?.directives,
       ...(fieldName !== field.name && { alias: { kind: Kind.NAME, value: fieldName } }),
@@ -542,7 +546,7 @@ function resolveField({
         kind: Kind.NAME,
         value: field.name,
       },
-      type: (field.astNode?.type as any)?.name?.value as any,
+      type: getFieldNodeType(field),
       description: field.description,
       enum: (namedType as any)?._values,
       directives: field.astNode?.directives,
@@ -557,7 +561,7 @@ function resolveField({
       kind: Kind.NAME,
       value: field.name,
     },
-    type: (field.astNode?.type as any)?.name?.value as any,
+    type: getFieldNodeType(field),
     description: field.description,
     directives: field.astNode?.directives,
     ...(fieldName !== field.name && { alias: { kind: Kind.NAME, value: fieldName } }),

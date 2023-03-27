@@ -291,22 +291,21 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
     }
 
     const operationDefsAstTreeTmp = formatWorkspaceOperationDefsAst({
-      ast: operationDefNodeAst,
+      ast: JSON.parse(JSON.stringify(operationDefNodeAst)),
       keys: resultKeys,
     })
-
     const keys = getOperationDefsAstKeys(operationDefsAstTreeTmp!)
 
     setOperationDefsAstTree(operationDefsAstTreeTmp)
     setSelectedKeys(keys)
   }, [operation.name, operationDefNodeAst, workspaceGqlFileInfo])
 
-  console.log(
-    schema.getQueryType()?.getFields()['pageCostOrder'],
-    // .?((i) => i.name === 'pageCostOrder'),
-  )
+  // console.log(
+  //   schema.getQueryType()?.getFields()['search'],
+  //   // .?((i) => i.name === 'pageCostOrder'),
+  // )
 
-  console.log(operationDefNodeAst, ' ast')
+  // console.log(JSON.parse(JSON.stringify(operationDefNodeAst)), ' ast')
 
   return (
     <Space id={operation.name} className={styles.operationDoc} direction="vertical">
