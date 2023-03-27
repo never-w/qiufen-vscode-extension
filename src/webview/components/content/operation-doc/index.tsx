@@ -17,7 +17,13 @@ import printOperationNodeForField from '@/utils/printOperationNodeForField'
 import { FetchDirectiveArg } from '@/utils/interface'
 import { fillOneKeyMessageSignSuccess, MessageEnum } from '@/config/postMessage'
 import { buildOperationNodeForField } from '@/utils/buildOperationNodeForField'
-import { formatOperationDefAst, formatWorkspaceOperationDefsAst, getOperationDefsAstKeys, OperationForFiledNodeAstType } from '@/utils/formatOperationDefAst'
+import {
+  formatOperationDefAst,
+  formatWorkspaceOperationDefsAst,
+  getOperationDefsAstKeys,
+  OperationForFiledNodeAstType,
+  resolveOperationDefsTreeAstData,
+} from '@/utils/formatOperationDefAst'
 import { defaultLocalTypeDefs } from '@/config/const'
 
 interface IProps {
@@ -213,6 +219,26 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  const columnGen1 = useMemo(() => {
+    return [
+      {
+        title: 'Name',
+        dataIndex: 'nameValue',
+        width: '35%',
+      },
+      {
+        title: 'Description',
+        dataIndex: 'description',
+        width: '25%',
+      },
+      {
+        title: 'Type',
+        dataIndex: 'type',
+        width: '20%',
+      },
+    ]
+  }, [])
+
   const argsTreeData = useMemo(() => {
     return getArgsTreeData(operation.args)
   }, [operation.args])
@@ -269,6 +295,10 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  const dataSource = useMemo(() => {
+    return resolveOperationDefsTreeAstData(operationDefsAstTree?.selectionSet?.selections as OperationForFiledNodeAstType[])
+  }, [operationDefsAstTree?.selectionSet?.selections])
 
   useLayoutEffect(() => {
     let resultKeys = [] as string[]
@@ -412,7 +442,7 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
         )}
         <>
           <div>Response: </div>
-          {mode === SwitchToggleEnum.TABLE && (
+          {operationDefsAstTree?.selectionSet?.selections && mode === SwitchToggleEnum.TABLE && (
             <Table
               size="small"
               rowSelection={{
@@ -434,9 +464,9 @@ const OperationDoc: FC<IProps> = ({ operation }) => {
                   setSelectedKeys(keys)
                 },
               }}
-              columns={objectFieldsColumns}
+              columns={columnGen1}
               className={styles.table}
-              dataSource={objectFieldsTreeData}
+              dataSource={dataSource}
               pagination={false}
               defaultExpandAllRows
               bordered

@@ -141,3 +141,37 @@ export function getOperationDefsAstKeys(ast: OperationForFiledNodeAstType, keys:
 
   return keys
 }
+
+function traversalOperationDefsTreeAst(astTreeNode: OperationForFiledNodeAstType, index: number, keyPrefix = ''): any {
+  let key = ''
+  if (!astTreeNode?.name?.value) {
+    key = keyPrefix + index
+  } else {
+    key = keyPrefix + astTreeNode.name?.value
+  }
+
+  return {
+    ...astTreeNode,
+    key: key,
+    children: astTreeNode?.selectionSet?.selections?.map((itm, index) => traversalOperationDefsTreeAst(itm as OperationForFiledNodeAstType, index, key)),
+  }
+}
+/**
+ *
+ * @param astTree OperationForFiledNodeAstType[]
+ * @returns 得到表单树型结构数据
+ */
+export function resolveOperationDefsTreeAstData(astTree: OperationForFiledNodeAstType[]) {
+  let result = [] as OperationForFiledNodeAstType[]
+  if (!astTree) {
+    return result
+  }
+
+  result = astTree.map((astNode) => ({
+    ...astNode,
+    key: astNode.name?.value,
+    children: astNode?.selectionSet?.selections?.map((itm, index) => traversalOperationDefsTreeAst(itm as OperationForFiledNodeAstType, index, astNode.name?.value)),
+  })) as any
+
+  return result
+}
