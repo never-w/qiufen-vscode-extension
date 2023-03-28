@@ -8,8 +8,6 @@ interface IProps {
 }
 
 const DocContent: FC<IProps> = ({ operationObj }) => {
-  console.log(operationObj, '+++')
-
   const contentJSX = useMemo(() => {
     if (!operationObj) {
       return null
@@ -18,7 +16,7 @@ const DocContent: FC<IProps> = ({ operationObj }) => {
     return <OperationDoc operationObj={operationObj} />
   }, [operationObj])
 
-  return null
+  return contentJSX
 }
 
 export default memo(DocContent)

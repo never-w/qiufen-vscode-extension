@@ -93,91 +93,54 @@ export const copy = (selector: string) => {
   })
 }
 
+const argsColumns: ColumnsType<ArgColumnRecord> = [
+  {
+    title: 'Name',
+    dataIndex: 'name',
+    width: '35%',
+  },
+  {
+    title: 'Description',
+    dataIndex: 'description',
+    width: '25%',
+  },
+  {
+    title: 'Required',
+    dataIndex: 'type',
+    width: '20%',
+    render(val: string) {
+      let result = !val?.endsWith('!')
+      result = !!val?.endsWith('!')
+      if (result === true) {
+        return (
+          <Tag style={{ borderRadius: 4 }} color="success">
+            True
+          </Tag>
+        )
+      }
+      return (
+        <Tag style={{ borderRadius: 4 }} color="error">
+          False
+        </Tag>
+      )
+    },
+  },
+  {
+    title: 'Type',
+    dataIndex: 'type',
+    width: '20%',
+    render(value: string) {
+      return value?.endsWith('!') ? value.slice(0, value.length - 1) : value
+    },
+  },
+]
+
 const OperationDoc: FC<IProps> = ({ operationObj }) => {
   const { isDisplaySidebar, setState, vscode, directive, typeDefs, localTypeDefs, workspaceGqlFileInfo } = useBearStore((ste) => ste)
   const [mode, setMode] = useState<SwitchToggleEnum>(SwitchToggleEnum.TABLE)
   const [spinIcon, setSpinIcon] = useState(false)
   const [operationDefsAstTree, setOperationDefsAstTree] = useState<OperationForFiledNodeAstType | null>(null)
   const [selectedKeys, setSelectedKeys] = useState<string[]>([])
-
-  const columnGen = useMemo(() => {
-    return (field: 'arguments' | 'return'): ColumnsType<ArgColumnRecord> => {
-      return [
-        {
-          title: 'Name',
-          dataIndex: 'name',
-          width: '35%',
-          render(value, record) {
-            const tmpIsDirective = !!record.directives?.find((itm) => itm.name.value === directive)
-            const directivesArgs = record.directives?.find((itm) => itm.name.value === directive)?.arguments as ArgumentNode[]
-            const firstArgValue = (directivesArgs?.[0]?.value as StringValueNode)?.value
-
-            const isYellow = FetchDirectiveArg.LOADER === firstArgValue
-            const colorStyle: React.CSSProperties | undefined = tmpIsDirective ? { color: isYellow ? '#FF9900' : 'red' } : undefined
-
-            const deprecationReason = record.deprecationReason
-            if (deprecationReason) {
-              return (
-                <span className={styles.deprecated} style={colorStyle}>
-                  {value}
-                </span>
-              )
-            }
-            return <span style={colorStyle}>{value}</span>
-          },
-        },
-        {
-          title: 'Description',
-          dataIndex: 'description',
-          width: '25%',
-          render(val, record) {
-            const deprecationReason = record.deprecationReason
-            if (deprecationReason) {
-              return (
-                <>
-                  {val}
-                  <span className={styles.warning}>{deprecationReason}</span>
-                </>
-              )
-            }
-            return val
-          },
-        },
-        {
-          title: field === 'arguments' ? 'Required' : 'Nullable',
-          dataIndex: 'type',
-          width: '20%',
-          render(val: string) {
-            let result = !val?.endsWith('!')
-            if (field === 'arguments') {
-              result = !!val?.endsWith('!')
-            }
-            if (result === true) {
-              return (
-                <Tag style={{ borderRadius: 4 }} color="success">
-                  True
-                </Tag>
-              )
-            }
-            return (
-              <Tag style={{ borderRadius: 4 }} color="error">
-                False
-              </Tag>
-            )
-          },
-        },
-        {
-          title: 'Type',
-          dataIndex: 'type',
-          width: '20%',
-          render(value: string) {
-            return value?.endsWith('!') ? value.slice(0, value.length - 1) : value
-          },
-        },
-      ]
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
   const columnGen1 = useMemo(() => {
     return [
@@ -200,59 +163,49 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
   }, [])
 
   const argsTreeData = useMemo(() => {
-    return getArgsTreeData(operation.args)
-  }, [operation.args])
-  const argsColumns: ColumnsType<ArgColumnRecord> = useMemo(() => {
-    return columnGen('arguments')
-  }, [columnGen])
+    return getArgsTreeData(operationObj?.args)
+  }, [operationObj?.args])
 
-  const objectFieldsTreeData = useMemo(() => {
-    return getObjectFieldsTreeData([operation])
-  }, [operation])
-  const objectFieldsColumns: ColumnsType<ArgColumnRecord> = useMemo(() => {
-    return columnGen('return')
-  }, [columnGen])
-
-  const schema = useMemo(() => buildSchema(typeDefs), [typeDefs])
-  let localSchema: GraphQLSchema | undefined
-  try {
-    localSchema = buildSchema(localTypeDefs || defaultLocalTypeDefs)
-  } catch (error) {
-    message.error(`${error}`)
-  }
-  const localOperation = getOperationsBySchema(localSchema!).find((operationItem) => operationItem.name === operation.name) || null
+  // const schema = useMemo(() => buildSchema(typeDefs), [typeDefs])
+  // let localSchema: GraphQLSchema | undefined
+  // try {
+  //   localSchema = buildSchema(localTypeDefs || defaultLocalTypeDefs)
+  // } catch (error) {
+  //   message.error(`${error}`)
+  // }
+  // const localOperation = getOperationsBySchema(localSchema!).find((operationItem) => operationItem.name === operation.name) || null
 
   // 一键填入事件
   const handleOneKeyFillEvent = useCallback(() => {
-    setSpinIcon(true)
-    // 向插件发送信息
-    vscode.postMessage({
-      typeDefs,
-      type: MessageEnum.ONE_KEY_FILL,
-      gqlStr: printOperationStr(operationDefsAstTree!),
-      gqlName: operation.name,
-      gqlType: operation.operationType,
-    })
-    // 接受插件发送过来的信息
-    window.addEventListener('message', listener)
-
-    function listener(evt: any) {
-      const data = evt.data as string
-      if (data === fillOneKeyMessageSignSuccess) {
-        message.success('一键填入成功')
-        setSpinIcon(false)
-      }
-      setSpinIcon(false)
-      window.removeEventListener('message', listener)
-    }
-  }, [operation.name, operation.operationType, operationDefsAstTree, typeDefs, vscode])
+    // setSpinIcon(true)
+    // // 向插件发送信息
+    // vscode.postMessage({
+    //   typeDefs,
+    //   type: MessageEnum.ONE_KEY_FILL,
+    //   gqlStr: printOperationStr(operationDefsAstTree!),
+    //   gqlName: operation.name,
+    //   gqlType: operation.operationType,
+    // })
+    // // 接受插件发送过来的信息
+    // window.addEventListener('message', listener)
+    // function listener(evt: any) {
+    //   const data = evt.data as string
+    //   if (data === fillOneKeyMessageSignSuccess) {
+    //     message.success('一键填入成功')
+    //     setSpinIcon(false)
+    //   }
+    //   setSpinIcon(false)
+    //   window.removeEventListener('message', listener)
+    // }
+  }, [])
 
   const operationDefNodeAst = useMemo(() => {
-    return buildOperationNodeForField({
-      schema,
-      kind: operation.operationType,
-      field: operation.name,
-    })
+    return null
+    // return buildOperationNodeForField({
+    //   schema,
+    //   kind: operation.operationType,
+    //   field: operation.name,
+    // })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -260,35 +213,35 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
     return resolveOperationDefsTreeAstData(operationDefsAstTree?.selectionSet?.selections as OperationForFiledNodeAstType[])
   }, [operationDefsAstTree?.selectionSet?.selections])
 
-  useLayoutEffect(() => {
-    let resultKeys = [] as string[]
-    const filtrationWorkspaceGqlFileInfo = workspaceGqlFileInfo.filter((item) => item.operationNames.includes(operation.name))
-    // 这个接口在工作区存在于多个文件夹，这种情况我不管它
-    if (filtrationWorkspaceGqlFileInfo?.length >= 2) {
-      resultKeys = []
-    } else if (filtrationWorkspaceGqlFileInfo?.length === 1) {
-      const operationDefinitionNodes = filtrationWorkspaceGqlFileInfo[0]?.operationsAsts as OperationDefinitionNode[]
+  // useLayoutEffect(() => {
+  //   let resultKeys = [] as string[]
+  //   const filtrationWorkspaceGqlFileInfo = workspaceGqlFileInfo.filter((item) => item.operationNames.includes(operation.name))
+  //   // 这个接口在工作区存在于多个文件夹，这种情况我不管它
+  //   if (filtrationWorkspaceGqlFileInfo?.length >= 2) {
+  //     resultKeys = []
+  //   } else if (filtrationWorkspaceGqlFileInfo?.length === 1) {
+  //     const operationDefinitionNodes = filtrationWorkspaceGqlFileInfo[0]?.operationsAsts as OperationDefinitionNode[]
 
-      let operationNameFieldNode: FieldNode | undefined
-      operationDefinitionNodes?.forEach((operationNode) => {
-        const sameOperationNameFieldNode = (operationNode.selectionSet.selections as FieldNode[])?.find((itm) => itm.name.value === operation.name)
-        if (!!sameOperationNameFieldNode) {
-          operationNameFieldNode = sameOperationNameFieldNode
-        }
-      })
+  //     let operationNameFieldNode: FieldNode | undefined
+  //     operationDefinitionNodes?.forEach((operationNode) => {
+  //       const sameOperationNameFieldNode = (operationNode.selectionSet.selections as FieldNode[])?.find((itm) => itm.name.value === operation.name)
+  //       if (!!sameOperationNameFieldNode) {
+  //         operationNameFieldNode = sameOperationNameFieldNode
+  //       }
+  //     })
 
-      visitDocumentNodeAstGetKeys(operationNameFieldNode, resultKeys)
-    }
+  //     visitDocumentNodeAstGetKeys(operationNameFieldNode, resultKeys)
+  //   }
 
-    const operationDefsAstTreeTmp = formatWorkspaceOperationDefsAst({
-      ast: JSON.parse(JSON.stringify(operationDefNodeAst)),
-      keys: resultKeys,
-    })
-    const keys = getOperationDefsAstKeys(operationDefsAstTreeTmp!)
+  //   const operationDefsAstTreeTmp = formatWorkspaceOperationDefsAst({
+  //     ast: JSON.parse(JSON.stringify(operationDefNodeAst)),
+  //     keys: resultKeys,
+  //   })
+  //   const keys = getOperationDefsAstKeys(operationDefsAstTreeTmp!)
 
-    setOperationDefsAstTree(operationDefsAstTreeTmp)
-    setSelectedKeys(keys)
-  }, [operation.name, operationDefNodeAst, workspaceGqlFileInfo])
+  //   setOperationDefsAstTree(operationDefsAstTreeTmp)
+  //   setSelectedKeys(keys)
+  // }, [operationDefNodeAst, workspaceGqlFileInfo])
 
   // console.log(
   //   schema.getQueryType()?.getFields()['search'],
@@ -296,18 +249,19 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
   // )
 
   // console.log(JSON.parse(JSON.stringify(operationDefNodeAst)), ' ast')
+  console.log(argsTreeData)
 
   return (
-    <Space id={operation.name} className={styles.operationDoc} direction="vertical">
+    <Space id={operationObj.operationDefNodeAst.name?.value} className={styles.operationDoc} direction="vertical">
       <div className={styles.name}>
         <Space size={40}>
           <span>
             Operation name:
-            <span className={styles.operationName}>{` ${operation.name}`}</span>
+            <span className={styles.operationName}>{` ${operationObj.operationDefNodeAst.name?.value}`}</span>
           </span>
           <span>
             Operation type:
-            <span className={styles.operationName}>{` ${operation.operationType}`}</span>
+            <span className={styles.operationName}>{` ${operationObj.operationDefNodeAst.operation}`}</span>
           </span>
         </Space>
         <Space size={50}>
@@ -333,7 +287,7 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
           <Tooltip title="Copy GQL">
             <Space
               id="copy"
-              data-clipboard-text={printOperationStr(operationDefsAstTree!)}
+              // data-clipboard-text={printOperationStr(operationDefsAstTree!)}
               className={styles.copyBtn}
               onClick={() => {
                 copy('#copy')
@@ -382,7 +336,7 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
             {mode === SwitchToggleEnum.TABLE && (
               <Table size="small" indentSize={21} columns={argsColumns} defaultExpandAllRows className={styles.table} dataSource={argsTreeData} pagination={false} bordered />
             )}
-            {mode === SwitchToggleEnum.EDITOR && <AceEditor theme="tomorrow" mode="javascript" width="100%" readOnly maxLines={Infinity} value={obj2str(operation.argsExample)} />}
+            {/* {mode === SwitchToggleEnum.EDITOR && <AceEditor theme="tomorrow" mode="javascript" width="100%" readOnly maxLines={Infinity} value={obj2str(operation.argsExample)} />}
             {mode === SwitchToggleEnum.DIFF && (
               <ReactDiffViewer
                 oldValue={localOperation ? obj2str(localOperation.argsExample) : 'nothings...'}
@@ -397,12 +351,12 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
                   return <div className={styles.diff_viewer_div}>{codeStr}</div>
                 }}
               />
-            )}
+            )} */}
           </>
         )}
         <>
           <div>Response: </div>
-          {operationDefsAstTree?.selectionSet?.selections && mode === SwitchToggleEnum.TABLE && (
+          {/* {operationDefsAstTree?.selectionSet?.selections && mode === SwitchToggleEnum.TABLE && (
             <Table
               size="small"
               rowSelection={{
@@ -485,7 +439,7 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
                 return <div className={styles.diff_viewer_div}>{codeStr}</div>
               }}
             />
-          )}
+          )} */}
         </>
       </>
     </Space>
