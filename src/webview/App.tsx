@@ -1,39 +1,38 @@
-import React, { useCallback, useMemo, useState } from "react"
-import { Spin, message } from "antd"
-import { FC, useEffect } from "react"
-import DocSidebar from "@/webview/components/side-bar/index"
-import useBearStore from "./stores"
-import { TypedOperation } from "@fruits-chain/qiufen-helpers"
-import Content from "./components/content"
+import { FC } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
+import { Spin, message } from 'antd'
+import DocSidebar from '@/webview/components/side-bar/index'
+import useBearStore from './stores'
+import Content from './components/content'
+import { buildSchema } from 'graphql'
+import { getOperationNodesForFieldAstBySchema, OperationNodesForFieldAstBySchemaReturnType } from '@/utils-copy/operations'
 
 interface IProps {}
 
 const App: FC<IProps> = () => {
-  const { operations, captureMessage: handleCaptureMessage, reloadOperations, isDisplaySidebar } = useBearStore((state) => state)
-  const [operationData, setOperationData] = useState<TypedOperation | null>(null)
-  const [keyword, setKeyword] = useState<string>("")
+  const { captureMessage, reloadOperations, isDisplaySidebar, typeDefs } = useBearStore((state) => state)
+  const [keyword, setKeyword] = useState<string>('')
+  const [activeItemKey, setActiveItemKey] = useState('')
   const [loading, setLoading] = useState(false)
-  const [activeItemKey, setActiveItemKey] = useState("")
-  const selectedOperationId = !!activeItemKey ? activeItemKey : operations[0]?.operationType + operations[0]?.name
-
-  const onSelect = useCallback((operation: TypedOperation) => {
-    setOperationData(operation)
-  }, [])
 
   useMemo(async () => {
     setLoading(true)
-    await handleCaptureMessage()
+    await captureMessage()
     setLoading(false)
-  }, [handleCaptureMessage])
+  }, [captureMessage])
 
-  useEffect(() => {
-    const operationResult = operations.find((operationItm) => {
-      return operationItm?.operationType + operationItm?.name === selectedOperationId
-    })
-    setOperationData(operationResult!)
-  }, [operations, selectedOperationId])
+  const operationObjList = useMemo(() => {
+    let result: OperationNodesForFieldAstBySchemaReturnType = []
+    if (typeDefs) {
+      const schema = buildSchema(typeDefs)
+      result = getOperationNodesForFieldAstBySchema(schema)
+    }
+    return result
+  }, [typeDefs])
 
-  const handleReload = async () => {
+  const selectedOperationId = !!activeItemKey ? activeItemKey : operationObjList[0]?.operationDefNodeAst?.operation + operationObjList[0]?.operationDefNodeAst?.name?.value
+
+  const handleReload = useCallback(async () => {
     let timer: NodeJS.Timeout | undefined
     setLoading(true)
     try {
@@ -41,34 +40,34 @@ const App: FC<IProps> = () => {
         reloadOperations(),
         new Promise((_, reject) => {
           timer = setTimeout(() => {
-            message.error("network error")
-            return reject(new Error("request timeout"))
+            message.error('network error')
+            return reject(new Error('request timeout'))
           }, 10000)
         }),
       ])
     } catch {}
     clearTimeout(timer)
     setLoading(false)
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <div>
-      <Spin spinning={loading}>
-        <div style={{ display: "flex", flexDirection: "row" }}>
-          <div style={{ display: isDisplaySidebar ? "block" : "none" }}>
+      <Spin spinning={!operationObjList.length || loading}>
+        <div style={{ display: 'flex', flexDirection: 'row' }}>
+          <div style={{ display: isDisplaySidebar ? 'block' : 'none' }}>
             <DocSidebar
               handleReload={handleReload}
               activeItemKey={activeItemKey}
               setActiveItemKey={setActiveItemKey}
-              operations={operations}
+              operationsDefNodeObjList={operationObjList}
               keyword={keyword}
               selectedOperationId={selectedOperationId}
-              onSelect={onSelect}
+              onSelect={() => {}}
               onKeywordChange={setKeyword}
             />
           </div>
-          {/* selectedOperationId必须加上不然会出现不重置组件bug */}
-          <Content key={selectedOperationId} operation={operationData!} />
+          {/* <Content key={selectedOperationId} operation={operationData!} /> */}
         </div>
       </Spin>
     </div>

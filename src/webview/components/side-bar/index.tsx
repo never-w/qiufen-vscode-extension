@@ -1,30 +1,36 @@
-import React, { memo, useEffect, useMemo, useState } from "react"
-import { Input, Collapse, Tooltip, Space, message } from "antd"
-import { CopyOutlined, SearchOutlined, CheckCircleTwoTone } from "@ant-design/icons"
-import { useThrottleFn } from "@fruits-chain/hooks-laba"
-import classnames from "classnames"
-import ClipboardJS from "clipboard"
-import { genGQLStrInGroup, groupOperations } from "@fruits-chain/qiufen-helpers"
-import styles from "./index.module.less"
-import type { CollapseProps } from "antd"
-import type { TypedOperation } from "@fruits-chain/qiufen-helpers"
-import type { FC } from "react"
-import useBearStore from "@/webview/stores"
+import React, { memo, useEffect, useMemo, useState } from 'react'
+import { Input, Collapse, Tooltip, Space, message } from 'antd'
+import { CopyOutlined, SearchOutlined, CheckCircleTwoTone } from '@ant-design/icons'
+import { useThrottleFn } from '@fruits-chain/hooks-laba'
+import classnames from 'classnames'
+import ClipboardJS from 'clipboard'
+import styles from './index.module.less'
+import type { CollapseProps } from 'antd'
+import type { TypedOperation } from '@fruits-chain/qiufen-helpers'
+import type { FC } from 'react'
+import useBearStore from '@/webview/stores'
+import { groupOperations as groupOperationsCopy, OperationDefinitionNodeGroupType, OperationNodesForFieldAstBySchemaReturnType } from '@/utils-copy/operations'
+import { printBatchOperations } from '@/utils-copy/printBatchOperations'
 
 export const copy = (selector: string) => {
   const clipboard = new ClipboardJS(selector)
-  clipboard.on("success", () => {
-    message.success("success")
+  clipboard.on('success', () => {
+    message.success('success')
     clipboard.destroy()
   })
-  clipboard.on("error", () => {
-    message.error("failed")
+  clipboard.on('error', () => {
+    message.error('failed')
     clipboard.destroy()
   })
 }
 
+const getOperationNameValue = (name: string = '') => {
+  const [_, val] = name.split(':')
+  return val
+}
+
 export interface IProps {
-  operations: TypedOperation[]
+  operationsDefNodeObjList: OperationNodesForFieldAstBySchemaReturnType
   keyword: string
   selectedOperationId: string
   onKeywordChange: (keyword: string) => void
@@ -34,7 +40,7 @@ export interface IProps {
   handleReload: () => void
 }
 
-const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, operations, onSelect, selectedOperationId, setActiveItemKey, handleReload }) => {
+const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, onSelect, selectedOperationId, setActiveItemKey, handleReload, operationsDefNodeObjList }) => {
   const [top, setTop] = useState(0)
   const [flag, setFlag] = useState(false)
   const [isFocus, setIsFocus] = useState(false)
@@ -44,19 +50,20 @@ const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, opera
     (evt) => {
       setTop(evt.nativeEvent.target.scrollTop)
     },
-    { wait: 300 }
+    { wait: 300 },
   )
 
   const groupedOperations = useMemo(() => {
-    return groupOperations(operations)
-  }, [operations])
+    const operationList = operationsDefNodeObjList.map((val) => val.operationDefNodeAst)
+    return groupOperationsCopy(operationList as OperationDefinitionNodeGroupType[])
+  }, [operationsDefNodeObjList])
 
-  const [activeKey, setActiveKey] = useState([""])
+  const [activeKey, setActiveKey] = useState([''])
 
   useEffect(() => {
-    const activeKey: CollapseProps["defaultActiveKey"] = []
+    const activeKey: CollapseProps['defaultActiveKey'] = []
     Object.entries(groupedOperations).some(([groupName, items]) => {
-      if (items.some((item) => item.operationType + item.name === selectedOperationId)) {
+      if (items.some((item) => item.operation + item.name?.value === selectedOperationId)) {
         activeKey.push(groupName)
       }
     })
@@ -68,10 +75,10 @@ const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, opera
     const newKeyword = keyword.trim()
     const groupedOperationsEntries = Object.entries(groupedOperations)
 
-    let exactGroupedOperationsEntries = [] as [string, TypedOperation[]][]
+    let exactGroupedOperationsEntries = [] as [string, OperationDefinitionNodeGroupType[]][]
     if (newKeyword) {
       exactGroupedOperationsEntries = groupedOperationsEntries.filter(([groupName, operationData]) => {
-        const names = operationData.map((i) => i.name)
+        const names = operationData.map((i) => i.name?.value)
         return names.includes(newKeyword)
       })
     }
@@ -83,7 +90,7 @@ const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, opera
 
         if (newKeyword) {
           operationList = operationData.filter((item) => {
-            return item.name === newKeyword
+            return item.name?.value === newKeyword
           })
         }
 
@@ -92,45 +99,40 @@ const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, opera
         }
 
         return (
-          <Collapse.Panel key={groupName} header={groupName} className={activeKey.includes(groupName) ? styles.collapse_active : ""}>
+          <Collapse.Panel key={groupName} header={groupName} className={activeKey.includes(groupName) ? styles.collapse_active : ''}>
             <div className={styles.operationList}>
               <Tooltip title="Copy GQL">
                 <CopyOutlined
                   id={groupName}
-                  data-clipboard-text={genGQLStrInGroup(groupName, operationList)}
+                  data-clipboard-text={printBatchOperations(operationList)}
                   className={styles.copyBtn}
                   onClick={() => {
+                    // TODO: 处理id有空格的bug eg. v2.8 次品销售
                     copy(`#${groupName}`)
                   }}
                 />
               </Tooltip>
               {operationList.map((operation, index) => {
-                const filtrationWorkspaceGqlFileInfo = workspaceGqlFileInfo.filter((item) => item.operationNames.includes(operation.name))
+                const filtrationWorkspaceGqlFileInfo = workspaceGqlFileInfo.filter((item: any) => item.operationNames.includes(operation.name?.value))
                 const isMoreExist = filtrationWorkspaceGqlFileInfo?.length > 1
-                const deprecatedReason = operation.deprecationReason
                 return (
                   <div
                     key={index}
                     className={classnames(styles.operationItem, {
-                      [styles.active]: operation.operationType + operation.name === activeItemKey,
+                      [styles.active]: operation.operation + operation.name?.value === activeItemKey,
                     })}
                     onClick={() => {
-                      onSelect(operation)
-                      setActiveItemKey(operation.operationType + operation.name)
+                      onSelect(operation as any)
+                      setActiveItemKey(operation.operation + operation.name?.value)
                     }}
                   >
-                    <div
-                      className={classnames({
-                        [styles.deprecated]: !!deprecatedReason,
-                      })}
-                    >
+                    <div>
                       <Space direction="horizontal">
                         <CheckCircleTwoTone
-                          style={{ visibility: workspaceGqlNames.includes(operation.name) ? "visible" : "hidden" }}
-                          twoToneColor={isMoreExist ? "#FE9800" : "#52c41a"}
+                          style={{ visibility: workspaceGqlNames.includes(operation.name!.value) ? 'visible' : 'hidden' }}
+                          twoToneColor={isMoreExist ? '#FE9800' : '#52c41a'}
                         />
-                        {flag ? operation.name : operation.description || operation.name}
-                        {!!deprecatedReason && <span className={styles.warning}>{deprecatedReason}</span>}
+                        {flag ? operation.name?.value : getOperationNameValue(operation.operationDefinitionDescription) || operation.name?.value}
                       </Space>
                     </div>
                   </div>
@@ -143,7 +145,8 @@ const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, opera
     } else {
       return groupedOperationsEntries.map(([groupName, operationData]) => {
         let operationList = operationData
-        const pattern = new RegExp(keyword, "i")
+
+        const pattern = new RegExp(keyword, 'i')
         // search by group name
         if (pattern.test(groupName)) {
           // break
@@ -151,13 +154,9 @@ const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, opera
           operationList = operationData.filter((item) => {
             return (
               // search by name
-              pattern.test(item.name) ||
+              pattern.test(item.name!.value) ||
               // search by description
-              pattern.test(item.description || "") ||
-              // search by arg type
-              item.args.some((arg) => pattern.test(arg.type.name)) ||
-              // search by return type
-              pattern.test(item.output.name)
+              pattern.test(item.operationDefinitionDescription || '')
             )
           })
         }
@@ -167,12 +166,12 @@ const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, opera
         }
 
         return (
-          <Collapse.Panel key={groupName} header={groupName} className={activeKey.includes(groupName) ? styles.collapse_active : ""}>
+          <Collapse.Panel key={groupName} header={groupName} className={activeKey.includes(groupName) ? styles.collapse_active : ''}>
             <div className={styles.operationList}>
               <Tooltip title="Copy GQL">
                 <CopyOutlined
                   id={groupName}
-                  data-clipboard-text={genGQLStrInGroup(groupName, operationList)}
+                  data-clipboard-text={printBatchOperations(operationList)}
                   className={styles.copyBtn}
                   onClick={() => {
                     copy(`#${groupName}`)
@@ -180,32 +179,26 @@ const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, opera
                 />
               </Tooltip>
               {operationList.map((operation, index) => {
-                const filtrationWorkspaceGqlFileInfo = workspaceGqlFileInfo.filter((item) => item.operationNames.includes(operation.name))
+                const filtrationWorkspaceGqlFileInfo = workspaceGqlFileInfo.filter((item: any) => item.operationNames.includes(operation.name?.value))
                 const isMoreExist = filtrationWorkspaceGqlFileInfo?.length > 1
-                const deprecatedReason = operation.deprecationReason
                 return (
                   <div
                     key={index}
                     className={classnames(styles.operationItem, {
-                      [styles.active]: operation.operationType + operation.name === activeItemKey,
+                      [styles.active]: operation.operation + operation.name?.value === activeItemKey,
                     })}
                     onClick={() => {
-                      onSelect(operation)
-                      setActiveItemKey(operation.operationType + operation.name)
+                      onSelect(operation as any)
+                      setActiveItemKey(operation.operation + operation.name?.value)
                     }}
                   >
-                    <div
-                      className={classnames({
-                        [styles.deprecated]: !!deprecatedReason,
-                      })}
-                    >
+                    <div>
                       <Space direction="horizontal">
                         <CheckCircleTwoTone
-                          style={{ visibility: workspaceGqlNames.includes(operation.name) ? "visible" : "hidden" }}
-                          twoToneColor={isMoreExist ? "#FE9800" : "#52c41a"}
+                          style={{ visibility: workspaceGqlNames.includes(operation.name!.value) ? 'visible' : 'hidden' }}
+                          twoToneColor={isMoreExist ? '#FE9800' : '#52c41a'}
                         />
-                        {flag ? operation.name : operation.description || operation.name}
-                        {!!deprecatedReason && <span className={styles.warning}>{deprecatedReason}</span>}
+                        {flag ? operation.name?.value : getOperationNameValue(operation.operationDefinitionDescription) || operation.name?.value}
                       </Space>
                     </div>
                   </div>
@@ -216,7 +209,7 @@ const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, opera
         )
       })
     }
-  }, [groupedOperations, keyword, activeKey, workspaceGqlFileInfo, activeItemKey, workspaceGqlNames, flag, onSelect, setActiveItemKey])
+  }, [activeItemKey, activeKey, flag, groupedOperations, keyword, onSelect, setActiveItemKey, workspaceGqlFileInfo, workspaceGqlNames])
 
   return (
     <div className={styles.sidebar}>
@@ -229,7 +222,7 @@ const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, opera
           onBlur={() => {
             setIsFocus(false)
           }}
-          suffix={<SearchOutlined className={isFocus ? styles.icon_color : ""} />}
+          suffix={<SearchOutlined className={isFocus ? styles.icon_color : ''} />}
           size="large"
           placeholder="Search by group/desc/name/type"
           onChange={(evt) => {
@@ -287,7 +280,7 @@ const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, opera
             [styles.show]: top > 700,
           })}
           onClick={() => {
-            document.getElementById("sideBar")?.scrollTo(0, 0)
+            document.getElementById('sideBar')?.scrollTo(0, 0)
           }}
         >
           <img src="https://pic.imgdb.cn/item/63d72e7fface21e9ef36d8ed.png" alt="返回顶部图片" />

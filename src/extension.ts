@@ -37,17 +37,14 @@ export function activate(context: vscode.ExtensionContext) {
 
         // 获取远程schema typeDefs
         let backendTypeDefs: string | undefined
-        let schema: GraphQLSchema
         try {
           backendTypeDefs = await fetchRemoteSchemaTypeDefs(url)
-          schema = buildSchema(backendTypeDefs!)
         } catch (e) {
           updateStatusBarItem(GraphqlQiufenProStartDocCommandId, `$(target) Doc`, docStatusBarItem)
           throw e
         }
 
-        const operations = getOperationsBySchema(schema)
-        if (!operations) {
+        if (!backendTypeDefs) {
           return
         }
 
@@ -78,7 +75,6 @@ export function activate(context: vscode.ExtensionContext) {
                   workspaceGqlNames,
                   workspaceGqlFileInfo,
                   port,
-                  operations,
                   IpAddress: getIpAddress(),
                 }
 
@@ -93,8 +89,6 @@ export function activate(context: vscode.ExtensionContext) {
                   .then((resTypeDefs) => {
                     // 读取本地的schema类型定义
                     const localTypeDefs = readLocalSchemaTypeDefs()
-                    const schema = buildSchema(resTypeDefs)
-                    const operations = getOperationsBySchema(schema)
                     const messageObj = {
                       directive: jsonSettings.directive,
                       typeDefs: resTypeDefs,
@@ -102,7 +96,6 @@ export function activate(context: vscode.ExtensionContext) {
                       workspaceGqlFileInfo: workspaceGqlFileInfo1,
                       localTypeDefs,
                       port,
-                      operations,
                       IpAddress: getIpAddress(),
                     }
 
