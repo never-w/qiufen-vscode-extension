@@ -11,7 +11,7 @@ import ClipboardJS from 'clipboard'
 import styles from './index.module.less'
 import { getOperationsBySchema } from '@/utils/operation'
 import { printOperationStr, visitDocumentNodeAstGetKeys } from '@/utils/visitOperationTransformer'
-import type { TypedOperation, ArgTypeDef, ObjectFieldTypeDef } from '@fruits-chain/qiufen-helpers'
+import type { ArgTypeDef } from '@fruits-chain/qiufen-helpers'
 import useBearStore from '@/webview/stores'
 import printOperationNodeForField from '@/utils/printOperationNodeForField'
 import { FetchDirectiveArg } from '@/utils/interface'
@@ -25,9 +25,10 @@ import {
   resolveOperationDefsTreeAstData,
 } from '@/utils/formatOperationDefAst'
 import { defaultLocalTypeDefs } from '@/config/const'
+import { OperationNodesForFieldAstBySchemaReturnType } from '@/utils-copy/operations'
 
 interface IProps {
-  operation: TypedOperation
+  operationObj: OperationNodesForFieldAstBySchemaReturnType[number]
 }
 
 export type ArgColumnRecord = {
@@ -80,47 +81,6 @@ const getArgsTreeData = (args: ArgTypeDef[], keyPrefix = '') => {
   return result
 }
 
-const getObjectFieldsTreeData = (objectFields: ObjectFieldTypeDef[], keyPrefix = '') => {
-  const result: ArgColumnRecord[] = objectFields.map(({ output, ...originData }) => {
-    const key = `${keyPrefix}${originData.name}`
-    let children: ArgColumnRecord['children'] = []
-    switch (output.kind) {
-      case 'Scalar':
-        children = []
-        break
-      case 'Object':
-        children = getObjectFieldsTreeData(output.fields, key)
-        break
-      case 'Enum':
-        // TODO: 枚举干掉
-        // children = output.values.map((item) => ({
-        //   key: key + item.value,
-        //   name: item.name,
-        //   type: "",
-        //   defaultValue: item.value,
-        //   description: item.description,
-        //   deprecationReason: item.deprecationReason,
-        //   children: null,
-        // }))
-
-        children = []
-        break
-      case 'Union':
-        output.types.forEach((type) => {
-          children = [...(children || []), ...getObjectFieldsTreeData(type.fields, key)]
-        })
-    }
-    return {
-      ...originData,
-      key,
-      defaultValue: null,
-      type: output.name,
-      children: children.length > 0 ? children : null,
-    }
-  })
-  return result
-}
-
 export const copy = (selector: string) => {
   const clipboard = new ClipboardJS(selector)
   clipboard.on('success', () => {
@@ -133,7 +93,7 @@ export const copy = (selector: string) => {
   })
 }
 
-const OperationDoc: FC<IProps> = ({ operation }) => {
+const OperationDoc: FC<IProps> = ({ operationObj }) => {
   const { isDisplaySidebar, setState, vscode, directive, typeDefs, localTypeDefs, workspaceGqlFileInfo } = useBearStore((ste) => ste)
   const [mode, setMode] = useState<SwitchToggleEnum>(SwitchToggleEnum.TABLE)
   const [spinIcon, setSpinIcon] = useState(false)

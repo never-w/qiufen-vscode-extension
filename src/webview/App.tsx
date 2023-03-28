@@ -32,6 +32,10 @@ const App: FC<IProps> = () => {
 
   const selectedOperationId = !!activeItemKey ? activeItemKey : operationObjList[0]?.operationDefNodeAst?.operation + operationObjList[0]?.operationDefNodeAst?.name?.value
 
+  const operationObj = useMemo(() => {
+    return operationObjList.find((item) => item.operationDefNodeAst.operation + item.operationDefNodeAst.name?.value === selectedOperationId)!
+  }, [operationObjList, selectedOperationId])
+
   const handleReload = useCallback(async () => {
     let timer: NodeJS.Timeout | undefined
     setLoading(true)
@@ -67,7 +71,7 @@ const App: FC<IProps> = () => {
               onKeywordChange={setKeyword}
             />
           </div>
-          {/* <Content key={selectedOperationId} operation={operationData!} /> */}
+          <Content key={selectedOperationId} operationObj={operationObj} />
         </div>
       </Spin>
     </div>
