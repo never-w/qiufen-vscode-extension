@@ -26,6 +26,9 @@ import {
 } from '@/utils/formatOperationDefAst'
 import { defaultLocalTypeDefs } from '@/config/const'
 import { OperationNodesForFieldAstBySchemaReturnType } from '@/utils-copy/operations'
+import { NewFieldNodeType } from '@/utils-copy/interface'
+import { resolveOperationDefsForFieldNodeTree } from '@/utils-copy/resolveOperationDefsForFieldNodeTree'
+import { dependOnSelectedAndKeyFieldAst } from '@/utils-copy/dependOnSelectedAndKeyFieldAst'
 
 interface IProps {
   operationObj: OperationNodesForFieldAstBySchemaReturnType[number]
@@ -135,32 +138,32 @@ const argsColumns: ColumnsType<ArgColumnRecord> = [
   },
 ]
 
+const fieldsColumns: ColumnsType<NewFieldNodeType> = [
+  {
+    title: 'Name',
+    dataIndex: 'nameValue',
+    width: '35%',
+  },
+  {
+    title: 'Description',
+    dataIndex: 'description',
+    width: '25%',
+  },
+  {
+    title: 'Type',
+    dataIndex: 'type',
+    width: '20%',
+  },
+]
+
 const OperationDoc: FC<IProps> = ({ operationObj }) => {
-  const { isDisplaySidebar, setState, vscode, directive, typeDefs, localTypeDefs, workspaceGqlFileInfo } = useBearStore((ste) => ste)
+  const fieldNodeAstTreeTmp = resolveOperationDefsForFieldNodeTree(operationObj.operationDefNodeAst.selectionSet.selections[0] as NewFieldNodeType)
+  const [fieldNodeAstTree, setFieldNodeAstTree] = useState<NewFieldNodeType>(fieldNodeAstTreeTmp)
+
+  const { isDisplaySidebar, setState } = useBearStore((ste) => ste)
   const [mode, setMode] = useState<SwitchToggleEnum>(SwitchToggleEnum.TABLE)
   const [spinIcon, setSpinIcon] = useState(false)
-  const [operationDefsAstTree, setOperationDefsAstTree] = useState<OperationForFiledNodeAstType | null>(null)
   const [selectedKeys, setSelectedKeys] = useState<string[]>([])
-
-  const columnGen1 = useMemo(() => {
-    return [
-      {
-        title: 'Name',
-        dataIndex: 'nameValue',
-        width: '35%',
-      },
-      {
-        title: 'Description',
-        dataIndex: 'description',
-        width: '25%',
-      },
-      {
-        title: 'Type',
-        dataIndex: 'type',
-        width: '20%',
-      },
-    ]
-  }, [])
 
   const argsTreeData = useMemo(() => {
     return getArgsTreeData(operationObj?.args)
@@ -210,8 +213,8 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
   }, [])
 
   const dataSource = useMemo(() => {
-    return resolveOperationDefsTreeAstData(operationDefsAstTree?.selectionSet?.selections as OperationForFiledNodeAstType[])
-  }, [operationDefsAstTree?.selectionSet?.selections])
+    return resolveOperationDefsTreeAstData(fieldNodeAstTree?.selectionSet?.selections as OperationForFiledNodeAstType[])
+  }, [fieldNodeAstTree?.selectionSet?.selections])
 
   // useLayoutEffect(() => {
   //   let resultKeys = [] as string[]
@@ -249,7 +252,6 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
   // )
 
   // console.log(JSON.parse(JSON.stringify(operationDefNodeAst)), ' ast')
-  console.log(argsTreeData)
 
   return (
     <Space id={operationObj.operationDefNodeAst.name?.value} className={styles.operationDoc} direction="vertical">
@@ -356,9 +358,10 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
         )}
         <>
           <div>Response: </div>
-          {/* {operationDefsAstTree?.selectionSet?.selections && mode === SwitchToggleEnum.TABLE && (
+          {mode === SwitchToggleEnum.TABLE && (
             <Table
               size="small"
+              rowKey="fieldKey"
               rowSelection={{
                 selectedRowKeys: selectedKeys,
                 hideSelectAll: true,
@@ -370,24 +373,25 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
 
                 //   return originNode
                 // },
-                onSelect: (record, selected, selectedRows) => {
-                  const key = record.key
-                  const operationDefsAstTreeTmp = formatOperationDefAst(operationDefsAstTree!, selected, key)
+                onSelect: (record, selected) => {
+                  const key = record.fieldKey
+                  const fieldNodeAstTreeTmp = dependOnSelectedAndKeyFieldAst(fieldNodeAstTree, selected, key)
+                  console.log(fieldNodeAstTreeTmp)
 
-                  const keys = getOperationDefsAstKeys(operationDefsAstTreeTmp!)
-                  setSelectedKeys(keys)
+                  // const keys = getOperationDefsAstKeys(operationDefsAstTreeTmp!)
+                  // setSelectedKeys(keys)
                 },
               }}
-              columns={columnGen1}
+              columns={fieldsColumns}
               className={styles.table}
-              dataSource={dataSource}
+              dataSource={[fieldNodeAstTree]}
               pagination={false}
               defaultExpandAllRows
               bordered
               indentSize={21}
             />
           )}
-          {mode === SwitchToggleEnum.EDITOR && (
+          {/* {mode === SwitchToggleEnum.EDITOR && (
             <AceEditor
               theme="textmate"
               mode="javascript"
