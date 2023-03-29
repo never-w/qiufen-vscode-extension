@@ -28,7 +28,8 @@ import { defaultLocalTypeDefs } from '@/config/const'
 import { OperationNodesForFieldAstBySchemaReturnType } from '@/utils-copy/operations'
 import { NewFieldNodeType } from '@/utils-copy/interface'
 import { resolveOperationDefsForFieldNodeTree } from '@/utils-copy/resolveOperationDefsForFieldNodeTree'
-import { dependOnSelectedAndKeyFieldAst, getFieldNodeAstCheckedIsTrueKeys } from '@/utils-copy/dependOnSelectedAndKeyFieldAst'
+import { dependOnSelectedAndKeyFieldAst, dependOnWorkspaceFieldKeysToFieldAstTree, getFieldNodeAstCheckedIsTrueKeys } from '@/utils-copy/dependOnSelectedAndKeyFieldAst'
+import { getWorkspaceOperationsExistFieldKeys } from '@/utils-copy/workspaceOperationsAction'
 
 interface IProps {
   operationObj: OperationNodesForFieldAstBySchemaReturnType[number]
@@ -158,12 +159,11 @@ const fieldsColumns: ColumnsType<NewFieldNodeType> = [
 
 const OperationDoc: FC<IProps> = ({ operationObj }) => {
   const fieldNodeAstTreeTmp = resolveOperationDefsForFieldNodeTree(operationObj.operationDefNodeAst.selectionSet.selections[0] as NewFieldNodeType)
-  const [fieldNodeAstTree, setFieldNodeAstTree] = useState<NewFieldNodeType>(fieldNodeAstTreeTmp)
-
-  const { isDisplaySidebar, setState } = useBearStore((ste) => ste)
+  const { isDisplaySidebar, setState, workspaceGqlFileInfo } = useBearStore((ste) => ste)
   const [mode, setMode] = useState<SwitchToggleEnum>(SwitchToggleEnum.TABLE)
   const [spinIcon, setSpinIcon] = useState(false)
   const [selectedKeys, setSelectedKeys] = useState<string[]>([])
+  const [fieldNodeAstTree, setFieldNodeAstTree] = useState<NewFieldNodeType>(fieldNodeAstTreeTmp)
 
   const argsTreeData = useMemo(() => {
     return getArgsTreeData(operationObj?.args)
@@ -202,56 +202,33 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
     // }
   }, [])
 
-  const operationDefNodeAst = useMemo(() => {
-    return null
-    // return buildOperationNodeForField({
-    //   schema,
-    //   kind: operation.operationType,
-    //   field: operation.name,
-    // })
+  useLayoutEffect(() => {
+    let resultKeys = [] as string[]
+    const operationName = operationObj.operationDefNodeAst.name!.value
+    const filtrationWorkspaceGqlFileInfo = workspaceGqlFileInfo.filter((item) => item.operationNames.includes(operationName))
+
+    // 这个接口在工作区存在于多个文件夹，这种情况我不管它
+    if (filtrationWorkspaceGqlFileInfo?.length >= 2) {
+      resultKeys = []
+    } else if (filtrationWorkspaceGqlFileInfo?.length === 1) {
+      const operationDefinitionNodes = filtrationWorkspaceGqlFileInfo[0]?.operationsAsts as OperationDefinitionNode[]
+      let operationNameFieldNode: FieldNode | undefined
+      operationDefinitionNodes?.forEach((operationNode) => {
+        const sameOperationNameFieldNode = (operationNode.selectionSet.selections as FieldNode[])?.find((itm) => itm.name.value === operationName)
+        if (!!sameOperationNameFieldNode) {
+          operationNameFieldNode = sameOperationNameFieldNode
+        }
+      })
+      resultKeys = getWorkspaceOperationsExistFieldKeys(operationNameFieldNode)
+    }
+
+    const newFieldNodeAstTree = dependOnWorkspaceFieldKeysToFieldAstTree(JSON.parse(JSON.stringify(fieldNodeAstTreeTmp)), resultKeys)
+    const selectedKeysTmp = getFieldNodeAstCheckedIsTrueKeys(newFieldNodeAstTree)
+
+    setFieldNodeAstTree(newFieldNodeAstTree)
+    setSelectedKeys(selectedKeysTmp)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  const dataSource = useMemo(() => {
-    return resolveOperationDefsTreeAstData(fieldNodeAstTree?.selectionSet?.selections as OperationForFiledNodeAstType[])
-  }, [fieldNodeAstTree?.selectionSet?.selections])
-
-  // useLayoutEffect(() => {
-  //   let resultKeys = [] as string[]
-  //   const filtrationWorkspaceGqlFileInfo = workspaceGqlFileInfo.filter((item) => item.operationNames.includes(operation.name))
-  //   // 这个接口在工作区存在于多个文件夹，这种情况我不管它
-  //   if (filtrationWorkspaceGqlFileInfo?.length >= 2) {
-  //     resultKeys = []
-  //   } else if (filtrationWorkspaceGqlFileInfo?.length === 1) {
-  //     const operationDefinitionNodes = filtrationWorkspaceGqlFileInfo[0]?.operationsAsts as OperationDefinitionNode[]
-
-  //     let operationNameFieldNode: FieldNode | undefined
-  //     operationDefinitionNodes?.forEach((operationNode) => {
-  //       const sameOperationNameFieldNode = (operationNode.selectionSet.selections as FieldNode[])?.find((itm) => itm.name.value === operation.name)
-  //       if (!!sameOperationNameFieldNode) {
-  //         operationNameFieldNode = sameOperationNameFieldNode
-  //       }
-  //     })
-
-  //     visitDocumentNodeAstGetKeys(operationNameFieldNode, resultKeys)
-  //   }
-
-  //   const operationDefsAstTreeTmp = formatWorkspaceOperationDefsAst({
-  //     ast: JSON.parse(JSON.stringify(operationDefNodeAst)),
-  //     keys: resultKeys,
-  //   })
-  //   const keys = getOperationDefsAstKeys(operationDefsAstTreeTmp!)
-
-  //   setOperationDefsAstTree(operationDefsAstTreeTmp)
-  //   setSelectedKeys(keys)
-  // }, [operationDefNodeAst, workspaceGqlFileInfo])
-
-  // console.log(
-  //   schema.getQueryType()?.getFields()['search'],
-  //   // .?((i) => i.name === 'pageCostOrder'),
-  // )
-
-  // console.log(JSON.parse(JSON.stringify(operationDefNodeAst)), ' ast')
+  }, [workspaceGqlFileInfo])
 
   return (
     <Space id={operationObj.operationDefNodeAst.name?.value} className={styles.operationDoc} direction="vertical">
@@ -367,9 +344,9 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
                 hideSelectAll: true,
                 onSelect: (record, selected) => {
                   const key = record.fieldKey
-                  const fieldNodeAstTreeTmp = dependOnSelectedAndKeyFieldAst(fieldNodeAstTree, selected, key)
-                  const keys = getFieldNodeAstCheckedIsTrueKeys(fieldNodeAstTreeTmp)
-                  setFieldNodeAstTree(fieldNodeAstTreeTmp)
+                  const newFieldNodeAstTree = dependOnSelectedAndKeyFieldAst(fieldNodeAstTree, selected, key)
+                  const keys = getFieldNodeAstCheckedIsTrueKeys(newFieldNodeAstTree)
+                  setFieldNodeAstTree(newFieldNodeAstTree)
                   setSelectedKeys(keys)
                 },
               }}

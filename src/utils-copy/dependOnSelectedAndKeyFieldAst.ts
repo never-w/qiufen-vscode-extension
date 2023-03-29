@@ -47,3 +47,20 @@ export function getFieldNodeAstCheckedIsTrueKeys(ast: NewFieldNodeType, keys: st
 
   return keys
 }
+
+/**
+ * 根据本地存在的字段keys，格式化现在远程最新的接口对应的字段key上的checked为true
+ */
+export function dependOnWorkspaceFieldKeysToFieldAstTree(ast: NewFieldNodeType, selectedKeys: string[]) {
+  const newAst = { ...ast }
+
+  if (selectedKeys.includes(newAst.fieldKey)) {
+    newAst.checked = true
+  }
+
+  if (newAst?.children && selectedKeys.length) {
+    newAst.children = newAst.children.map((child) => dependOnWorkspaceFieldKeysToFieldAstTree(child, selectedKeys)) as NewFieldNodeType[]
+  }
+
+  return newAst
+}
