@@ -30,3 +30,20 @@ export function dependOnSelectedAndKeyFieldAst(ast: NewFieldNodeType, checked: b
 
   return newAst
 }
+
+/**
+ * 根据table ast tree 的 checked 是true的得到keys
+ */
+export function getFieldNodeAstCheckedIsTrueKeys(ast: NewFieldNodeType, keys: string[] = []) {
+  if (ast.checked) {
+    keys.push(ast.fieldKey)
+
+    if (ast?.children) {
+      ast.children.forEach((child) => {
+        getFieldNodeAstCheckedIsTrueKeys(child, keys)
+      })
+    }
+  }
+
+  return keys
+}

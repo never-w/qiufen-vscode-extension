@@ -28,7 +28,7 @@ import { defaultLocalTypeDefs } from '@/config/const'
 import { OperationNodesForFieldAstBySchemaReturnType } from '@/utils-copy/operations'
 import { NewFieldNodeType } from '@/utils-copy/interface'
 import { resolveOperationDefsForFieldNodeTree } from '@/utils-copy/resolveOperationDefsForFieldNodeTree'
-import { dependOnSelectedAndKeyFieldAst } from '@/utils-copy/dependOnSelectedAndKeyFieldAst'
+import { dependOnSelectedAndKeyFieldAst, getFieldNodeAstCheckedIsTrueKeys } from '@/utils-copy/dependOnSelectedAndKeyFieldAst'
 
 interface IProps {
   operationObj: OperationNodesForFieldAstBySchemaReturnType[number]
@@ -365,21 +365,12 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
               rowSelection={{
                 selectedRowKeys: selectedKeys,
                 hideSelectAll: true,
-                // renderCell: (checked, record, index, originNode) => {
-                //   // 干掉枚举类型的checked box
-                //   if (!!record?.defaultValue) {
-                //     return null
-                //   }
-
-                //   return originNode
-                // },
                 onSelect: (record, selected) => {
                   const key = record.fieldKey
                   const fieldNodeAstTreeTmp = dependOnSelectedAndKeyFieldAst(fieldNodeAstTree, selected, key)
-                  console.log(fieldNodeAstTreeTmp)
-
-                  // const keys = getOperationDefsAstKeys(operationDefsAstTreeTmp!)
-                  // setSelectedKeys(keys)
+                  const keys = getFieldNodeAstCheckedIsTrueKeys(fieldNodeAstTreeTmp)
+                  setFieldNodeAstTree(fieldNodeAstTreeTmp)
+                  setSelectedKeys(keys)
                 },
               }}
               columns={fieldsColumns}
