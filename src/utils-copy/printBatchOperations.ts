@@ -1,7 +1,7 @@
-import { print } from 'graphql'
+import { OperationDefinitionNode, print } from 'graphql'
 import { OperationDefinitionNodeGroupType } from './operations'
 
-export function printOneOperation(ast: OperationDefinitionNodeGroupType) {
+export function printOneOperation(ast: OperationDefinitionNodeGroupType | OperationDefinitionNode) {
   return print(ast)
 }
 

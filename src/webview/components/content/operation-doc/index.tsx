@@ -1,6 +1,6 @@
 import React, { useCallback, useLayoutEffect, useMemo, useState } from 'react'
 import type { FC } from 'react'
-import { ArgumentNode, buildSchema, ConstDirectiveNode, FieldNode, GraphQLSchema, OperationDefinitionNode, StringValueNode } from 'graphql'
+import { buildSchema, ConstDirectiveNode, FieldNode, GraphQLSchema, OperationDefinitionNode, StringValueNode } from 'graphql'
 import { message, Space, Table, Tooltip, Switch, Divider, Tag, Button } from 'antd'
 import type { ColumnsType } from 'antd/lib/table'
 import ReactDiffViewer, { DiffMethod } from 'react-diff-viewer'
@@ -9,14 +9,13 @@ import obj2str from 'stringify-object'
 import { CopyOutlined, LoadingOutlined, MenuFoldOutlined, EditOutlined } from '@ant-design/icons'
 import ClipboardJS from 'clipboard'
 import styles from './index.module.less'
-import { getOperationsBySchema } from '@/utils/operation'
+// import { getOperationsBySchema } from '@/utils/operation'
 import { printOperationStr, visitDocumentNodeAstGetKeys } from '@/utils/visitOperationTransformer'
 import type { ArgTypeDef } from '@fruits-chain/qiufen-helpers'
 import useBearStore from '@/webview/stores'
 import printOperationNodeForField from '@/utils/printOperationNodeForField'
 import { FetchDirectiveArg } from '@/utils/interface'
 import { fillOneKeyMessageSignSuccess, MessageEnum } from '@/config/postMessage'
-import { buildOperationNodeForField } from '@/utils/buildOperationNodeForField'
 import {
   formatOperationDefAst,
   formatWorkspaceOperationDefsAst,
@@ -30,6 +29,8 @@ import { NewFieldNodeType } from '@/utils-copy/interface'
 import { resolveOperationDefsForFieldNodeTree } from '@/utils-copy/resolveOperationDefsForFieldNodeTree'
 import { dependOnSelectedAndKeyFieldAst, dependOnWorkspaceFieldKeysToFieldAstTree, getFieldNodeAstCheckedIsTrueKeys } from '@/utils-copy/dependOnSelectedAndKeyFieldAst'
 import { getWorkspaceOperationsExistFieldKeys } from '@/utils-copy/workspaceOperationsAction'
+import { printOneOperation } from '@/utils-copy/printBatchOperations'
+import { buildOperationNodeForField } from '@/utils-copy/buildOperationNodeForField'
 
 interface IProps {
   operationObj: OperationNodesForFieldAstBySchemaReturnType[number]
@@ -158,8 +159,12 @@ const fieldsColumns: ColumnsType<NewFieldNodeType> = [
 ]
 
 const OperationDoc: FC<IProps> = ({ operationObj }) => {
+  const operationName = operationObj.operationDefNodeAst.name!.value
+  const operationType = operationObj.operationDefNodeAst.operation
+  // 远程得到的operation第一层的 selectionSet.selections 始终都只会存在数组长度为1，因为这是我转换schema对象转好operation ast函数里写的就是这样
   const fieldNodeAstTreeTmp = resolveOperationDefsForFieldNodeTree(operationObj.operationDefNodeAst.selectionSet.selections[0] as NewFieldNodeType)
-  const { isDisplaySidebar, setState, workspaceGqlFileInfo } = useBearStore((ste) => ste)
+
+  const { isDisplaySidebar, setState, workspaceGqlFileInfo, localTypeDefs } = useBearStore((ste) => ste)
   const [mode, setMode] = useState<SwitchToggleEnum>(SwitchToggleEnum.TABLE)
   const [spinIcon, setSpinIcon] = useState(false)
   const [selectedKeys, setSelectedKeys] = useState<string[]>([])
@@ -169,14 +174,37 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
     return getArgsTreeData(operationObj?.args)
   }, [operationObj?.args])
 
-  // const schema = useMemo(() => buildSchema(typeDefs), [typeDefs])
-  // let localSchema: GraphQLSchema | undefined
-  // try {
-  //   localSchema = buildSchema(localTypeDefs || defaultLocalTypeDefs)
-  // } catch (error) {
-  //   message.error(`${error}`)
-  // }
-  // const localOperation = getOperationsBySchema(localSchema!).find((operationItem) => operationItem.name === operation.name) || null
+  const workspaceSchema = useMemo(() => {
+    let localSchema: GraphQLSchema | undefined
+    try {
+      localSchema = buildSchema(localTypeDefs || defaultLocalTypeDefs)
+    } catch (error) {
+      message.error(`${error}`)
+    }
+
+    return localSchema!
+  }, [localTypeDefs])
+
+  const workspaceOperationStr = useMemo(() => {
+    let operation
+    try {
+      operation = printOneOperation(
+        buildOperationNodeForField({
+          schema: workspaceSchema,
+          kind: operationObj?.operationDefNodeAst?.operation,
+          field: operationObj?.operationDefNodeAst?.name!.value,
+        }),
+      )
+    } catch {
+      operation = 'null...'
+    }
+
+    return operation
+  }, [operationObj?.operationDefNodeAst?.name, operationObj?.operationDefNodeAst?.operation, workspaceSchema])
+
+  const remoteOperationStr = useMemo(() => {
+    return printOneOperation(operationObj.operationDefNodeAst)
+  }, [operationObj.operationDefNodeAst])
 
   // 一键填入事件
   const handleOneKeyFillEvent = useCallback(() => {
@@ -222,7 +250,7 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
       resultKeys = getWorkspaceOperationsExistFieldKeys(operationNameFieldNode)
     }
 
-    const newFieldNodeAstTree = dependOnWorkspaceFieldKeysToFieldAstTree(JSON.parse(JSON.stringify(fieldNodeAstTreeTmp)), resultKeys)
+    const newFieldNodeAstTree = dependOnWorkspaceFieldKeysToFieldAstTree(fieldNodeAstTreeTmp, resultKeys)
     const selectedKeysTmp = getFieldNodeAstCheckedIsTrueKeys(newFieldNodeAstTree)
 
     setFieldNodeAstTree(newFieldNodeAstTree)
@@ -231,16 +259,16 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
   }, [workspaceGqlFileInfo])
 
   return (
-    <Space id={operationObj.operationDefNodeAst.name?.value} className={styles.operationDoc} direction="vertical">
+    <Space id={operationName} className={styles.operationDoc} direction="vertical">
       <div className={styles.name}>
         <Space size={40}>
           <span>
             Operation name:
-            <span className={styles.operationName}>{` ${operationObj.operationDefNodeAst.name?.value}`}</span>
+            <span className={styles.operationName}>{` ${operationName}`}</span>
           </span>
           <span>
             Operation type:
-            <span className={styles.operationName}>{` ${operationObj.operationDefNodeAst.operation}`}</span>
+            <span className={styles.operationName}>{` ${operationType}`}</span>
           </span>
         </Space>
         <Space size={50}>
@@ -315,8 +343,8 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
             {mode === SwitchToggleEnum.TABLE && (
               <Table size="small" indentSize={21} columns={argsColumns} defaultExpandAllRows className={styles.table} dataSource={argsTreeData} pagination={false} bordered />
             )}
-            {/* {mode === SwitchToggleEnum.EDITOR && <AceEditor theme="tomorrow" mode="javascript" width="100%" readOnly maxLines={Infinity} value={obj2str(operation.argsExample)} />}
-            {mode === SwitchToggleEnum.DIFF && (
+            {/* {mode === SwitchToggleEnum.EDITOR && <AceEditor theme="tomorrow" mode="javascript" width="100%" readOnly maxLines={Infinity} value={obj2str(operationObj.args)} />} */}
+            {/* {mode === SwitchToggleEnum.DIFF && (
               <ReactDiffViewer
                 oldValue={localOperation ? obj2str(localOperation.argsExample) : 'nothings...'}
                 newValue={obj2str(operation.argsExample)}
@@ -359,7 +387,7 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
               indentSize={21}
             />
           )}
-          {/* {mode === SwitchToggleEnum.EDITOR && (
+          {mode === SwitchToggleEnum.EDITOR && (
             <AceEditor
               theme="textmate"
               mode="javascript"
@@ -368,13 +396,9 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
               showPrintMargin={true}
               showGutter={true}
               highlightActiveLine={true}
-              name={`${operation.name}_${operation.operationType}`}
+              name={`${operationName}_${operationType}`}
               maxLines={Infinity}
-              value={printOperationNodeForField({
-                schema,
-                kind: operation.operationType,
-                field: operation.name,
-              })}
+              value={remoteOperationStr}
               setOptions={{
                 theme: 'textmate',
                 enableBasicAutocompletion: true,
@@ -387,20 +411,8 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
           )}
           {mode === SwitchToggleEnum.DIFF && (
             <ReactDiffViewer
-              oldValue={
-                localOperation
-                  ? printOperationNodeForField({
-                      schema: localSchema!,
-                      kind: localOperation.operationType,
-                      field: localOperation.name,
-                    })
-                  : 'nothings...'
-              }
-              newValue={printOperationNodeForField({
-                schema,
-                kind: operation.operationType,
-                field: operation.name,
-              })}
+              oldValue={workspaceOperationStr}
+              newValue={remoteOperationStr}
               splitView={true}
               compareMethod={DiffMethod.SENTENCES}
               showDiffOnly={false}
@@ -411,7 +423,7 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
                 return <div className={styles.diff_viewer_div}>{codeStr}</div>
               }}
             />
-          )} */}
+          )}
         </>
       </>
     </Space>
