@@ -167,7 +167,7 @@ function buildOperationAndCollectVariables({
           field,
           models,
           firstCall: true,
-          path: [],
+          path: [field.name],
           ancestors: [],
           ignore,
           depthLimit,
@@ -351,8 +351,6 @@ function resolveSelectionSet({
     // 将继承的字段覆盖自身的字段，这样是
     const tmpFields = { ...fields, ..._interfacesFields }
 
-    console.log(path, ' {}')
-
     return {
       kind: Kind.SELECTION_SET,
       selections: Object.keys(tmpFields)
@@ -368,7 +366,6 @@ function resolveSelectionSet({
               type,
               field: tmpFields[fieldName],
               models,
-              // TODO: zheli 有问题 path
               path: [...path, fieldName],
               ancestors,
               ignore,
@@ -384,6 +381,7 @@ function resolveSelectionSet({
           return null
         })
         .filter((f): f is SelectionNode => {
+          // eslint-disable-next-line eqeqeq
           if (f == null) {
             return false
           } else if ('selectionSet' in f) {
@@ -474,7 +472,7 @@ function resolveField({
   rootTypeNames: Set<string>
 }): SelectionNode {
   let fieldKey = ''
-  if (!path.length) {
+  if (path.length === 1) {
     fieldKey = field.name
   } else {
     fieldKey = path.join('')
@@ -522,11 +520,8 @@ function resolveField({
     return null as any
   }
 
-  console.log(path)
-  console.log(field.name, '   ===field.name')
-  console.log(fieldKey, '   key', '\n\n')
-
   const fieldPath = [...path, field.name]
+
   const fieldPathStr = fieldPath.join('.')
   let fieldName = field.name
   if (fieldTypeMap.has(fieldPathStr) && fieldTypeMap.get(fieldPathStr) !== field.type.toString()) {
@@ -554,7 +549,8 @@ function resolveField({
           type: namedType,
           models,
           firstCall,
-          path: fieldPath,
+          // 这里源码是有bug的，我已经修复，原来是这样 path: fieldPath，这样就导致path路径有的对象字段会重复出现多一次在path数组里面
+          path,
           ancestors: [...ancestors, type],
           ignore,
           depthLimit,
