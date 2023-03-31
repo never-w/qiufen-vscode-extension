@@ -493,7 +493,8 @@ function resolveField({
   if (field.args && field.args.length) {
     args = field.args
       .map<ArgumentNode>((arg) => {
-        const argumentName = getArgumentName(arg.name, path)
+        // TODO 这里是我做了更改，所以需要控制判断一下
+        const argumentName = getArgumentName(arg.name, path.length === 1 ? [] : path)
         if (argNames && !argNames.includes(argumentName)) {
           if (isNonNullType(arg.type)) {
             removeField = true
@@ -514,7 +515,7 @@ function resolveField({
             kind: Kind.VARIABLE,
             name: {
               kind: Kind.NAME,
-              value: getArgumentName(arg.name, path),
+              value: getArgumentName(arg.name, path.length === 1 ? [] : path),
             },
           },
         }
