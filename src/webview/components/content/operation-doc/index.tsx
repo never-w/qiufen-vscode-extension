@@ -24,7 +24,7 @@ import {
   resolveOperationDefsTreeAstData,
 } from '@/utils/formatOperationDefAst'
 import { defaultLocalTypeDefs } from '@/config/const'
-import { genArgsExample, NewOperationDefinitionNode, OperationNodesForFieldAstBySchemaReturnType } from '@/utils-copy/operations'
+import { genArgsExample, OperationDefinitionNodeGroupType, OperationNodesForFieldAstBySchemaReturnType } from '@/utils-copy/operations'
 import { NewFieldNodeType } from '@/utils-copy/interface'
 import { resolveOperationDefsForFieldNodeTree } from '@/utils-copy/resolveOperationDefsForFieldNodeTree'
 import { dependOnSelectedAndKeyFieldAst, dependOnWorkspaceFieldKeysToFieldAstTree, getFieldNodeAstCheckedIsTrueKeys } from '@/utils-copy/dependOnSelectedAndKeyFieldAst'
@@ -159,13 +159,13 @@ const fieldsColumns: ColumnsType<NewFieldNodeType> = [
 ]
 
 const OperationDoc: FC<IProps> = ({ operationObj }) => {
-  const operationDefNode = operationObj.operationDefNodeAst as NewOperationDefinitionNode
+  const operationDefNode = operationObj.operationDefNodeAst
   const operationName = operationDefNode.name!.value
   const operationType = operationDefNode.operation
   // 远程得到的operation第一层的 selectionSet.selections 始终都只会存在数组长度为1，因为这是我转换schema对象转好operation ast函数里写的就是这样
   const fieldNodeAstTreeTmp = resolveOperationDefsForFieldNodeTree(operationDefNode.selectionSet.selections[0] as NewFieldNodeType)
 
-  const { isDisplaySidebar, setState, workspaceGqlFileInfo, localTypeDefs } = useBearStore((ste) => ste)
+  const { isDisplaySidebar, setState, workspaceGqlFileInfo, localTypeDefs, vscode, typeDefs } = useBearStore((ste) => ste)
   const [mode, setMode] = useState<SwitchToggleEnum>(SwitchToggleEnum.TABLE)
   const [spinIcon, setSpinIcon] = useState(false)
   const [selectedKeys, setSelectedKeys] = useState<string[]>([])
@@ -208,13 +208,13 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
   }, [operationDefNode])
 
   const workspaceOperationArgsStr = useMemo(() => {
-    let workspaceOperationDefAst
+    let workspaceOperationDefAst: OperationDefinitionNodeGroupType | undefined
     try {
       workspaceOperationDefAst = buildOperationNodeForField({
         schema: workspaceSchema,
         kind: operationObj?.operationDefNodeAst?.operation,
         field: operationObj?.operationDefNodeAst?.name!.value,
-      }) as NewOperationDefinitionNode
+      })
     } catch {
       workspaceOperationDefAst = undefined
     }
@@ -228,27 +228,27 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
 
   // 一键填入事件
   const handleOneKeyFillEvent = useCallback(() => {
-    // setSpinIcon(true)
-    // // 向插件发送信息
-    // vscode.postMessage({
-    //   typeDefs,
-    //   type: MessageEnum.ONE_KEY_FILL,
-    //   gqlStr: printOperationStr(operationDefsAstTree!),
-    //   gqlName: operation.name,
-    //   gqlType: operation.operationType,
-    // })
-    // // 接受插件发送过来的信息
-    // window.addEventListener('message', listener)
-    // function listener(evt: any) {
-    //   const data = evt.data as string
-    //   if (data === fillOneKeyMessageSignSuccess) {
-    //     message.success('一键填入成功')
-    //     setSpinIcon(false)
-    //   }
-    //   setSpinIcon(false)
-    //   window.removeEventListener('message', listener)
-    // }
-  }, [])
+    setSpinIcon(true)
+    // 向插件发送信息
+    vscode.postMessage({
+      typeDefs,
+      type: MessageEnum.ONE_KEY_FILL,
+      gqlStr: printOneOperation(operationDefNode),
+      gqlName: operationName,
+      gqlType: operationType,
+    })
+    // 接受插件发送过来的信息
+    window.addEventListener('message', listener)
+    function listener(evt: any) {
+      const data = evt.data as string
+      if (data === fillOneKeyMessageSignSuccess) {
+        message.success('一键填入成功')
+        setSpinIcon(false)
+      }
+      setSpinIcon(false)
+      window.removeEventListener('message', listener)
+    }
+  }, [operationDefNode, operationName, operationType, typeDefs, vscode])
 
   useLayoutEffect(() => {
     let resultKeys = [] as string[]

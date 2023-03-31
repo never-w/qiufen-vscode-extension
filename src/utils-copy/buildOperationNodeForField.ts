@@ -28,7 +28,7 @@ import {
   Kind,
 } from 'graphql'
 import { getFieldNodeType } from './getFieldNodeType'
-import { normalizeGraphqlField } from './operations'
+import { normalizeGraphqlField, OperationDefinitionNodeGroupType } from './operations'
 // import { capitalizeFirstLetter } from "./dealWordFirstLetter"
 
 import { getDefinedRootType, getRootTypeNames } from './rootTypes'
@@ -136,7 +136,7 @@ function buildOperationAndCollectVariables({
   argNames?: string[]
   selectedFields: SelectedFields
   rootTypeNames: Set<string>
-}): OperationDefinitionNode {
+}): OperationDefinitionNodeGroupType {
   /** root Query GraphQLObjectType */
   const type = getDefinedRootType(schema, kind)
 
@@ -186,7 +186,7 @@ function buildOperationAndCollectVariables({
         }),
       ],
     },
-  } as OperationDefinitionNode
+  } as unknown as OperationDefinitionNodeGroupType
 }
 
 function resolveSelectionSet({

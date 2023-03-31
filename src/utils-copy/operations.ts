@@ -11,11 +11,9 @@ export type OperationDefsAstArgsType = {
   directives: readonly ConstDirectiveNode[] | undefined
   type: InputType
 }
-
-export type NewOperationDefinitionNode = OperationDefinitionNode & {
-  args: OperationDefsAstArgsType[]
-}
+export type OperationDefinitionNodeGroupType = OperationDefinitionNode & { operationDefinitionDescription: string; args: OperationDefsAstArgsType[] }
 export type OperationNodesForFieldAstBySchemaReturnType = ReturnType<typeof getOperationNodesForFieldAstBySchema>
+
 export function getOperationNodesForFieldAstBySchema(schema: GraphQLSchema) {
   return [
     ...Object.values(schema.getQueryType()?.getFields() || {}).map((operationField) => {
@@ -55,7 +53,6 @@ export function getOperationNodesForFieldAstBySchema(schema: GraphQLSchema) {
  * grouping logic
  * @param operation - the operation need to be grouped
  */
-export type OperationDefinitionNodeGroupType = OperationDefinitionNode & { operationDefinitionDescription: string }
 const _groupBy: GroupByFn = (operation: OperationDefinitionNodeGroupType) => {
   const [groupName, description] = operation.operationDefinitionDescription?.includes(':')
     ? operation.operationDefinitionDescription.split(/[:]\s*/)
