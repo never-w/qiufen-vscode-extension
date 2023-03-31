@@ -1,4 +1,4 @@
-import type { GraphQLArgument, GraphQLEnumValue, GraphQLField, OperationTypeNode, ConstDirectiveNode } from 'graphql'
+import type { GraphQLArgument, GraphQLEnumValue, GraphQLField, OperationTypeNode, ConstDirectiveNode, FieldNode } from 'graphql'
 
 export interface BaseTypeDef {
   name: string
@@ -59,4 +59,13 @@ export type ScalarMap = Record<string, unknown>
 export enum FetchDirectiveArg {
   LOADER = 'loader',
   FETCH = 'fetch',
+}
+
+export type NewFieldNodeType = FieldNode & {
+  fieldKey: string
+  checked: boolean
+  nameValue: string
+  description: string
+  type: string
+  children?: NewFieldNodeType[]
 }

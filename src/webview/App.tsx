@@ -5,7 +5,7 @@ import DocSidebar from '@/webview/components/side-bar/index'
 import useBearStore from './stores'
 import Content from './components/content'
 import { buildSchema } from 'graphql'
-import { getOperationNodesForFieldAstBySchema, OperationNodesForFieldAstBySchemaReturnType } from '@/utils-copy/operations'
+import { getOperationNodesForFieldAstBySchema, OperationNodesForFieldAstBySchemaReturnType } from '@/utils/operations'
 
 interface IProps {}
 

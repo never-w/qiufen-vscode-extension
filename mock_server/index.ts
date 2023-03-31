@@ -9,7 +9,7 @@ import express from 'express'
 import path from 'path'
 import fetchRemoteSchemaTypeDefs from '@/utils/fetchRemoteSchemaTypeDefs'
 import { buildSchema } from 'graphql'
-import { getOperationsBySchema } from '../src/utils/operation'
+import { getOperationsBySchema } from '@fruits-chain/qiufen-helpers'
 
 export async function startServer(config: GraphqlKitConfig) {
   const { endpoint, port, mock } = config

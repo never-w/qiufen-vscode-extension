@@ -14,14 +14,14 @@ import useBearStore from '@/webview/stores'
 import { fillOneKeyMessageSignSuccess, MessageEnum } from '@/config/postMessage'
 
 import { defaultLocalTypeDefs } from '@/config/const'
-import { genArgsExample, OperationDefinitionNodeGroupType, OperationNodesForFieldAstBySchemaReturnType } from '@/utils-copy/operations'
-import { NewFieldNodeType } from '@/utils-copy/interface'
-import { resolveOperationDefsForFieldNodeTree } from '@/utils-copy/resolveOperationDefsForFieldNodeTree'
-import { dependOnSelectedAndKeyFieldAst, dependOnWorkspaceFieldKeysToFieldAstTree, getFieldNodeAstCheckedIsTrueKeys } from '@/utils-copy/dependOnSelectedAndKeyFieldAst'
-import { getWorkspaceOperationsExistFieldKeys } from '@/utils-copy/workspaceOperationsAction'
-import { printOneOperation } from '@/utils-copy/printBatchOperations'
-import { buildOperationNodeForField } from '@/utils-copy/buildOperationNodeForField'
-import { relyOnKeysPrintOperation } from '@/utils-copy/relyOnKeysPrintOperation'
+import { genArgsExample, OperationDefinitionNodeGroupType, OperationNodesForFieldAstBySchemaReturnType } from '@/utils/operations'
+import { NewFieldNodeType } from '@/utils/interface'
+import { resolveOperationDefsForFieldNodeTree } from '@/utils/resolveOperationDefsForFieldNodeTree'
+import { dependOnSelectedAndKeyFieldAst, dependOnWorkspaceFieldKeysToFieldAstTree, getFieldNodeAstCheckedIsTrueKeys } from '@/utils/dependOnSelectedAndKeyFieldAst'
+import { getWorkspaceOperationsExistFieldKeys } from '@/utils/workspaceOperationsAction'
+import { printOneOperation } from '@/utils/printBatchOperations'
+import { buildOperationNodeForField } from '@/utils/buildOperationNodeForField'
+import { relyOnKeysPrintOperation } from '@/utils/relyOnKeysPrintOperation'
 
 interface IProps {
   operationObj: OperationNodesForFieldAstBySchemaReturnType[number]

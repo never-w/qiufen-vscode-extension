@@ -28,6 +28,7 @@ import {
   Kind,
 } from 'graphql'
 import { getFieldNodeType } from './getFieldNodeType'
+import { normalizeGraphqlField, OperationDefinitionNodeGroupType } from './operations'
 // import { capitalizeFirstLetter } from "./dealWordFirstLetter"
 
 import { getDefinedRootType, getRootTypeNames } from './rootTypes'
@@ -101,6 +102,11 @@ export function buildOperationNodeForField({
   // attach variables
   ;(operationNode as any).variableDefinitions = [...operationVariables]
 
+  const type = getDefinedRootType(schema, kind)
+  const operationField = type.getFields()[field]
+
+  ;(operationNode as any).args = normalizeGraphqlField(operationField)
+
   resetOperationVariables()
   resetFieldMap()
 
@@ -130,7 +136,7 @@ function buildOperationAndCollectVariables({
   argNames?: string[]
   selectedFields: SelectedFields
   rootTypeNames: Set<string>
-}): OperationDefinitionNode {
+}): OperationDefinitionNodeGroupType {
   /** root Query GraphQLObjectType */
   const type = getDefinedRootType(schema, kind)
 
@@ -167,7 +173,7 @@ function buildOperationAndCollectVariables({
           field,
           models,
           firstCall: true,
-          path: [],
+          path: [field.name],
           ancestors: [],
           ignore,
           depthLimit,
@@ -180,7 +186,7 @@ function buildOperationAndCollectVariables({
         }),
       ],
     },
-  } as OperationDefinitionNode
+  } as unknown as OperationDefinitionNodeGroupType
 }
 
 function resolveSelectionSet({
@@ -214,9 +220,12 @@ function resolveSelectionSet({
   argNames?: string[]
   rootTypeNames: Set<string>
 }): SelectionSetNode | void {
+  const prefix = path.join('')
+
   if (typeof selectedFields === 'boolean' && depth > depthLimit) {
     return
   }
+
   if (isUnionType(type)) {
     const types = type.getTypes()
 
@@ -230,6 +239,8 @@ function resolveSelectionSet({
             }),
         )
         .map<InlineFragmentNode>((t) => {
+          path.push(t.name)
+
           return {
             kind: Kind.INLINE_FRAGMENT,
             typeCondition: {
@@ -239,6 +250,8 @@ function resolveSelectionSet({
                 value: t.name,
               },
             },
+            checked: false,
+            fieldKey: prefix + t.name,
             nameValue: t.name,
             description: t.description,
             selectionSet: resolveSelectionSet({
@@ -275,6 +288,8 @@ function resolveSelectionSet({
             }),
         )
         .map<InlineFragmentNode>((t) => {
+          path.push(t.name)
+
           return {
             kind: Kind.INLINE_FRAGMENT,
             typeCondition: {
@@ -284,6 +299,8 @@ function resolveSelectionSet({
                 value: t.name,
               },
             },
+            checked: false,
+            fieldKey: prefix + t.name,
             nameValue: t.name,
             description: t.description,
             selectionSet: resolveSelectionSet({
@@ -370,6 +387,7 @@ function resolveSelectionSet({
           return null
         })
         .filter((f): f is SelectionNode => {
+          // eslint-disable-next-line eqeqeq
           if (f == null) {
             return false
           } else if ('selectionSet' in f) {
@@ -459,6 +477,13 @@ function resolveField({
   argNames?: string[]
   rootTypeNames: Set<string>
 }): SelectionNode {
+  let fieldKey = ''
+  if (path.length === 1) {
+    fieldKey = field.name
+  } else {
+    fieldKey = path.join('')
+  }
+
   // "field.type"是operation的返回类型
   const namedType = getNamedType(field.type)
 
@@ -502,6 +527,7 @@ function resolveField({
   }
 
   const fieldPath = [...path, field.name]
+
   const fieldPathStr = fieldPath.join('.')
   let fieldName = field.name
   if (fieldTypeMap.has(fieldPathStr) && fieldTypeMap.get(fieldPathStr) !== field.type.toString()) {
@@ -516,6 +542,8 @@ function resolveField({
         kind: Kind.NAME,
         value: field.name,
       },
+      checked: false,
+      fieldKey,
       nameValue: field.name,
       type: getFieldNodeType(field),
       description: field.description,
@@ -527,7 +555,8 @@ function resolveField({
           type: namedType,
           models,
           firstCall,
-          path: fieldPath,
+          // 这里源码是有bug的，我已经修复，原来是这样 path: fieldPath，这样就导致path路径有的对象字段会重复出现多一次在path数组里面
+          path,
           ancestors: [...ancestors, type],
           ignore,
           depthLimit,
@@ -549,6 +578,8 @@ function resolveField({
         kind: Kind.NAME,
         value: field.name,
       },
+      checked: false,
+      fieldKey,
       nameValue: field.name,
       type: getFieldNodeType(field),
       description: field.description,
@@ -565,6 +596,8 @@ function resolveField({
       kind: Kind.NAME,
       value: field.name,
     },
+    checked: false,
+    fieldKey,
     nameValue: field.name,
     type: getFieldNodeType(field),
     description: field.description,

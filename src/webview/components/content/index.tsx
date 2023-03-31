@@ -1,7 +1,7 @@
 import React, { memo, useMemo } from 'react'
 import OperationDoc from './operation-doc'
 import type { FC } from 'react'
-import { OperationNodesForFieldAstBySchemaReturnType } from '@/utils-copy/operations'
+import { OperationNodesForFieldAstBySchemaReturnType } from '@/utils/operations'
 
 interface IProps {
   operationObj: OperationNodesForFieldAstBySchemaReturnType[number]

@@ -9,9 +9,9 @@ import type { CollapseProps } from 'antd'
 import type { TypedOperation } from '@fruits-chain/qiufen-helpers'
 import type { FC } from 'react'
 import useBearStore from '@/webview/stores'
-import { groupOperations as groupOperationsCopy, OperationDefinitionNodeGroupType, OperationNodesForFieldAstBySchemaReturnType } from '@/utils-copy/operations'
-import { printBatchOperations } from '@/utils-copy/printBatchOperations'
-import { NewFieldNodeType } from '@/utils-copy/interface'
+import { groupOperations as groupOperationsCopy, OperationDefinitionNodeGroupType, OperationNodesForFieldAstBySchemaReturnType } from '@/utils/operations'
+import { printBatchOperations } from '@/utils/printBatchOperations'
+import { NewFieldNodeType } from '@/utils/interface'
 
 const copy = (selector: string) => {
   const clipboard = new ClipboardJS(selector)
