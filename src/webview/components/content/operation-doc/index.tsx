@@ -1,6 +1,6 @@
 import React, { useCallback, useLayoutEffect, useMemo, useState } from 'react'
 import type { FC } from 'react'
-import { buildSchema, ConstDirectiveNode, FieldNode, GraphQLSchema, OperationDefinitionNode, StringValueNode } from 'graphql'
+import { buildSchema, ConstDirectiveNode, FieldNode, GraphQLSchema, OperationDefinitionNode } from 'graphql'
 import { message, Space, Table, Tooltip, Switch, Divider, Tag, Button } from 'antd'
 import type { ColumnsType } from 'antd/lib/table'
 import ReactDiffViewer, { DiffMethod } from 'react-diff-viewer'
@@ -9,20 +9,10 @@ import obj2str from 'stringify-object'
 import { CopyOutlined, LoadingOutlined, MenuFoldOutlined, EditOutlined } from '@ant-design/icons'
 import ClipboardJS from 'clipboard'
 import styles from './index.module.less'
-// import { getOperationsBySchema } from '@/utils/operation'
-import { printOperationStr, visitDocumentNodeAstGetKeys } from '@/utils/visitOperationTransformer'
 import type { ArgTypeDef } from '@fruits-chain/qiufen-helpers'
 import useBearStore from '@/webview/stores'
-import printOperationNodeForField from '@/utils/printOperationNodeForField'
-import { FetchDirectiveArg } from '@/utils/interface'
 import { fillOneKeyMessageSignSuccess, MessageEnum } from '@/config/postMessage'
-import {
-  formatOperationDefAst,
-  formatWorkspaceOperationDefsAst,
-  getOperationDefsAstKeys,
-  OperationForFiledNodeAstType,
-  resolveOperationDefsTreeAstData,
-} from '@/utils/formatOperationDefAst'
+
 import { defaultLocalTypeDefs } from '@/config/const'
 import { genArgsExample, OperationDefinitionNodeGroupType, OperationNodesForFieldAstBySchemaReturnType } from '@/utils-copy/operations'
 import { NewFieldNodeType } from '@/utils-copy/interface'
@@ -31,6 +21,7 @@ import { dependOnSelectedAndKeyFieldAst, dependOnWorkspaceFieldKeysToFieldAstTre
 import { getWorkspaceOperationsExistFieldKeys } from '@/utils-copy/workspaceOperationsAction'
 import { printOneOperation } from '@/utils-copy/printBatchOperations'
 import { buildOperationNodeForField } from '@/utils-copy/buildOperationNodeForField'
+import { relyOnKeysPrintOperation } from '@/utils-copy/relyOnKeysPrintOperation'
 
 interface IProps {
   operationObj: OperationNodesForFieldAstBySchemaReturnType[number]
@@ -86,7 +77,7 @@ const getArgsTreeData = (args: ArgTypeDef[], keyPrefix = '') => {
   return result
 }
 
-export const copy = (selector: string) => {
+const copy = (selector: string) => {
   const clipboard = new ClipboardJS(selector)
   clipboard.on('success', () => {
     message.success('success')
@@ -227,28 +218,56 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
   }, [operationDefNode.args])
 
   // 一键填入事件
-  const handleOneKeyFillEvent = useCallback(() => {
-    setSpinIcon(true)
-    // 向插件发送信息
-    vscode.postMessage({
-      typeDefs,
-      type: MessageEnum.ONE_KEY_FILL,
-      gqlStr: printOneOperation(operationDefNode),
-      gqlName: operationName,
-      gqlType: operationType,
-    })
-    // 接受插件发送过来的信息
-    window.addEventListener('message', listener)
-    function listener(evt: any) {
-      const data = evt.data as string
-      if (data === fillOneKeyMessageSignSuccess) {
-        message.success('一键填入成功')
+  const handleOneKeyFillEvent = useCallback(async () => {
+    try {
+      const operationStr = await relyOnKeysPrintOperation(operationDefNode, selectedKeys)
+      setSpinIcon(true)
+      // 向插件发送信息
+      vscode.postMessage({
+        typeDefs,
+        type: MessageEnum.ONE_KEY_FILL,
+        gqlStr: operationStr,
+        gqlName: operationName,
+        gqlType: operationType,
+      })
+      // 接受插件发送过来的信息
+      window.addEventListener('message', listener)
+      function listener(evt: any) {
+        const data = evt.data as string
+        if (data === fillOneKeyMessageSignSuccess) {
+          message.success('一键填入成功')
+          setSpinIcon(false)
+        }
         setSpinIcon(false)
+        window.removeEventListener('message', listener)
       }
+    } catch (error) {
       setSpinIcon(false)
-      window.removeEventListener('message', listener)
+      message.error(error)
     }
-  }, [operationDefNode, operationName, operationType, typeDefs, vscode])
+  }, [operationDefNode, operationName, operationType, selectedKeys, typeDefs, vscode])
+
+  // 点击copy事件，这样创建元素骚操作是为了提高性能
+  const handleCopyClick = useCallback(async () => {
+    try {
+      const operationStr = await relyOnKeysPrintOperation(operationDefNode, selectedKeys)
+      function copyClick() {
+        copy('#copydiv')
+      }
+      const newElement = document.createElement('div')
+      newElement.id = 'copydiv'
+      newElement.setAttribute('data-clipboard-text', operationStr)
+      newElement.innerHTML = ''
+      newElement.addEventListener('click', copyClick)
+      newElement.style.display = 'none'
+      document.body.appendChild(newElement)
+      newElement.click()
+      newElement.removeEventListener('click', copyClick)
+      newElement.remove()
+    } catch (error) {
+      message.error(error)
+    }
+  }, [operationDefNode, selectedKeys])
 
   useLayoutEffect(() => {
     let resultKeys = [] as string[]
@@ -311,14 +330,7 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
             </Space>
           </Tooltip>
           <Tooltip title="Copy GQL">
-            <Space
-              id="copy"
-              // data-clipboard-text={printOperationStr(operationDefsAstTree!)}
-              className={styles.copyBtn}
-              onClick={() => {
-                copy('#copy')
-              }}
-            >
+            <Space className={styles.copyBtn} onClick={handleCopyClick}>
               <CopyOutlined />
               <span className={styles.text}>Copy GQL</span>
             </Space>
