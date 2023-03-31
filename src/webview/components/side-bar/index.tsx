@@ -11,8 +11,9 @@ import type { FC } from 'react'
 import useBearStore from '@/webview/stores'
 import { groupOperations as groupOperationsCopy, OperationDefinitionNodeGroupType, OperationNodesForFieldAstBySchemaReturnType } from '@/utils-copy/operations'
 import { printBatchOperations } from '@/utils-copy/printBatchOperations'
+import { NewFieldNodeType } from '@/utils-copy/interface'
 
-export const copy = (selector: string) => {
+const copy = (selector: string) => {
   const clipboard = new ClipboardJS(selector)
   clipboard.on('success', () => {
     message.success('success')
@@ -55,7 +56,7 @@ const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, onSel
 
   const groupedOperations = useMemo(() => {
     const operationList = operationsDefNodeObjList.map((val) => val.operationDefNodeAst)
-    return groupOperationsCopy(operationList as OperationDefinitionNodeGroupType[])
+    return groupOperationsCopy(operationList)
   }, [operationsDefNodeObjList])
 
   const [activeKey, setActiveKey] = useState([''])
@@ -98,17 +99,18 @@ const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, onSel
           return null
         }
 
+        // 这里是将不合法的字符串转为合法使用的 html id
+        const id = groupName.replace(/[.\s]+/g, '_')
         return (
           <Collapse.Panel key={groupName} header={groupName} className={activeKey.includes(groupName) ? styles.collapse_active : ''}>
             <div className={styles.operationList}>
               <Tooltip title="Copy GQL">
                 <CopyOutlined
-                  id={groupName}
+                  id={id}
                   data-clipboard-text={printBatchOperations(operationList)}
                   className={styles.copyBtn}
                   onClick={() => {
-                    // TODO: 处理id有空格的bug eg. v2.8 次品销售
-                    copy(`#${groupName}`)
+                    copy(`#${id}`)
                   }}
                 />
               </Tooltip>
@@ -156,7 +158,11 @@ const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, onSel
               // search by name
               pattern.test(item.name!.value) ||
               // search by description
-              pattern.test(item.operationDefinitionDescription || '')
+              pattern.test(item.operationDefinitionDescription || '') ||
+              // search by arg type
+              item.args.some((arg) => pattern.test(arg.type.name)) ||
+              // search by return type
+              pattern.test((item.selectionSet.selections[0] as NewFieldNodeType).type)
             )
           })
         }
@@ -165,16 +171,18 @@ const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, onSel
           return null
         }
 
+        // 这里是将不合法的字符串转为合法使用的 html id
+        const id = groupName.replace(/[.\s]+/g, '_')
         return (
           <Collapse.Panel key={groupName} header={groupName} className={activeKey.includes(groupName) ? styles.collapse_active : ''}>
             <div className={styles.operationList}>
               <Tooltip title="Copy GQL">
                 <CopyOutlined
-                  id={groupName}
+                  id={id}
                   data-clipboard-text={printBatchOperations(operationList)}
                   className={styles.copyBtn}
                   onClick={() => {
-                    copy(`#${groupName}`)
+                    copy(`#${id}`)
                   }}
                 />
               </Tooltip>
