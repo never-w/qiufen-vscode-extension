@@ -68,6 +68,7 @@ export function activate(context: vscode.ExtensionContext) {
                 const localTypeDefs = readLocalSchemaTypeDefs()
                 const messageObj = {
                   typeDefs: backendTypeDefs,
+                  maxDepth: jsonSettings.maxDepth,
                   directive: jsonSettings.directive,
                   localTypeDefs,
                   workspaceGqlNames,
@@ -90,6 +91,7 @@ export function activate(context: vscode.ExtensionContext) {
                     const messageObj = {
                       directive: jsonSettings.directive,
                       typeDefs: resTypeDefs,
+                      maxDepth: jsonSettings.maxDepth,
                       workspaceGqlNames: workspaceGqlNames1,
                       workspaceGqlFileInfo: workspaceGqlFileInfo1,
                       localTypeDefs,

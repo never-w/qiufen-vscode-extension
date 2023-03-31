@@ -67,5 +67,6 @@ export type NewFieldNodeType = FieldNode & {
   nameValue: string
   description: string
   type: string
+  depth: number
   children?: NewFieldNodeType[]
 }

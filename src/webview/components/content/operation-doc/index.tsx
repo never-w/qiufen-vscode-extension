@@ -16,7 +16,7 @@ import { fillOneKeyMessageSignSuccess, MessageEnum } from '@/config/postMessage'
 import { defaultLocalTypeDefs } from '@/config/const'
 import { genArgsExample, OperationDefinitionNodeGroupType, OperationNodesForFieldAstBySchemaReturnType } from '@/utils/operations'
 import { NewFieldNodeType } from '@/utils/interface'
-import { resolveOperationDefsForFieldNodeTree } from '@/utils/resolveOperationDefsForFieldNodeTree'
+import { resolveOperationDefsForFieldNodeTree, getOperationDefsForFieldNodeTreeDepthKeys } from '@/utils/resolveOperationDefsForFieldNodeTree'
 import { dependOnSelectedAndKeyFieldAst, dependOnWorkspaceFieldKeysToFieldAstTree, getFieldNodeAstCheckedIsTrueKeys } from '@/utils/dependOnSelectedAndKeyFieldAst'
 import { getWorkspaceOperationsExistFieldKeys } from '@/utils/workspaceOperationsAction'
 import { printOneOperation } from '@/utils/printBatchOperations'
@@ -156,11 +156,12 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
   // 远程得到的operation第一层的 selectionSet.selections 始终都只会存在数组长度为1，因为这是我转换schema对象转好operation ast函数里写的就是这样
   const fieldNodeAstTreeTmp = resolveOperationDefsForFieldNodeTree(operationDefNode.selectionSet.selections[0] as NewFieldNodeType)
 
-  const { isDisplaySidebar, setState, workspaceGqlFileInfo, localTypeDefs, vscode, typeDefs } = useBearStore((ste) => ste)
+  const { isDisplaySidebar, setState, workspaceGqlFileInfo, localTypeDefs, vscode, typeDefs, maxDepth } = useBearStore((ste) => ste)
   const [mode, setMode] = useState<SwitchToggleEnum>(SwitchToggleEnum.TABLE)
   const [spinIcon, setSpinIcon] = useState(false)
   const [selectedKeys, setSelectedKeys] = useState<string[]>([])
   const [fieldNodeAstTree, setFieldNodeAstTree] = useState<NewFieldNodeType>(fieldNodeAstTreeTmp)
+  const defaultExpandedRowKeys = getOperationDefsForFieldNodeTreeDepthKeys(fieldNodeAstTreeTmp, maxDepth)
 
   const argsTreeData = useMemo(() => {
     return getArgsTreeData(operationDefNode.args)
@@ -414,7 +415,7 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
               className={styles.table}
               dataSource={[fieldNodeAstTree]}
               pagination={false}
-              defaultExpandAllRows
+              defaultExpandedRowKeys={defaultExpandedRowKeys}
               bordered
               indentSize={21}
             />

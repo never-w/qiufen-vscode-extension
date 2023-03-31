@@ -18,6 +18,7 @@ interface MessageEvent {
   typeDefs: string
   localTypeDefs: string
   directive: string
+  maxDepth: number
   workspaceGqlNames: string[]
   workspaceGqlFileInfo: WorkspaceGqlFileInfoType[]
 }
@@ -31,6 +32,7 @@ interface BearState extends MessageEvent {
 const useBearStore = create<BearState>((set, get) => {
   return {
     port: 9400,
+    maxDepth: 2,
     directive: '',
     localTypeDefs: '',
     operations: [],
