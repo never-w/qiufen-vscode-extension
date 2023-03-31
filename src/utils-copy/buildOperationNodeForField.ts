@@ -28,6 +28,7 @@ import {
   Kind,
 } from 'graphql'
 import { getFieldNodeType } from './getFieldNodeType'
+import { normalizeGraphqlField } from './operations'
 // import { capitalizeFirstLetter } from "./dealWordFirstLetter"
 
 import { getDefinedRootType, getRootTypeNames } from './rootTypes'
@@ -100,6 +101,11 @@ export function buildOperationNodeForField({
 
   // attach variables
   ;(operationNode as any).variableDefinitions = [...operationVariables]
+
+  const type = getDefinedRootType(schema, kind)
+  const operationField = type.getFields()[field]
+
+  ;(operationNode as any).args = normalizeGraphqlField(operationField)
 
   resetOperationVariables()
   resetFieldMap()

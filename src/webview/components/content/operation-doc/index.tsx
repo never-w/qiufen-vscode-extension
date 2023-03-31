@@ -24,7 +24,7 @@ import {
   resolveOperationDefsTreeAstData,
 } from '@/utils/formatOperationDefAst'
 import { defaultLocalTypeDefs } from '@/config/const'
-import { OperationNodesForFieldAstBySchemaReturnType } from '@/utils-copy/operations'
+import { genArgsExample, NewOperationDefinitionNode, OperationNodesForFieldAstBySchemaReturnType } from '@/utils-copy/operations'
 import { NewFieldNodeType } from '@/utils-copy/interface'
 import { resolveOperationDefsForFieldNodeTree } from '@/utils-copy/resolveOperationDefsForFieldNodeTree'
 import { dependOnSelectedAndKeyFieldAst, dependOnWorkspaceFieldKeysToFieldAstTree, getFieldNodeAstCheckedIsTrueKeys } from '@/utils-copy/dependOnSelectedAndKeyFieldAst'
@@ -144,25 +144,26 @@ const fieldsColumns: ColumnsType<NewFieldNodeType> = [
   {
     title: 'Name',
     dataIndex: 'nameValue',
-    width: '35%',
+    width: '30%',
   },
   {
     title: 'Description',
     dataIndex: 'description',
-    width: '25%',
+    width: '35%',
   },
   {
     title: 'Type',
     dataIndex: 'type',
-    width: '20%',
+    width: '30%',
   },
 ]
 
 const OperationDoc: FC<IProps> = ({ operationObj }) => {
-  const operationName = operationObj.operationDefNodeAst.name!.value
-  const operationType = operationObj.operationDefNodeAst.operation
+  const operationDefNode = operationObj.operationDefNodeAst as NewOperationDefinitionNode
+  const operationName = operationDefNode.name!.value
+  const operationType = operationDefNode.operation
   // 远程得到的operation第一层的 selectionSet.selections 始终都只会存在数组长度为1，因为这是我转换schema对象转好operation ast函数里写的就是这样
-  const fieldNodeAstTreeTmp = resolveOperationDefsForFieldNodeTree(operationObj.operationDefNodeAst.selectionSet.selections[0] as NewFieldNodeType)
+  const fieldNodeAstTreeTmp = resolveOperationDefsForFieldNodeTree(operationDefNode.selectionSet.selections[0] as NewFieldNodeType)
 
   const { isDisplaySidebar, setState, workspaceGqlFileInfo, localTypeDefs } = useBearStore((ste) => ste)
   const [mode, setMode] = useState<SwitchToggleEnum>(SwitchToggleEnum.TABLE)
@@ -171,8 +172,8 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
   const [fieldNodeAstTree, setFieldNodeAstTree] = useState<NewFieldNodeType>(fieldNodeAstTreeTmp)
 
   const argsTreeData = useMemo(() => {
-    return getArgsTreeData(operationObj?.args)
-  }, [operationObj?.args])
+    return getArgsTreeData(operationDefNode.args)
+  }, [operationDefNode.args])
 
   const workspaceSchema = useMemo(() => {
     let localSchema: GraphQLSchema | undefined
@@ -203,8 +204,27 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
   }, [operationObj?.operationDefNodeAst?.name, operationObj?.operationDefNodeAst?.operation, workspaceSchema])
 
   const remoteOperationStr = useMemo(() => {
-    return printOneOperation(operationObj.operationDefNodeAst)
-  }, [operationObj.operationDefNodeAst])
+    return printOneOperation(operationDefNode)
+  }, [operationDefNode])
+
+  const workspaceOperationArgsStr = useMemo(() => {
+    let workspaceOperationDefAst
+    try {
+      workspaceOperationDefAst = buildOperationNodeForField({
+        schema: workspaceSchema,
+        kind: operationObj?.operationDefNodeAst?.operation,
+        field: operationObj?.operationDefNodeAst?.name!.value,
+      }) as NewOperationDefinitionNode
+    } catch {
+      workspaceOperationDefAst = undefined
+    }
+
+    return obj2str(genArgsExample(workspaceOperationDefAst?.args || []))
+  }, [operationObj?.operationDefNodeAst?.name, operationObj?.operationDefNodeAst?.operation, workspaceSchema])
+
+  const remoteOperationArgsStr = useMemo(() => {
+    return obj2str(genArgsExample(operationDefNode.args))
+  }, [operationDefNode.args])
 
   // 一键填入事件
   const handleOneKeyFillEvent = useCallback(() => {
@@ -232,7 +252,6 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
 
   useLayoutEffect(() => {
     let resultKeys = [] as string[]
-    const operationName = operationObj.operationDefNodeAst.name!.value
     const filtrationWorkspaceGqlFileInfo = workspaceGqlFileInfo.filter((item) => item.operationNames.includes(operationName))
 
     // 这个接口在工作区存在于多个文件夹，这种情况我不管它
@@ -343,11 +362,11 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
             {mode === SwitchToggleEnum.TABLE && (
               <Table size="small" indentSize={21} columns={argsColumns} defaultExpandAllRows className={styles.table} dataSource={argsTreeData} pagination={false} bordered />
             )}
-            {/* {mode === SwitchToggleEnum.EDITOR && <AceEditor theme="tomorrow" mode="javascript" width="100%" readOnly maxLines={Infinity} value={obj2str(operationObj.args)} />} */}
-            {/* {mode === SwitchToggleEnum.DIFF && (
+            {mode === SwitchToggleEnum.EDITOR && <AceEditor theme="tomorrow" mode="javascript" width="100%" readOnly maxLines={Infinity} value={remoteOperationArgsStr} />}
+            {mode === SwitchToggleEnum.DIFF && (
               <ReactDiffViewer
-                oldValue={localOperation ? obj2str(localOperation.argsExample) : 'nothings...'}
-                newValue={obj2str(operation.argsExample)}
+                oldValue={workspaceOperationArgsStr}
+                newValue={remoteOperationArgsStr}
                 splitView={true}
                 compareMethod={DiffMethod.SENTENCES}
                 showDiffOnly={false}
@@ -358,7 +377,7 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
                   return <div className={styles.diff_viewer_div}>{codeStr}</div>
                 }}
               />
-            )} */}
+            )}
           </>
         )}
         <>
@@ -374,6 +393,7 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
                   const key = record.fieldKey
                   const newFieldNodeAstTree = dependOnSelectedAndKeyFieldAst(fieldNodeAstTree, selected, key)
                   const keys = getFieldNodeAstCheckedIsTrueKeys(newFieldNodeAstTree)
+
                   setFieldNodeAstTree(newFieldNodeAstTree)
                   setSelectedKeys(keys)
                 },
