@@ -9,7 +9,7 @@ import { defaultQiufenConfig } from './config'
 import { GraphqlQiufenProCloseDocCommandId, GraphqlQiufenProCloseMockCommandId, GraphqlQiufenProStartMockCommandId, GraphqlQiufenProStartDocCommandId } from './config/commands'
 import readLocalSchemaTypeDefs from './utils/readLocalSchemaTypeDefs'
 import { fillOneKeyMessageSignNull, fillOneKeyMessageSignSuccess, MessageEnum } from './config/postMessage'
-import { getWorkspaceAllGqlResolveFilePaths, getWorkspaceGqlFileInfo, setWorkspaceGqls } from './utils/readWorkspaceOperations'
+import { getWorkspaceAllGqlResolveFilePaths, getWorkspaceGqlFileInfo, setWorkspaceGqls } from './utils/updateWorkspaceOperation'
 import { startServer } from '../mock_server/index'
 
 let serverMock: Server

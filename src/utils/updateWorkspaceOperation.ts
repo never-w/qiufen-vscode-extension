@@ -146,6 +146,7 @@ function getUpdateOperationNode(ast: DefinitionNode, operationName: string) {
   return [childNode, variablesNode] as const
 }
 
+/** 填充远程最新的operation到工作区对应文件里面 */
 function fillOperationInLocal(filePath: string, gql: string, gqlName: string, gqlType: string, typeDefs: string) {
   const [childNode, variablesNode] = getUpdateOperationNode(parse(gql).definitions[0], gqlName)
 
@@ -161,25 +162,8 @@ function fillOperationInLocal(filePath: string, gql: string, gqlName: string, gq
   fs.writeFileSync(filePath, newContent)
 }
 
-export function getWorkspaceAllGqlResolveFilePaths() {
-  const { patternRelativePath = '' } = vscode.workspace.getConfiguration('graphql-qiufen-pro')
-  const workspaceRootPath = workspace.workspaceFolders?.[0].uri.fsPath
-  const cwdPath = path.join(workspaceRootPath!, patternRelativePath)
-
-  const gqlFiles = glob.sync('**/*.gql', { cwd: cwdPath })
-  const resolveGqlFiles = gqlFiles.map((file) => path.join(cwdPath, file))
-  return resolveGqlFiles
-}
-
+// 入口函数
 export async function setWorkspaceGqls(gql: string, gqlName: string, gqlType: string, typeDefs: string) {
-  try {
-    // 在这里验证一哈选择过来的gql接口是不是正确选择的
-    parse(gql).definitions[0]
-  } catch (error) {
-    vscode.window.showErrorMessage('GraphQLError: Syntax Error')
-    return Promise.reject('GraphQLError: Syntax Error')
-  }
-
   const resolveGqlFiles = getWorkspaceAllGqlResolveFilePaths()
   const workspaceGqlFileInfo = getWorkspaceGqlFileInfo(resolveGqlFiles)
   const filterWorkspaceGqlFiles = workspaceGqlFileInfo.filter((gqlFileItm) => gqlFileItm.operationNames.includes(gqlName)).map((itm) => itm.filename)
@@ -208,6 +192,17 @@ export async function setWorkspaceGqls(gql: string, gqlName: string, gqlType: st
     fillOperationInLocal(filterWorkspaceGqlFiles[0], gql, gqlName, gqlType, typeDefs)
     return Promise.resolve(true)
   }
+}
+
+/** 匹配工作区后缀 .gql 所有文件，返回文件绝对路径 */
+export function getWorkspaceAllGqlResolveFilePaths() {
+  const { patternRelativePath = '' } = vscode.workspace.getConfiguration('graphql-qiufen-pro')
+  const workspaceRootPath = workspace.workspaceFolders?.[0].uri.fsPath
+  const cwdPath = path.join(workspaceRootPath!, patternRelativePath)
+
+  const gqlFiles = glob.sync('**/*.gql', { cwd: cwdPath })
+  const resolveGqlFiles = gqlFiles.map((file) => path.join(cwdPath, file))
+  return resolveGqlFiles
 }
 
 /** 获取本每个gql文件的对应信息 */
@@ -241,11 +236,11 @@ export function getWorkspaceGqlFileInfo(files: string[]) {
     // 得到本地每个gql文件的operations ast
     const operationsAstArr = parse(content, {
       noLocation: true,
-    }).definitions
+    }).definitions as OperationDefinitionNode[]
 
     // 得到本地每个gql文件的operations names
     const fileItemOperationNames = operationsAstArr
-      .map((operation: any) => {
+      .map((operation) => {
         return operation.selectionSet.selections.map((itm: any) => itm.name.value)
       })
       .flat(Infinity) as string[]
