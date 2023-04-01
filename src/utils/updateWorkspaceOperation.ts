@@ -3,8 +3,24 @@ import glob from 'glob'
 import fs from 'fs'
 import { workspace, window } from 'vscode'
 import path from 'path'
-import { DefinitionNode, parse, visit, Kind, print, FieldNode, OperationDefinitionNode, BREAK, VariableDefinitionNode, VariableNode } from 'graphql'
+import {
+  DefinitionNode,
+  parse,
+  visit,
+  Kind,
+  print,
+  FieldNode,
+  OperationDefinitionNode,
+  BREAK,
+  VariableDefinitionNode,
+  VariableNode,
+  DocumentNode,
+  ExecutableDefinitionNode,
+  SelectionNode,
+  InlineFragmentNode,
+} from 'graphql'
 import { capitalizeFirstLetter } from './dealWordFirstLetter'
+import { updateWorkspaceDocument } from './updateWorkspaceDocument'
 
 function visitOperationTransformer(
   ast: OperationDefinitionNode,
@@ -151,6 +167,7 @@ function fillOperationInLocal(filePath: string, gql: string, gqlName: string, gq
   const [childNode, variablesNode] = getUpdateOperationNode(parse(gql).definitions[0], gqlName)
 
   const content = fs.readFileSync(filePath, 'utf8')
+
   const operationsAstArr = parse(content, {
     noLocation: true,
   }).definitions as OperationDefinitionNode[]
@@ -160,6 +177,96 @@ function fillOperationInLocal(filePath: string, gql: string, gqlName: string, gq
   })
   const newContent = operationsStrArr.join('\n\n')
   fs.writeFileSync(filePath, newContent)
+
+  // -------------------------------------------------TODO:
+  const workspaceDocumentAst = parse(content, {
+    noLocation: true,
+  })
+  console.log(workspaceDocumentAst, ' ---')
+
+  const remoteDocumentAst = parse(gql, {
+    noLocation: true,
+  })
+
+  // 本地查询
+  const localQuery = `
+query SearchProductsAndServices($searchQuery: String!,$searchQuery2: Int, $searchQuery1: Int, $searchQuery3: Int) {
+  searchResults: search(query: $searchQuery) {
+    ... on Product {
+       w: id
+      productPrice (querywwwww: $searchQuery2){
+        value
+        currency
+        discount
+      }
+    }
+    ... on Service {
+      id
+      name
+      servicePrice {
+        value
+        currency
+        isMemberPrice
+      }
+    }
+  }
+
+   books(param: $searchQuery1) {
+        title
+        fee
+      }
+   book(param: $searchQuery3) {
+        title
+        fee
+      }
+}
+`
+  // 远程查询
+  const remoteQuery = `
+query SearchProductsAndServices($searchQuery1: Int!, $searchQuery3: Int) {
+  searchResults: search(query: $searchQuery1) {
+    ... on Product {
+      id
+      name
+      productPrice (querywwwww: $searchQuery3) {
+        value
+        discount
+      }
+    }
+    ... on Service {
+      id
+      name
+    }
+  }
+}
+`
+  // 解析查询为AST
+  const localAst: DocumentNode = parse(localQuery)
+  const remoteAst: DocumentNode = parse(remoteQuery)
+
+  // 更新本地AST
+  const updatedLocalAst: DocumentNode = {
+    ...localAst,
+    definitions: localAst.definitions
+      .map((workspaceDefinition) => {
+        const remoteDefinition = remoteAst.definitions.find((remoteDefinition) => {
+          const workspaceDefinitionSelections = (workspaceDefinition as ExecutableDefinitionNode).selectionSet.selections as FieldNode[]
+          const remoteDefinitionSelections = (remoteDefinition as ExecutableDefinitionNode).selectionSet.selections as FieldNode[]
+          const isTheWorkspaceDefinitionExist = workspaceDefinitionSelections.some((itemSelection) => itemSelection.name.value === remoteDefinitionSelections[0].name.value)
+          return remoteDefinition.kind === workspaceDefinition.kind && isTheWorkspaceDefinitionExist
+        })
+
+        if (!remoteDefinition) {
+          return workspaceDefinition
+        }
+        return updateWorkspaceDocument(workspaceDefinition, remoteDefinition)
+      })
+      .filter((definition) => definition !== null) as DefinitionNode[],
+  }
+
+  // 将AST转换回查询字符串
+  const updatedLocalQuery: string = print(updatedLocalAst)
+  console.log(updatedLocalQuery)
 }
 
 // 入口函数
@@ -216,6 +323,7 @@ export function getWorkspaceGqlFileInfo(files: string[]) {
         filename: file,
         operationsAsts: [],
         operationNames: [],
+        document: undefined as unknown as DocumentNode,
         content: '',
       }
     }
@@ -227,6 +335,7 @@ export function getWorkspaceGqlFileInfo(files: string[]) {
       window.showErrorMessage(`${file}: GraphQL Syntax Error`)
       return {
         filename: file,
+        document: undefined as unknown as DocumentNode,
         operationsAsts: [],
         operationNames: [],
         content: '',
@@ -248,6 +357,9 @@ export function getWorkspaceGqlFileInfo(files: string[]) {
     return {
       filename: file,
       content,
+      document: parse(content, {
+        noLocation: true,
+      }),
       operationsAsts: operationsAstArr,
       operationNames: fileItemOperationNames,
     }

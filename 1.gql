@@ -1,0 +1,31 @@
+query search($contains: String) {
+  search(contains: $contains) {
+    ... on Book {
+      title
+    }
+    ... on Author {
+      name
+    }
+  }
+}
+
+query books {
+  books {
+    ... on Textbook {
+      title
+      author {
+        name
+      }
+      courses {
+        text
+      }
+    }
+    ... on ColoringBook {
+      title
+      author {
+        name
+      }
+      colors
+    }
+  }
+}

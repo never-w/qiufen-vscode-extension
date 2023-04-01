@@ -1,6 +1,6 @@
 import { FieldNode, visit } from 'graphql'
 
-// 本地回显获取keys
+// 本地回显获取keys TODO:
 export function getWorkspaceOperationsExistFieldKeys(ast: FieldNode | undefined, keys: string[] = []) {
   if (!ast) {
     return []
@@ -11,7 +11,7 @@ export function getWorkspaceOperationsExistFieldKeys(ast: FieldNode | undefined,
       const prefixKey = ancestors
         .filter((_, index) => index % 3 === 0)
         .reduce((pre, cur) => {
-          return pre + (cur as FieldNode).name.value
+          return pre + (cur as FieldNode).name?.value
         }, '')
       const nameKey = node.name.value
       const nodeKey = prefixKey + nameKey

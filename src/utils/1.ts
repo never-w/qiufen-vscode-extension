@@ -70,10 +70,6 @@ function hasConflictingVariableDefinitions(localVars: ReadonlyArray<VariableDefi
   return localNames.some((name) => remoteNames.includes(name))
 }
 
-type CanWrite<T> = {
-  -readonly [K in keyof T]: T[K]
-}
-
 // 递归更新本地AST
 function updateAst(localNode: DefinitionNode, remoteNode: DefinitionNode): DefinitionNode | null {
   if (localNode.kind === 'Field' && remoteNode.kind === 'Field') {
