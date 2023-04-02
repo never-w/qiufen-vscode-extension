@@ -29,6 +29,7 @@ export async function startServer(config: GraphqlKitConfig) {
 
   await server.start()
   app.use('/graphql', cors<cors.CorsRequest>(), json(), expressMiddleware(server))
+  app.use(json())
 
   app.get('/operations', async (req, res) => {
     const resolveGqlFiles = getWorkspaceAllGqlResolveFilePaths()
@@ -48,6 +49,15 @@ export async function startServer(config: GraphqlKitConfig) {
       port,
       IpAddress: getIpAddress(),
     })
+  })
+
+  // TODO:
+  app.post('/my-route', (req, res) => {
+    const myStringParam = req.body.myStringParam
+    console.log(req, ' +++')
+
+    console.log('Received string parameter:', myStringParam)
+    res.send('String parameter received')
   })
 
   app.use(express.static(path.resolve(__dirname, '../dist-page-view')))

@@ -217,8 +217,25 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
     return obj2str(genArgsExample(operationDefNode.args))
   }, [operationDefNode.args])
 
-  // 一键填入事件
+  // 一键填入事件 TODO:
   const handleOneKeyFillEvent = useCallback(async () => {
+    const myStringParam = 'Hello, world!'
+
+    fetch('/my-route', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ myStringParam }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log('Server response:', data)
+      })
+      .catch((error) => {
+        console.error(error)
+      })
+
     // try {
     //   const operationStr = await relyOnKeysPrintOperation(operationDefNode, selectedKeys)
     //   setSpinIcon(true)
