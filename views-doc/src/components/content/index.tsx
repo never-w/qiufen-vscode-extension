@@ -1,19 +1,20 @@
-import React, { memo, useMemo } from "react"
-import OperationDoc from "./operation-doc"
-import type { TypedOperation } from "@fruits-chain/qiufen-helpers"
-import type { FC } from "react"
+import React, { memo, useMemo } from 'react'
+import OperationDoc from './operation-doc'
+import type { FC } from 'react'
+import { OperationNodesForFieldAstBySchemaReturnType } from '@/utils/operations'
 
 interface IProps {
-  operation?: TypedOperation
+  operationObj: OperationNodesForFieldAstBySchemaReturnType[number]
 }
 
-const DocContent: FC<IProps> = ({ operation }) => {
+const DocContent: FC<IProps> = ({ operationObj }) => {
   const contentJSX = useMemo(() => {
-    if (!operation) {
+    if (!operationObj) {
       return null
     }
-    return <OperationDoc operation={operation} />
-  }, [operation])
+
+    return <OperationDoc operationObj={operationObj} />
+  }, [operationObj])
 
   return contentJSX
 }

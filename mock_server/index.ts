@@ -8,8 +8,9 @@ import { json } from 'body-parser'
 import express from 'express'
 import path from 'path'
 import fetchRemoteSchemaTypeDefs from '@/utils/fetchRemoteSchemaTypeDefs'
-import { buildSchema } from 'graphql'
-import { getOperationsBySchema } from '@fruits-chain/qiufen-helpers'
+import { getWorkspaceAllGqlResolveFilePaths, getWorkspaceGqlFileInfo } from '@/utils/syncWorkspaceGqls'
+import readLocalSchemaTypeDefs from '@/utils/readLocalSchemaTypeDefs'
+import getIpAddress from '@/utils/getIpAddress'
 
 export async function startServer(config: GraphqlKitConfig) {
   const { endpoint, port, mock } = config
@@ -30,11 +31,23 @@ export async function startServer(config: GraphqlKitConfig) {
   app.use('/graphql', cors<cors.CorsRequest>(), json(), expressMiddleware(server))
 
   app.get('/operations', async (req, res) => {
+    const resolveGqlFiles = getWorkspaceAllGqlResolveFilePaths()
+    const workspaceGqlFileInfo = getWorkspaceGqlFileInfo(resolveGqlFiles)
+    const workspaceGqlNames = workspaceGqlFileInfo.map((itm) => itm.operationNames).flat(Infinity) as string[]
+    const localTypeDefs = readLocalSchemaTypeDefs()
     // 这里再次获取后端sdl，是因为web网页在reload时要及时更新
     const backendTypeDefs1 = await fetchRemoteSchemaTypeDefs(endpoint.url)
-    const schema = buildSchema(backendTypeDefs1)
-    const operations = getOperationsBySchema(schema)
-    res.send({ backendTypeDefs, directive: jsonSettings.directive, operations })
+
+    res.send({
+      typeDefs: backendTypeDefs1,
+      maxDepth: jsonSettings.maxDepth,
+      directive: jsonSettings.directive,
+      localTypeDefs,
+      workspaceGqlNames,
+      workspaceGqlFileInfo,
+      port,
+      IpAddress: getIpAddress(),
+    })
   })
 
   app.use(express.static(path.resolve(__dirname, '../dist-page-view')))

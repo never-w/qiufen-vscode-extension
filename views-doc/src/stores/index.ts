@@ -1,27 +1,55 @@
-import { fetchUrl } from '@/config'
 import { TypedOperation } from '@fruits-chain/qiufen-helpers'
+import { DefinitionNode } from 'graphql'
 import create, { SetState } from 'zustand'
 
+export enum MessageEnum {
+  FETCH = 'FETCH',
+  REFETCH = 'REFETCH',
+  ONE_KEY_FILL = 'ONE_KEY_FILL',
+}
+
+export const fillOneKeyMessageSignSuccess = 'fill-success'
+
+export const fillOneKeyMessageSignNull = 'fill-null'
+
+export type WorkspaceGqlFileInfoType = {
+  filename: string
+  operationsAsts: DefinitionNode[]
+  operationNames: string[]
+  content: string
+}
 interface MessageEvent {
   operations: TypedOperation[]
+  IpAddress: string
   isDisplaySidebar: boolean
-  backendTypeDefs: string
+  port: number
+  typeDefs: string
+  localTypeDefs: string
   directive: string
+  maxDepth: number
+  workspaceGqlNames: string[]
+  workspaceGqlFileInfo: WorkspaceGqlFileInfoType[]
 }
 
 interface BearState extends MessageEvent {
-  fetchOperations: () => Promise<boolean>
+  captureMessage: () => Promise<boolean>
   reloadOperations: () => Promise<boolean>
   setState: SetState<BearState>
 }
 
-const useBearStore = create<BearState>((set) => {
+const useBearStore = create<BearState>((set, get) => {
   return {
+    port: 9400,
+    maxDepth: 2,
+    directive: '',
+    localTypeDefs: '',
     operations: [],
-    directive: 'fetchField',
+    IpAddress: '',
+    typeDefs: '',
+    workspaceGqlNames: [],
+    workspaceGqlFileInfo: [],
     isDisplaySidebar: true,
-    backendTypeDefs: '',
-    fetchOperations() {
+    captureMessage() {
       return new Promise((resolve) => {
         fetch(`/operations`)
           .then((response) => response.json())
