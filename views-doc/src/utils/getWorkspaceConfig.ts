@@ -30,11 +30,11 @@ function getWorkspaceConfig(tryCatchCallback?: VoidFunction) {
 
   if (!port) {
     tryCatchCallback?.()
-    throw Error('The configuration was not read')
+    throw Error('The configuration was not ready')
   }
   if (!url) {
     tryCatchCallback?.()
-    throw Error('The configuration was not read')
+    throw Error('The configuration was not ready')
   }
 
   return { workspaceRootPath, qiufenConfigPath, isExistConfigFile, port, url, qiufenConfig }
