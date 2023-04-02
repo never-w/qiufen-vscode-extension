@@ -37,7 +37,7 @@ function fillOperationInWorkspace(filePath: string, gql: string, documentAst: Do
 }
 
 // 入口函数
-export async function setWorkspaceGqls(gql: string, gqlName: string = '', gqlType: string = '', typeDefs: string = '') {
+export async function syncWorkspaceGqls(gql: string, gqlName: string = '', gqlType: string = '', typeDefs: string = '') {
   const resolveGqlFiles = getWorkspaceAllGqlResolveFilePaths()
   const workspaceGqlFileInfo = getWorkspaceGqlFileInfo(resolveGqlFiles)
   const filteredWorkspaceGqlFileInfo = workspaceGqlFileInfo.filter((gqlFileItm) => gqlFileItm.operationNames.includes(gqlName))

@@ -9,7 +9,7 @@ import { defaultQiufenConfig } from './config'
 import { GraphqlQiufenProCloseDocCommandId, GraphqlQiufenProCloseMockCommandId, GraphqlQiufenProStartMockCommandId, GraphqlQiufenProStartDocCommandId } from './config/commands'
 import readLocalSchemaTypeDefs from './utils/readLocalSchemaTypeDefs'
 import { fillOneKeyMessageSignNull, fillOneKeyMessageSignSuccess, MessageEnum } from './config/postMessage'
-import { getWorkspaceAllGqlResolveFilePaths, getWorkspaceGqlFileInfo, setWorkspaceGqls } from './utils/updateWorkspaceOperation'
+import { getWorkspaceAllGqlResolveFilePaths, getWorkspaceGqlFileInfo, syncWorkspaceGqls } from './utils/syncWorkspaceGqls'
 import { startServer } from '../mock_server/index'
 
 let serverMock: Server
@@ -107,7 +107,7 @@ export function activate(context: vscode.ExtensionContext) {
                 break
               default:
                 const { gqlStr, gqlName, gqlType, typeDefs } = message
-                setWorkspaceGqls(gqlStr, gqlName, gqlType, typeDefs)
+                syncWorkspaceGqls(gqlStr, gqlName, gqlType, typeDefs)
                   .then((res) => {
                     currentPanel!.webview.postMessage(res ? fillOneKeyMessageSignSuccess : fillOneKeyMessageSignNull)
                   })

@@ -18,7 +18,7 @@ import { genArgsExample, OperationDefinitionNodeGroupType, OperationNodesForFiel
 import { NewFieldNodeType } from '@/utils/interface'
 import { resolveOperationDefsForFieldNodeTree, getOperationDefsForFieldNodeTreeDepthKeys } from '@/utils/resolveOperationDefsForFieldNodeTree'
 import { dependOnSelectedAndKeyFieldAst, dependOnWorkspaceFieldKeysToFieldAstTree, getFieldNodeAstCheckedIsTrueKeys } from '@/utils/dependOnSelectedAndKeyFieldAst'
-import { getWorkspaceOperationsExistFieldKeys } from '@/utils/workspaceOperationsAction'
+import { getWorkspaceOperationsExistFieldKeys } from '@/utils/getWorkspaceOperationsExistFieldKeys'
 import { printOneOperation } from '@/utils/printBatchOperations'
 import { buildOperationNodeForField } from '@/utils/buildOperationNodeForField'
 import { relyOnKeysPrintOperation } from '@/utils/relyOnKeysPrintOperation'
