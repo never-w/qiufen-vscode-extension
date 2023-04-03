@@ -11,6 +11,7 @@ import fetchRemoteSchemaTypeDefs from '@/utils/fetchRemoteSchemaTypeDefs'
 import { getWorkspaceAllGqlResolveFilePaths, getWorkspaceGqlFileInfo } from '@/utils/syncWorkspaceGqls'
 import readLocalSchemaTypeDefs from '@/utils/readLocalSchemaTypeDefs'
 import getIpAddress from '@/utils/getIpAddress'
+import portscanner from 'portscanner'
 
 export async function startServer(config: GraphqlKitConfig) {
   const { endpoint, port, mock } = config
@@ -62,9 +63,15 @@ export async function startServer(config: GraphqlKitConfig) {
 
   app.use(express.static(path.resolve(__dirname, '../dist-page-view')))
 
-  const expressServer = app.listen(port, () => {
-    console.log(`Server listening on port http://localhost:${port}/graphql`)
-  })
+  // 监听本地端口号是否可用
+  try {
+    await portscanner.findAPortNotInUse([port])
+    const expressServer = app.listen(port, () => {
+      console.log(`Server listening on port http://localhost:${port}/graphql`)
+    })
 
-  return expressServer
+    return expressServer
+  } catch (error) {
+    throw new Error(`Port ${port} is already in use.`)
+  }
 }
