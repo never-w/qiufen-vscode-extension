@@ -1,6 +1,6 @@
 import React, { memo, useEffect, useMemo, useState } from 'react'
 import { Input, Collapse, Tooltip, Space, message } from 'antd'
-import { CopyOutlined, SearchOutlined, CheckCircleTwoTone } from '@ant-design/icons'
+import { CopyOutlined, SearchOutlined, CheckCircleTwoTone, SwapOutlined } from '@ant-design/icons'
 import { useThrottleFn } from '@fruits-chain/hooks-laba'
 import classnames from 'classnames'
 import ClipboardJS from 'clipboard'
@@ -260,12 +260,12 @@ const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, onSel
           style={{ bottom: 200 }}
           className={classnames(styles.topBtn, styles.show)}
         >
-          <img src="https://pic.imgdb.cn/item/63d72e6eface21e9ef36b62f.png" alt="切换operations name" />
+          <SwapOutlined className={classnames(styles.img)} />
         </div>
       </Tooltip>
       <Tooltip title="reload doc">
         <div onClick={handleReload} style={{ bottom: 150 }} className={classnames(styles.topBtn, styles.show)}>
-          <img src="https://pic.imgdb.cn/item/63d72e6eface21e9ef36b62f.png" alt="刷新文档" />
+          <img className={classnames(styles.img)} src="https://pic.imgdb.cn/item/63d72e6eface21e9ef36b62f.png" alt="刷新文档" />
         </div>
       </Tooltip>
       <Tooltip title="Collapse all">
@@ -278,7 +278,7 @@ const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, onSel
             setActiveKey([])
           }}
         >
-          <img src="https://pic.imgdb.cn/item/63d72e52face21e9ef367a25.png" alt="全部收集图片" />
+          <img className={classnames(styles.img)} src="https://pic.imgdb.cn/item/63d72e52face21e9ef367a25.png" alt="全部收集图片" />
         </div>
       </Tooltip>
       <Tooltip title="Back to top">
@@ -290,7 +290,7 @@ const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, onSel
             document.getElementById('sideBar')?.scrollTo(0, 0)
           }}
         >
-          <img src="https://pic.imgdb.cn/item/63d72e7fface21e9ef36d8ed.png" alt="返回顶部图片" />
+          <img className={classnames(styles.img)} src="https://pic.imgdb.cn/item/63d72e7fface21e9ef36d8ed.png" alt="返回顶部图片" />
         </div>
       </Tooltip>
     </div>

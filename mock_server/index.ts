@@ -8,7 +8,13 @@ import { json } from 'body-parser'
 import express from 'express'
 import path from 'path'
 import fetchRemoteSchemaTypeDefs from '@/utils/fetchRemoteSchemaTypeDefs'
-import { getWorkspaceAllGqlResolveFilePaths, getWorkspaceGqlFileInfo } from '@/utils/syncWorkspaceGqls'
+import {
+  getWorkspaceAllGqlResolveFilePaths,
+  getWorkspaceGqlFileInfo,
+  getWorkspaceGqls,
+  fillOperationInWorkspace,
+  GetWorkspaceGqlFileInfoReturnType,
+} from '../views-doc/src/utils/syncWorkspaceGqls'
 import readLocalSchemaTypeDefs from '@/utils/readLocalSchemaTypeDefs'
 import getIpAddress from '@/utils/getIpAddress'
 import portscanner from 'portscanner'
@@ -52,13 +58,30 @@ export async function startServer(config: GraphqlKitConfig) {
     })
   })
 
-  // TODO:
-  app.post('/my-route', (req, res) => {
-    const myStringParam = req.body.myStringParam
-    console.log(req, ' +++')
+  app.post('/update', async (req, res) => {
+    const { operationStr, gqlName } = req.body
 
-    console.log('Received string parameter:', myStringParam)
-    res.send('String parameter received')
+    try {
+      const workspaceRes = await getWorkspaceGqls(gqlName)
+      if (workspaceRes?.length > 1) {
+        // 如果需要更新的gql存在于本地多个文件夹
+        res.send({ message: workspaceRes })
+      } else {
+        fillOperationInWorkspace(workspaceRes[0].filename, operationStr, workspaceRes[0].document)
+        res.send({ message: '一键填入成功' })
+      }
+    } catch (error) {
+      res.status(406).send({ message: error })
+    }
+  })
+
+  app.post('/multiple', async (req, res) => {
+    const { info, gql } = req.body
+
+    info.forEach((infoItm: GetWorkspaceGqlFileInfoReturnType) => {
+      fillOperationInWorkspace(infoItm.filename, gql, infoItm.document)
+    })
+    res.send({ message: '一键填入成功' })
   })
 
   app.use(express.static(path.resolve(__dirname, '../dist-page-view')))

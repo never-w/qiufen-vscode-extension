@@ -7,7 +7,7 @@ import { DefinitionNode, parse, print, FieldNode, OperationDefinitionNode, Docum
 import { updateWorkspaceDocument } from './updateWorkspaceDocument'
 
 /** 填充远程最新的operation到工作区对应文件里面 */
-function fillOperationInWorkspace(filePath: string, gql: string, documentAst: DocumentNode) {
+export function fillOperationInWorkspace(filePath: string, gql: string, documentAst: DocumentNode) {
   const workspaceDocumentAst = documentAst
   const remoteDocumentAst = parse(gql)
 
@@ -37,36 +37,20 @@ function fillOperationInWorkspace(filePath: string, gql: string, documentAst: Do
 }
 
 // 入口函数
-export async function syncWorkspaceGqls(gql: string, gqlName: string = '', gqlType: string = '', typeDefs: string = '') {
+export async function getWorkspaceGqls(gqlName: string) {
   const resolveGqlFiles = getWorkspaceAllGqlResolveFilePaths()
   const workspaceGqlFileInfo = getWorkspaceGqlFileInfo(resolveGqlFiles)
   const filteredWorkspaceGqlFileInfo = workspaceGqlFileInfo.filter((gqlFileItm) => gqlFileItm.operationNames.includes(gqlName))
 
   if (!filteredWorkspaceGqlFileInfo.length) {
-    vscode.window.showInformationMessage('The operation does not exist in a local file')
-    return Promise.resolve(false)
+    return Promise.reject('The operation does not exist in a local file')
   }
 
   if (filteredWorkspaceGqlFileInfo.length >= 2) {
     // 当该传入的operation在本地存在于多个文件夹时
-    const items = filteredWorkspaceGqlFileInfo.map((itm) => itm.filename)
-    const res = await window.showQuickPick(items, {
-      canPickMany: true,
-    })
-
-    if (!res?.length) {
-      return Promise.resolve(false)
-    }
-
-    filteredWorkspaceGqlFileInfo.forEach((infoItm) => {
-      fillOperationInWorkspace(infoItm.filename, gql, infoItm.document)
-    })
-
-    return Promise.resolve(true)
+    return Promise.resolve(filteredWorkspaceGqlFileInfo)
   } else {
-    const { document, filename } = filteredWorkspaceGqlFileInfo[0]
-    fillOperationInWorkspace(filename, gql, document)
-    return Promise.resolve(true)
+    return Promise.resolve(filteredWorkspaceGqlFileInfo)
   }
 }
 
@@ -82,6 +66,14 @@ export function getWorkspaceAllGqlResolveFilePaths() {
 }
 
 /** 获取本每个gql文件的对应信息 */
+export type GetWorkspaceGqlFileInfoReturnType = {
+  filename: string
+  content: string
+  document: DocumentNode
+  operationsAsts: DefinitionNode[]
+  operationNames: string[]
+}
+
 export function getWorkspaceGqlFileInfo(files: string[]) {
   const result = files.map((file) => {
     const content = fs.readFileSync(file, 'utf8')

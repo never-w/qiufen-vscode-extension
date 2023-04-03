@@ -1,7 +1,7 @@
 import React, { useCallback, useLayoutEffect, useMemo, useState } from 'react'
 import type { FC } from 'react'
 import { buildSchema, ConstDirectiveNode, FieldNode, GraphQLSchema, OperationDefinitionNode } from 'graphql'
-import { message, Space, Table, Tooltip, Switch, Divider, Tag, Button } from 'antd'
+import { message, Space, Table, Tooltip, Switch, Divider, Tag, Button, Modal, Select, Form } from 'antd'
 import type { ColumnsType } from 'antd/lib/table'
 import ReactDiffViewer, { DiffMethod } from 'react-diff-viewer'
 import AceEditor from 'react-ace'
@@ -10,7 +10,7 @@ import { CopyOutlined, LoadingOutlined, MenuFoldOutlined, EditOutlined } from '@
 import ClipboardJS from 'clipboard'
 import styles from './index.module.less'
 import type { ArgTypeDef } from '@fruits-chain/qiufen-helpers'
-import useBearStore, { fillOneKeyMessageSignSuccess, MessageEnum } from '@/stores'
+import useBearStore from '@/stores'
 
 import { defaultLocalTypeDefs } from '@/config/const'
 import { genArgsExample, OperationDefinitionNodeGroupType, OperationNodesForFieldAstBySchemaReturnType } from '@/utils/operations'
@@ -21,6 +21,8 @@ import { getWorkspaceOperationsExistFieldKeys } from '@/utils/getWorkspaceOperat
 import { printOneOperation } from '@/utils/printBatchOperations'
 import { buildOperationNodeForField } from '@/utils/buildOperationNodeForField'
 import { relyOnKeysPrintOperation } from '@/utils/relyOnKeysPrintOperation'
+import { GetWorkspaceGqlFileInfoReturnType } from '@/utils/syncWorkspaceGqls'
+import { isArray } from 'lodash'
 
 interface IProps {
   operationObj: OperationNodesForFieldAstBySchemaReturnType[number]
@@ -217,51 +219,57 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
     return obj2str(genArgsExample(operationDefNode.args))
   }, [operationDefNode.args])
 
-  // 一键填入事件 TODO:
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [filteredWorkspaceGqlFileInfo, setFilteredWorkspaceGqlFileInfo] = useState<GetWorkspaceGqlFileInfoReturnType[]>([])
+
+  // 一键填入事件
   const handleOneKeyFillEvent = useCallback(async () => {
-    const myStringParam = 'Hello, world!'
+    setSpinIcon(true)
+    let operationStr
+    try {
+      operationStr = await relyOnKeysPrintOperation(operationDefNode, selectedKeys)
+    } catch (error) {
+      setSpinIcon(false)
+      message.error(error)
+    }
 
-    fetch('/my-route', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ myStringParam }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log('Server response:', data)
+    if (operationStr) {
+      fetch('/update', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ operationStr, gqlName: operationName }),
       })
-      .catch((error) => {
-        console.error(error)
-      })
-
-    // try {
-    //   const operationStr = await relyOnKeysPrintOperation(operationDefNode, selectedKeys)
-    //   setSpinIcon(true)
-    //   // 向插件发送信息
-    //   vscode.postMessage({
-    //     typeDefs,
-    //     type: MessageEnum.ONE_KEY_FILL,
-    //     gqlStr: operationStr,
-    //     gqlName: operationName,
-    //     gqlType: operationType,
-    //   })
-    //   // 接受插件发送过来的信息
-    //   window.addEventListener('message', listener)
-    //   function listener(evt: any) {
-    //     const data = evt.data as string
-    //     if (data === fillOneKeyMessageSignSuccess) {
-    //       message.success('一键填入成功')
-    //       setSpinIcon(false)
-    //     }
-    //     setSpinIcon(false)
-    //     window.removeEventListener('message', listener)
-    //   }
-    // } catch (error) {
-    //   setSpinIcon(false)
-    //   message.error(error)
-    // }
+        .then((response) => {
+          if (response.ok) {
+            // 成功响应处理
+            return response.json() // 解析响应数据为JSON格式
+          } else {
+            if (response.status === 406) {
+              // 处理错误响应
+              throw new Error('The operation does not exist in a local file')
+            } else {
+              // 处理错误响应
+              throw new Error('一键填入失败')
+            }
+          }
+        })
+        .then((data) => {
+          if (isArray(data.message) && data.message?.length) {
+            setFilteredWorkspaceGqlFileInfo(data.message?.length ? data.message : [])
+            setIsModalOpen(true)
+          } else {
+            message.success(data.message)
+          }
+        })
+        .catch((error) => {
+          message.error(error.message)
+        })
+        .finally(() => {
+          setSpinIcon(false)
+        })
+    }
   }, [operationDefNode, operationName, operationType, selectedKeys, typeDefs])
 
   // 点击copy事件，这样创建元素骚操作是为了提高性能
@@ -313,8 +321,67 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workspaceGqlFileInfo])
 
+  const [form] = Form.useForm()
+  const onOk = useCallback(() => {
+    form.validateFields().then(async (res) => {
+      let operationStr: string | undefined
+      try {
+        operationStr = await relyOnKeysPrintOperation(operationDefNode, selectedKeys)
+      } catch (error) {
+        message.error(error)
+      }
+
+      if (operationStr) {
+        const { filenameList } = res
+        const info = filteredWorkspaceGqlFileInfo.filter((itm) => filenameList.includes(itm.filename))
+
+        fetch('/multiple', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ info, gql: operationStr }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            message.success(data.message)
+          })
+          .catch((error) => {
+            message.error(error.message)
+          })
+          .finally(() => {
+            setIsModalOpen(false)
+          })
+      }
+    })
+  }, [filteredWorkspaceGqlFileInfo, operationDefNode, selectedKeys])
+
   return (
     <Space id={operationName} className={styles.operationDoc} direction="vertical">
+      <Modal
+        title="Basic Modal"
+        open={isModalOpen}
+        onOk={onOk}
+        onCancel={() => {
+          setIsModalOpen(false)
+        }}
+      >
+        <Form form={form}>
+          <Form.Item name="filenameList" rules={[{ message: '请选择路径', required: true }]}>
+            <Select
+              mode="tags"
+              options={
+                filteredWorkspaceGqlFileInfo?.map((val) => ({
+                  value: val.filename,
+                  label: val.filename,
+                })) || []
+              }
+              placeholder="请选择一键填入路径"
+              style={{ width: '100%' }}
+            />
+          </Form.Item>
+        </Form>
+      </Modal>
       <div className={styles.name}>
         <Space size={40}>
           <span>
