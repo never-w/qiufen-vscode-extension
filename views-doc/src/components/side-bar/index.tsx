@@ -1,9 +1,8 @@
 import React, { memo, useEffect, useMemo, useState } from 'react'
-import { Input, Collapse, Tooltip, Space, message } from 'antd'
-import { CopyOutlined, SearchOutlined, CheckCircleTwoTone, SwapOutlined } from '@ant-design/icons'
+import { Input, Collapse, Tooltip } from 'antd'
+import { SearchOutlined, SwapOutlined } from '@ant-design/icons'
 import { useThrottleFn } from '@fruits-chain/hooks-laba'
 import classnames from 'classnames'
-import ClipboardJS from 'clipboard'
 import styles from './index.module.less'
 import type { CollapseProps } from 'antd'
 import type { FC } from 'react'
@@ -13,25 +12,8 @@ import {
   OperationDefinitionNodeGroupType,
   OperationNodesForFieldAstBySchemaReturnType,
 } from '@/utils/operations'
-import { printBatchOperations } from '@/utils/printBatchOperations'
 import { NewFieldNodeType } from '@/utils/interface'
-
-const copy = (selector: string) => {
-  const clipboard = new ClipboardJS(selector)
-  clipboard.on('success', () => {
-    message.success('success')
-    clipboard.destroy()
-  })
-  clipboard.on('error', () => {
-    message.error('failed')
-    clipboard.destroy()
-  })
-}
-
-const getOperationNameValue = (name: string = '') => {
-  const [_, val] = name.split(':')
-  return val
-}
+import SiderGroup from './components/group'
 
 export interface IProps {
   operationsDefNodeObjList: OperationNodesForFieldAstBySchemaReturnType
@@ -111,58 +93,19 @@ const DocSidebar: FC<IProps> = ({
           return null
         }
 
-        // 这里是将不合法的字符串转为合法使用的 html id
-        const id = groupName.replace(/[.\s]+/g, '_')
         return (
           <Collapse.Panel
             key={groupName}
             header={groupName}
             className={activeKey.includes(groupName) ? styles.collapse_active : ''}
           >
-            <div className={styles.operationList}>
-              <Tooltip title="Copy GQL">
-                <CopyOutlined
-                  id={id}
-                  data-clipboard-text={printBatchOperations(operationList)}
-                  className={styles.copyBtn}
-                  onClick={() => {
-                    copy(`#${id}`)
-                  }}
-                />
-              </Tooltip>
-              {operationList.map((operation, index) => {
-                const filtrationWorkspaceGqlFileInfo = workspaceGqlFileInfo.filter((item: any) =>
-                  item.operationNames.includes(operation.name?.value),
-                )
-                const isMoreExist = filtrationWorkspaceGqlFileInfo?.length > 1
-                return (
-                  <div
-                    key={index}
-                    className={classnames(styles.operationItem, {
-                      [styles.active]: operation.operation + operation.name?.value === activeItemKey,
-                    })}
-                    onClick={() => {
-                      onSelect(operation)
-                      setActiveItemKey(operation.operation + operation.name?.value)
-                    }}
-                  >
-                    <div>
-                      <Space direction="horizontal">
-                        <CheckCircleTwoTone
-                          style={{
-                            visibility: workspaceGqlNames.includes(operation.name!.value) ? 'visible' : 'hidden',
-                          }}
-                          twoToneColor={isMoreExist ? '#FE9800' : '#52c41a'}
-                        />
-                        {flag
-                          ? operation.name?.value
-                          : getOperationNameValue(operation.operationDefinitionDescription) || operation.name?.value}
-                      </Space>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
+            <SiderGroup
+              flag={flag}
+              groupName={groupName}
+              operationList={operationList}
+              activeItemKey={activeItemKey}
+              setActiveItemKey={setActiveItemKey}
+            />
           </Collapse.Panel>
         )
       })
@@ -193,58 +136,19 @@ const DocSidebar: FC<IProps> = ({
           return null
         }
 
-        // 这里是将不合法的字符串转为合法使用的 html id
-        const id = groupName.replace(/[.\s]+/g, '_')
         return (
           <Collapse.Panel
             key={groupName}
             header={groupName}
             className={activeKey.includes(groupName) ? styles.collapse_active : ''}
           >
-            <div className={styles.operationList}>
-              <Tooltip title="Copy GQL">
-                <CopyOutlined
-                  id={id}
-                  data-clipboard-text={printBatchOperations(operationList)}
-                  className={styles.copyBtn}
-                  onClick={() => {
-                    copy(`#${id}`)
-                  }}
-                />
-              </Tooltip>
-              {operationList.map((operation, index) => {
-                const filtrationWorkspaceGqlFileInfo = workspaceGqlFileInfo.filter((item: any) =>
-                  item.operationNames.includes(operation.name?.value),
-                )
-                const isMoreExist = filtrationWorkspaceGqlFileInfo?.length > 1
-                return (
-                  <div
-                    key={index}
-                    className={classnames(styles.operationItem, {
-                      [styles.active]: operation.operation + operation.name?.value === activeItemKey,
-                    })}
-                    onClick={() => {
-                      onSelect(operation as any)
-                      setActiveItemKey(operation.operation + operation.name?.value)
-                    }}
-                  >
-                    <div>
-                      <Space direction="horizontal">
-                        <CheckCircleTwoTone
-                          style={{
-                            visibility: workspaceGqlNames.includes(operation.name!.value) ? 'visible' : 'hidden',
-                          }}
-                          twoToneColor={isMoreExist ? '#FE9800' : '#52c41a'}
-                        />
-                        {flag
-                          ? operation.name?.value
-                          : getOperationNameValue(operation.operationDefinitionDescription) || operation.name?.value}
-                      </Space>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
+            <SiderGroup
+              flag={flag}
+              groupName={groupName}
+              operationList={operationList}
+              activeItemKey={activeItemKey}
+              setActiveItemKey={setActiveItemKey}
+            />
           </Collapse.Panel>
         )
       })
