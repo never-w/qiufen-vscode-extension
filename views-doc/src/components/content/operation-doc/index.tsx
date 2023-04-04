@@ -39,7 +39,6 @@ import { printOneOperation } from '@/utils/printBatchOperations'
 import { buildOperationNodeForField } from '@/utils/buildOperationNodeForField'
 import { relyOnKeysPrintOperation } from '@/utils/relyOnKeysPrintOperation'
 import { GetWorkspaceGqlFileInfoReturnType } from '@/utils/syncWorkspaceGqls'
-import { isArray } from 'lodash'
 
 interface IProps {
   operationObj: OperationNodesForFieldAstBySchemaReturnType[number]
@@ -281,7 +280,7 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
           }
         })
         .then((data) => {
-          if (isArray(data.message) && data.message?.length) {
+          if (Array.isArray(data.message) && data.message?.length) {
             setFilteredWorkspaceGqlFileInfo(data.message?.length ? data.message : [])
             setIsModalOpen(true)
           } else {

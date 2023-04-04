@@ -1,4 +1,3 @@
-import { TypedOperation } from '@fruits-chain/qiufen-helpers'
 import { DefinitionNode } from 'graphql'
 import create, { SetState } from 'zustand'
 
@@ -19,7 +18,6 @@ export type WorkspaceGqlFileInfoType = {
   content: string
 }
 interface MessageEvent {
-  operations: TypedOperation[]
   IpAddress: string
   isDisplaySidebar: boolean
   port: number
