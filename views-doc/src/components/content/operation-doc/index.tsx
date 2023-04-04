@@ -13,10 +13,21 @@ import type { ArgTypeDef } from '@fruits-chain/qiufen-helpers'
 import useBearStore from '@/stores'
 
 import { defaultLocalTypeDefs } from '@/config/const'
-import { genArgsExample, OperationDefinitionNodeGroupType, OperationNodesForFieldAstBySchemaReturnType } from '@/utils/operations'
+import {
+  genArgsExample,
+  OperationDefinitionNodeGroupType,
+  OperationNodesForFieldAstBySchemaReturnType,
+} from '@/utils/operations'
 import { NewFieldNodeType } from '@/utils/interface'
-import { resolveOperationDefsForFieldNodeTree, getOperationDefsForFieldNodeTreeDepthKeys } from '@/utils/resolveOperationDefsForFieldNodeTree'
-import { dependOnSelectedAndKeyFieldAst, dependOnWorkspaceFieldKeysToFieldAstTree, getFieldNodeAstCheckedIsTrueKeys } from '@/utils/dependOnSelectedAndKeyFieldAst'
+import {
+  resolveOperationDefsForFieldNodeTree,
+  getOperationDefsForFieldNodeTreeDepthKeys,
+} from '@/utils/resolveOperationDefsForFieldNodeTree'
+import {
+  dependOnSelectedAndKeyFieldAst,
+  dependOnWorkspaceFieldKeysToFieldAstTree,
+  getFieldNodeAstCheckedIsTrueKeys,
+} from '@/utils/dependOnSelectedAndKeyFieldAst'
 import { getWorkspaceOperationsExistFieldKeys } from '@/utils/getWorkspaceOperationsExistFieldKeys'
 import { printOneOperation } from '@/utils/printBatchOperations'
 import { buildOperationNodeForField } from '@/utils/buildOperationNodeForField'
@@ -155,9 +166,13 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
   const operationName = operationDefNode.name!.value
   const operationType = operationDefNode.operation
   // 远程得到的operation第一层的 selectionSet.selections 始终都只会存在数组长度为1，因为这是我转换schema对象转好operation ast函数里写的就是这样
-  const fieldNodeAstTreeTmp = resolveOperationDefsForFieldNodeTree(operationDefNode.selectionSet.selections[0] as NewFieldNodeType)
+  const fieldNodeAstTreeTmp = resolveOperationDefsForFieldNodeTree(
+    operationDefNode.selectionSet.selections[0] as NewFieldNodeType,
+  )
 
-  const { isDisplaySidebar, setState, workspaceGqlFileInfo, localTypeDefs, typeDefs, maxDepth } = useBearStore((ste) => ste)
+  const { isDisplaySidebar, setState, workspaceGqlFileInfo, localTypeDefs, typeDefs, maxDepth } = useBearStore(
+    (ste) => ste,
+  )
   const [mode, setMode] = useState<SwitchToggleEnum>(SwitchToggleEnum.TABLE)
   const [spinIcon, setSpinIcon] = useState(false)
   const [selectedKeys, setSelectedKeys] = useState<string[]>([])
@@ -220,7 +235,9 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
   }, [operationDefNode.args])
 
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [filteredWorkspaceGqlFileInfo, setFilteredWorkspaceGqlFileInfo] = useState<GetWorkspaceGqlFileInfoReturnType[]>([])
+  const [filteredWorkspaceGqlFileInfo, setFilteredWorkspaceGqlFileInfo] = useState<GetWorkspaceGqlFileInfoReturnType[]>(
+    [],
+  )
 
   // 一键填入事件
   const handleOneKeyFillEvent = useCallback(async () => {
@@ -296,7 +313,9 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
 
   useLayoutEffect(() => {
     let resultKeys = [] as string[]
-    const filtrationWorkspaceGqlFileInfo = workspaceGqlFileInfo.filter((item) => item.operationNames.includes(operationName))
+    const filtrationWorkspaceGqlFileInfo = workspaceGqlFileInfo.filter((item) =>
+      item.operationNames.includes(operationName),
+    )
 
     // 这个接口在工作区存在于多个文件夹，这种情况我不管它
     if (filtrationWorkspaceGqlFileInfo?.length >= 2) {
@@ -305,7 +324,9 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
       const operationDefinitionNodes = filtrationWorkspaceGqlFileInfo[0]?.operationsAsts as OperationDefinitionNode[]
       let operationNameFieldNode: FieldNode | undefined
       operationDefinitionNodes?.forEach((operationNode) => {
-        const sameOperationNameFieldNode = (operationNode.selectionSet.selections as FieldNode[])?.find((itm) => itm.name.value === operationName)
+        const sameOperationNameFieldNode = (operationNode.selectionSet.selections as FieldNode[])?.find(
+          (itm) => itm.name.value === operationName,
+        )
         if (!!sameOperationNameFieldNode) {
           operationNameFieldNode = sameOperationNameFieldNode
         }
@@ -456,9 +477,27 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
             <Divider className={styles.divider} />
             <div className={styles.paramsText}>Params: </div>
             {mode === SwitchToggleEnum.TABLE && (
-              <Table size="small" indentSize={21} columns={argsColumns} defaultExpandAllRows className={styles.table} dataSource={argsTreeData} pagination={false} bordered />
+              <Table
+                size="small"
+                indentSize={21}
+                columns={argsColumns}
+                defaultExpandAllRows
+                className={styles.table}
+                dataSource={argsTreeData}
+                pagination={false}
+                bordered
+              />
             )}
-            {mode === SwitchToggleEnum.EDITOR && <AceEditor theme="tomorrow" mode="javascript" width="100%" readOnly maxLines={Infinity} value={remoteOperationArgsStr} />}
+            {mode === SwitchToggleEnum.EDITOR && (
+              <AceEditor
+                theme="tomorrow"
+                mode="javascript"
+                width="100%"
+                readOnly
+                maxLines={Infinity}
+                value={remoteOperationArgsStr}
+              />
+            )}
             {mode === SwitchToggleEnum.DIFF && (
               <ReactDiffViewer
                 oldValue={workspaceOperationArgsStr}

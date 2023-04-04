@@ -1,7 +1,11 @@
 import { ASTNode, GraphQLObjectType, GraphQLSchema, OperationTypeNode } from 'graphql'
 import { memoize1 } from './memoize'
 
-export function getDefinedRootType(schema: GraphQLSchema, operation: OperationTypeNode, nodes?: ASTNode[]): GraphQLObjectType {
+export function getDefinedRootType(
+  schema: GraphQLSchema,
+  operation: OperationTypeNode,
+  nodes?: ASTNode[],
+): GraphQLObjectType {
   const rootTypeMap = getRootTypeMap(schema)
   const rootType = rootTypeMap.get(operation)
 
@@ -26,7 +30,9 @@ export const getRootTypes = memoize1(function getRootTypes(schema: GraphQLSchema
   return new Set(rootTypeMap.values())
 })
 
-export const getRootTypeMap = memoize1(function getRootTypeMap(schema: GraphQLSchema): Map<OperationTypeNode, GraphQLObjectType> {
+export const getRootTypeMap = memoize1(function getRootTypeMap(
+  schema: GraphQLSchema,
+): Map<OperationTypeNode, GraphQLObjectType> {
   const rootTypeMap: Map<OperationTypeNode, GraphQLObjectType> = new Map()
 
   const queryType = schema.getQueryType()

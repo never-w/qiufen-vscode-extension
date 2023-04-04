@@ -3,7 +3,10 @@ import { NewFieldNodeType } from './interface'
 import { OperationDefinitionNodeGroupType } from './operations'
 import { printOneOperation } from './printBatchOperations'
 
-export function relyOnKeysPrintOperation(operationDefAst: OperationDefinitionNodeGroupType | OperationDefinitionNode, keys: string[]) {
+export function relyOnKeysPrintOperation(
+  operationDefAst: OperationDefinitionNodeGroupType | OperationDefinitionNode,
+  keys: string[],
+) {
   const updateOperationDefAst = visit(operationDefAst, {
     enter(node, key, parent, path, ancestors) {
       if (node.kind === Kind.FIELD || node.kind === Kind.INLINE_FRAGMENT) {

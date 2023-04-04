@@ -30,10 +30,14 @@ const App: FC<IProps> = () => {
     return result
   }, [typeDefs])
 
-  const selectedOperationId = !!activeItemKey ? activeItemKey : operationObjList[0]?.operationDefNodeAst?.operation + operationObjList[0]?.operationDefNodeAst?.name?.value
+  const selectedOperationId = !!activeItemKey
+    ? activeItemKey
+    : operationObjList[0]?.operationDefNodeAst?.operation + operationObjList[0]?.operationDefNodeAst?.name?.value
 
   const operationObj = useMemo(() => {
-    return operationObjList.find((item) => item.operationDefNodeAst.operation + item.operationDefNodeAst.name?.value === selectedOperationId)!
+    return operationObjList.find(
+      (item) => item.operationDefNodeAst.operation + item.operationDefNodeAst.name?.value === selectedOperationId,
+    )!
   }, [operationObjList, selectedOperationId])
 
   const handleReload = useCallback(async () => {

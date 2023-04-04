@@ -8,7 +8,11 @@ import styles from './index.module.less'
 import type { CollapseProps } from 'antd'
 import type { FC } from 'react'
 import useBearStore from '@/stores'
-import { groupOperations as groupOperationsCopy, OperationDefinitionNodeGroupType, OperationNodesForFieldAstBySchemaReturnType } from '@/utils/operations'
+import {
+  groupOperations as groupOperationsCopy,
+  OperationDefinitionNodeGroupType,
+  OperationNodesForFieldAstBySchemaReturnType,
+} from '@/utils/operations'
 import { printBatchOperations } from '@/utils/printBatchOperations'
 import { NewFieldNodeType } from '@/utils/interface'
 
@@ -40,7 +44,16 @@ export interface IProps {
   handleReload: () => void
 }
 
-const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, onSelect, selectedOperationId, setActiveItemKey, handleReload, operationsDefNodeObjList }) => {
+const DocSidebar: FC<IProps> = ({
+  keyword,
+  activeItemKey,
+  onKeywordChange,
+  onSelect,
+  selectedOperationId,
+  setActiveItemKey,
+  handleReload,
+  operationsDefNodeObjList,
+}) => {
   const [top, setTop] = useState(0)
   const [flag, setFlag] = useState(false)
   const [isFocus, setIsFocus] = useState(false)
@@ -50,7 +63,7 @@ const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, onSel
     (evt) => {
       setTop(evt.nativeEvent.target.scrollTop)
     },
-    { wait: 300 },
+    { wait: 500 },
   )
 
   const groupedOperations = useMemo(() => {
@@ -101,7 +114,11 @@ const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, onSel
         // 这里是将不合法的字符串转为合法使用的 html id
         const id = groupName.replace(/[.\s]+/g, '_')
         return (
-          <Collapse.Panel key={groupName} header={groupName} className={activeKey.includes(groupName) ? styles.collapse_active : ''}>
+          <Collapse.Panel
+            key={groupName}
+            header={groupName}
+            className={activeKey.includes(groupName) ? styles.collapse_active : ''}
+          >
             <div className={styles.operationList}>
               <Tooltip title="Copy GQL">
                 <CopyOutlined
@@ -114,7 +131,9 @@ const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, onSel
                 />
               </Tooltip>
               {operationList.map((operation, index) => {
-                const filtrationWorkspaceGqlFileInfo = workspaceGqlFileInfo.filter((item: any) => item.operationNames.includes(operation.name?.value))
+                const filtrationWorkspaceGqlFileInfo = workspaceGqlFileInfo.filter((item: any) =>
+                  item.operationNames.includes(operation.name?.value),
+                )
                 const isMoreExist = filtrationWorkspaceGqlFileInfo?.length > 1
                 return (
                   <div
@@ -130,10 +149,14 @@ const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, onSel
                     <div>
                       <Space direction="horizontal">
                         <CheckCircleTwoTone
-                          style={{ visibility: workspaceGqlNames.includes(operation.name!.value) ? 'visible' : 'hidden' }}
+                          style={{
+                            visibility: workspaceGqlNames.includes(operation.name!.value) ? 'visible' : 'hidden',
+                          }}
                           twoToneColor={isMoreExist ? '#FE9800' : '#52c41a'}
                         />
-                        {flag ? operation.name?.value : getOperationNameValue(operation.operationDefinitionDescription) || operation.name?.value}
+                        {flag
+                          ? operation.name?.value
+                          : getOperationNameValue(operation.operationDefinitionDescription) || operation.name?.value}
                       </Space>
                     </div>
                   </div>
@@ -173,7 +196,11 @@ const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, onSel
         // 这里是将不合法的字符串转为合法使用的 html id
         const id = groupName.replace(/[.\s]+/g, '_')
         return (
-          <Collapse.Panel key={groupName} header={groupName} className={activeKey.includes(groupName) ? styles.collapse_active : ''}>
+          <Collapse.Panel
+            key={groupName}
+            header={groupName}
+            className={activeKey.includes(groupName) ? styles.collapse_active : ''}
+          >
             <div className={styles.operationList}>
               <Tooltip title="Copy GQL">
                 <CopyOutlined
@@ -186,7 +213,9 @@ const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, onSel
                 />
               </Tooltip>
               {operationList.map((operation, index) => {
-                const filtrationWorkspaceGqlFileInfo = workspaceGqlFileInfo.filter((item: any) => item.operationNames.includes(operation.name?.value))
+                const filtrationWorkspaceGqlFileInfo = workspaceGqlFileInfo.filter((item: any) =>
+                  item.operationNames.includes(operation.name?.value),
+                )
                 const isMoreExist = filtrationWorkspaceGqlFileInfo?.length > 1
                 return (
                   <div
@@ -202,10 +231,14 @@ const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, onSel
                     <div>
                       <Space direction="horizontal">
                         <CheckCircleTwoTone
-                          style={{ visibility: workspaceGqlNames.includes(operation.name!.value) ? 'visible' : 'hidden' }}
+                          style={{
+                            visibility: workspaceGqlNames.includes(operation.name!.value) ? 'visible' : 'hidden',
+                          }}
                           twoToneColor={isMoreExist ? '#FE9800' : '#52c41a'}
                         />
-                        {flag ? operation.name?.value : getOperationNameValue(operation.operationDefinitionDescription) || operation.name?.value}
+                        {flag
+                          ? operation.name?.value
+                          : getOperationNameValue(operation.operationDefinitionDescription) || operation.name?.value}
                       </Space>
                     </div>
                   </div>
@@ -216,7 +249,17 @@ const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, onSel
         )
       })
     }
-  }, [activeItemKey, activeKey, flag, groupedOperations, keyword, onSelect, setActiveItemKey, workspaceGqlFileInfo, workspaceGqlNames])
+  }, [
+    activeItemKey,
+    activeKey,
+    flag,
+    groupedOperations,
+    keyword,
+    onSelect,
+    setActiveItemKey,
+    workspaceGqlFileInfo,
+    workspaceGqlNames,
+  ])
 
   return (
     <div className={styles.sidebar}>
@@ -265,7 +308,11 @@ const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, onSel
       </Tooltip>
       <Tooltip title="reload doc">
         <div onClick={handleReload} style={{ bottom: 150 }} className={classnames(styles.topBtn, styles.show)}>
-          <img className={classnames(styles.img)} src="https://pic.imgdb.cn/item/63d72e6eface21e9ef36b62f.png" alt="刷新文档" />
+          <img
+            className={classnames(styles.img)}
+            src="https://pic.imgdb.cn/item/63d72e6eface21e9ef36b62f.png"
+            alt="刷新文档"
+          />
         </div>
       </Tooltip>
       <Tooltip title="Collapse all">
@@ -278,7 +325,11 @@ const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, onSel
             setActiveKey([])
           }}
         >
-          <img className={classnames(styles.img)} src="https://pic.imgdb.cn/item/63d72e52face21e9ef367a25.png" alt="全部收集图片" />
+          <img
+            className={classnames(styles.img)}
+            src="https://pic.imgdb.cn/item/63d72e52face21e9ef367a25.png"
+            alt="全部收集图片"
+          />
         </div>
       </Tooltip>
       <Tooltip title="Back to top">
@@ -290,7 +341,11 @@ const DocSidebar: FC<IProps> = ({ keyword, activeItemKey, onKeywordChange, onSel
             document.getElementById('sideBar')?.scrollTo(0, 0)
           }}
         >
-          <img className={classnames(styles.img)} src="https://pic.imgdb.cn/item/63d72e7fface21e9ef36d8ed.png" alt="返回顶部图片" />
+          <img
+            className={classnames(styles.img)}
+            src="https://pic.imgdb.cn/item/63d72e7fface21e9ef36d8ed.png"
+            alt="返回顶部图片"
+          />
         </div>
       </Tooltip>
     </div>

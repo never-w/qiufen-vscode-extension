@@ -1,4 +1,14 @@
-import { ConstDirectiveNode, getNamedType, GraphQLField, GraphQLInputType, GraphQLSchema, isEnumType, isScalarType, OperationDefinitionNode, OperationTypeNode } from 'graphql'
+import {
+  ConstDirectiveNode,
+  getNamedType,
+  GraphQLField,
+  GraphQLInputType,
+  GraphQLSchema,
+  isEnumType,
+  isScalarType,
+  OperationDefinitionNode,
+  OperationTypeNode,
+} from 'graphql'
 import { Maybe } from 'graphql/jsutils/Maybe'
 import { buildOperationNodeForField } from './buildOperationNodeForField'
 import { InputType, ScalarMap } from './interface'
@@ -11,7 +21,10 @@ export type OperationDefsAstArgsType = {
   directives: readonly ConstDirectiveNode[] | undefined
   type: InputType
 }
-export type OperationDefinitionNodeGroupType = OperationDefinitionNode & { operationDefinitionDescription: string; args: OperationDefsAstArgsType[] }
+export type OperationDefinitionNodeGroupType = OperationDefinitionNode & {
+  operationDefinitionDescription: string
+  args: OperationDefsAstArgsType[]
+}
 export type OperationNodesForFieldAstBySchemaReturnType = ReturnType<typeof getOperationNodesForFieldAstBySchema>
 
 export function getOperationNodesForFieldAstBySchema(schema: GraphQLSchema) {
@@ -131,7 +144,11 @@ function _normalizeGraphqlInputType(type: GraphQLInputType, refChain: string[] =
   }
 }
 
-export function normalizeGraphqlField(graphQLField: GraphQLField<unknown, unknown>, scalarMap: ScalarMap = {}, refChain: string[] = []) {
+export function normalizeGraphqlField(
+  graphQLField: GraphQLField<unknown, unknown>,
+  scalarMap: ScalarMap = {},
+  refChain: string[] = [],
+) {
   const args = graphQLField?.args.map((item) => {
     return {
       name: item.name,

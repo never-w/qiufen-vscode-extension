@@ -4,14 +4,20 @@ export function resolveOperationDefsForFieldNodeTree(fieldNode: NewFieldNodeType
   const newFieldNode = { ...fieldNode, depth }
 
   if (newFieldNode?.selectionSet) {
-    newFieldNode.children = newFieldNode?.selectionSet?.selections.map((itm) => resolveOperationDefsForFieldNodeTree(itm as NewFieldNodeType, depth + 1)) as NewFieldNodeType[]
+    newFieldNode.children = newFieldNode?.selectionSet?.selections.map((itm) =>
+      resolveOperationDefsForFieldNodeTree(itm as NewFieldNodeType, depth + 1),
+    ) as NewFieldNodeType[]
     delete newFieldNode?.selectionSet
   }
 
   return newFieldNode
 }
 
-export function getOperationDefsForFieldNodeTreeDepthKeys(fieldNode: NewFieldNodeType, maxDepth: number, keys: string[] = []) {
+export function getOperationDefsForFieldNodeTreeDepthKeys(
+  fieldNode: NewFieldNodeType,
+  maxDepth: number,
+  keys: string[] = [],
+) {
   if (fieldNode.depth < maxDepth) {
     keys.push(fieldNode.fieldKey)
   }

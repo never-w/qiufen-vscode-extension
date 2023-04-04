@@ -3,7 +3,12 @@ import { NewFieldNodeType } from './interface'
 /**
  * 用于table select选择时对 operation fieldNode ast tree操作格式化的函数
  */
-export function dependOnSelectedAndKeyFieldAst(ast: NewFieldNodeType, checked: boolean, key: string, isSelectionSetAction = false) {
+export function dependOnSelectedAndKeyFieldAst(
+  ast: NewFieldNodeType,
+  checked: boolean,
+  key: string,
+  isSelectionSetAction = false,
+) {
   const newAst = { ...ast }
 
   newAst.checked = isSelectionSetAction ? checked : newAst.checked
@@ -16,7 +21,9 @@ export function dependOnSelectedAndKeyFieldAst(ast: NewFieldNodeType, checked: b
   }
 
   if (newAst?.children) {
-    newAst.children = newAst?.children?.map((child) => dependOnSelectedAndKeyFieldAst(child, checked, key, isSelectionSetAction)) as NewFieldNodeType[]
+    newAst.children = newAst?.children?.map((child) =>
+      dependOnSelectedAndKeyFieldAst(child, checked, key, isSelectionSetAction),
+    ) as NewFieldNodeType[]
   }
 
   if (newAst?.children) {
@@ -59,7 +66,9 @@ export function dependOnWorkspaceFieldKeysToFieldAstTree(ast: NewFieldNodeType, 
   }
 
   if (newAst?.children && selectedKeys.length) {
-    newAst.children = newAst.children.map((child) => dependOnWorkspaceFieldKeysToFieldAstTree(child, selectedKeys)) as NewFieldNodeType[]
+    newAst.children = newAst.children.map((child) =>
+      dependOnWorkspaceFieldKeysToFieldAstTree(child, selectedKeys),
+    ) as NewFieldNodeType[]
   }
 
   return newAst

@@ -1,4 +1,11 @@
-import type { GraphQLArgument, GraphQLEnumValue, GraphQLField, OperationTypeNode, ConstDirectiveNode, FieldNode } from 'graphql'
+import type {
+  GraphQLArgument,
+  GraphQLEnumValue,
+  GraphQLField,
+  OperationTypeNode,
+  ConstDirectiveNode,
+  FieldNode,
+} from 'graphql'
 
 export interface BaseTypeDef {
   name: string
@@ -35,11 +42,13 @@ export type OutputType = ScalarTypeDef | EnumTypeDef | ObjectTypeDef | UnionType
 
 export type InputType = ScalarTypeDef | EnumTypeDef | InputObjectTypeDef
 
-export interface ArgTypeDef extends Pick<GraphQLArgument, 'name' | 'description' | 'defaultValue' | 'deprecationReason'> {
+export interface ArgTypeDef
+  extends Pick<GraphQLArgument, 'name' | 'description' | 'defaultValue' | 'deprecationReason'> {
   type: InputType
 }
 
-export interface ObjectFieldTypeDef extends Pick<GraphQLField<unknown, unknown>, 'name' | 'description' | 'deprecationReason'> {
+export interface ObjectFieldTypeDef
+  extends Pick<GraphQLField<unknown, unknown>, 'name' | 'description' | 'deprecationReason'> {
   directives?: ReadonlyArray<ConstDirectiveNode>
   args: ArgTypeDef[]
   output: OutputType

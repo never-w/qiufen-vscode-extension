@@ -3,7 +3,15 @@ import glob from 'glob'
 import fs from 'fs'
 import { workspace, window } from 'vscode'
 import path from 'path'
-import { DefinitionNode, parse, print, FieldNode, OperationDefinitionNode, DocumentNode, ExecutableDefinitionNode } from 'graphql'
+import {
+  DefinitionNode,
+  parse,
+  print,
+  FieldNode,
+  OperationDefinitionNode,
+  DocumentNode,
+  ExecutableDefinitionNode,
+} from 'graphql'
 import { updateWorkspaceDocument } from './updateWorkspaceDocument'
 
 /** 填充远程最新的operation到工作区对应文件里面 */
@@ -17,9 +25,13 @@ export function fillOperationInWorkspace(filePath: string, gql: string, document
     definitions: workspaceDocumentAst.definitions
       .map((workspaceDefinition) => {
         const remoteDefinition = remoteDocumentAst.definitions.find((remoteDefinition) => {
-          const workspaceDefinitionSelections = (workspaceDefinition as ExecutableDefinitionNode).selectionSet.selections as FieldNode[]
-          const remoteDefinitionSelections = (remoteDefinition as ExecutableDefinitionNode).selectionSet.selections as FieldNode[]
-          const isTheWorkspaceDefinitionExist = workspaceDefinitionSelections.some((itemSelection) => itemSelection.name.value === remoteDefinitionSelections[0].name.value)
+          const workspaceDefinitionSelections = (workspaceDefinition as ExecutableDefinitionNode).selectionSet
+            .selections as FieldNode[]
+          const remoteDefinitionSelections = (remoteDefinition as ExecutableDefinitionNode).selectionSet
+            .selections as FieldNode[]
+          const isTheWorkspaceDefinitionExist = workspaceDefinitionSelections.some(
+            (itemSelection) => itemSelection.name.value === remoteDefinitionSelections[0].name.value,
+          )
           return remoteDefinition.kind === workspaceDefinition.kind && isTheWorkspaceDefinitionExist
         })
 
@@ -40,7 +52,9 @@ export function fillOperationInWorkspace(filePath: string, gql: string, document
 export async function getWorkspaceGqls(gqlName: string) {
   const resolveGqlFiles = getWorkspaceAllGqlResolveFilePaths()
   const workspaceGqlFileInfo = getWorkspaceGqlFileInfo(resolveGqlFiles)
-  const filteredWorkspaceGqlFileInfo = workspaceGqlFileInfo.filter((gqlFileItm) => gqlFileItm.operationNames.includes(gqlName))
+  const filteredWorkspaceGqlFileInfo = workspaceGqlFileInfo.filter((gqlFileItm) =>
+    gqlFileItm.operationNames.includes(gqlName),
+  )
 
   if (!filteredWorkspaceGqlFileInfo.length) {
     return Promise.reject('The operation does not exist in a local file')

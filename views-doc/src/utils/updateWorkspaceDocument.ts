@@ -22,7 +22,10 @@ type ConflictingVariablesNames = {
 }
 
 /** 递归遍历得到operation字段上的所有arguments */
-function getArguments(astNode: OperationDefinitionNode | FieldNode | InlineFragmentNode, args: (ArgumentNode | null)[] = []) {
+function getArguments(
+  astNode: OperationDefinitionNode | FieldNode | InlineFragmentNode,
+  args: (ArgumentNode | null)[] = [],
+) {
   if (astNode.kind === Kind.FIELD) {
     args.push((astNode?.arguments || null) as unknown as ArgumentNode)
   }
@@ -40,7 +43,10 @@ function getArguments(astNode: OperationDefinitionNode | FieldNode | InlineFragm
 }
 
 // 函数：检查参数名称冲突
-function hasConflictingVariableDefinitions(filteredVars: ReadonlyArray<VariableDefinitionNode>, remoteVar: VariableDefinitionNode): boolean {
+function hasConflictingVariableDefinitions(
+  filteredVars: ReadonlyArray<VariableDefinitionNode>,
+  remoteVar: VariableDefinitionNode,
+): boolean {
   const filteredNames = filteredVars.map((v) => v.variable.name.value)
   const remoteName = remoteVar.variable.name.value
 
@@ -67,19 +73,26 @@ export function updateWorkspaceDocument(
         selectionSet: {
           ...localOperationNode.selectionSet,
           selections: localOperationNode.selectionSet!.selections.filter(
-            (selection) => (selection as FieldNode).name.value !== (remoteOperationNode.selectionSet!.selections[0] as FieldNode).name.value,
+            (selection) =>
+              (selection as FieldNode).name.value !==
+              (remoteOperationNode.selectionSet!.selections[0] as FieldNode).name.value,
           ),
         },
       })
 
       // 这里是得到聚合接口不需要更新的参数，是在 OperationDefinition层级上的参数
-      const filterLocalOperationNodeVariables = localOperationNode.variableDefinitions?.filter((varItm) => args.includes(varItm.variable.name.value)) || []
-      const filteredLocalOperationNodeVariablesNames = filterLocalOperationNodeVariables.map((v) => v.variable.name.value)
+      const filterLocalOperationNodeVariables =
+        localOperationNode.variableDefinitions?.filter((varItm) => args.includes(varItm.variable.name.value)) || []
+      const filteredLocalOperationNodeVariablesNames = filterLocalOperationNodeVariables.map(
+        (v) => v.variable.name.value,
+      )
       // 得到远程的 OperationDefinition层级上的参数，并解决名称冲突
       const remoteOperationNodeVariables =
         remoteOperationNode.variableDefinitions?.map((varItm) => {
           if (hasConflictingVariableDefinitions(filterLocalOperationNodeVariables, varItm)) {
-            const newNameValue = `${remoteOperationNode.name?.value}${capitalizeFirstLetter(varItm.variable.name.value)}`
+            const newNameValue = `${remoteOperationNode.name?.value}${capitalizeFirstLetter(
+              varItm.variable.name.value,
+            )}`
             const isStillConflicting = filteredLocalOperationNodeVariablesNames.includes(newNameValue)
             // 如果还是冲突就加上时间戳后缀
             const nameDate = +new Date()
@@ -126,7 +139,9 @@ export function updateWorkspaceDocument(
 
     // 这里是为了解决参数冲突时，改掉FieldNode上对应位置的参数
     localNode.arguments = remoteNode.arguments?.map((arg) => {
-      const conflictingArg = remoteConflictingVariablesNames.find((itm) => itm.variableName === (arg.value as VariableNode).name.value)
+      const conflictingArg = remoteConflictingVariablesNames.find(
+        (itm) => itm.variableName === (arg.value as VariableNode).name.value,
+      )
 
       if (conflictingArg) {
         return {
@@ -154,7 +169,9 @@ export function updateWorkspaceDocument(
       .map((localSelection) => {
         if (localSelection.kind === Kind.INLINE_FRAGMENT) {
           const remoteSelection = remoteNode.selectionSet!.selections.find(
-            (remoteSelection) => (remoteSelection as InlineFragmentNode).typeCondition?.name.value === localSelection.typeCondition?.name.value,
+            (remoteSelection) =>
+              (remoteSelection as InlineFragmentNode).typeCondition?.name.value ===
+              localSelection.typeCondition?.name.value,
           )
           if (!remoteSelection) {
             return null
@@ -163,7 +180,9 @@ export function updateWorkspaceDocument(
         } else if (localSelection.kind === Kind.FRAGMENT_SPREAD) {
           // TODO 这种类型暂时没有涉及到
         } else {
-          const remoteSelection = remoteNode.selectionSet!.selections.find((remoteSelection) => (remoteSelection as FieldNode).name?.value === localSelection.name.value)
+          const remoteSelection = remoteNode.selectionSet!.selections.find(
+            (remoteSelection) => (remoteSelection as FieldNode).name?.value === localSelection.name.value,
+          )
           if (!remoteSelection) {
             return null
           }
@@ -177,7 +196,9 @@ export function updateWorkspaceDocument(
       if (remoteSelection.kind === Kind.INLINE_FRAGMENT) {
         if (
           !localNode.selectionSet!.selections.some(
-            (localSelection) => (localSelection as InlineFragmentNode).typeCondition?.name.value === remoteSelection.typeCondition?.name.value,
+            (localSelection) =>
+              (localSelection as InlineFragmentNode).typeCondition?.name.value ===
+              remoteSelection.typeCondition?.name.value,
           )
         ) {
           // @ts-ignore
@@ -186,7 +207,11 @@ export function updateWorkspaceDocument(
       } else if (remoteSelection.kind === Kind.FRAGMENT_SPREAD) {
         // TODO 这种类型暂时没有涉及到
       } else {
-        if (!localNode.selectionSet!.selections.some((localSelection) => (localSelection as FieldNode).name?.value === remoteSelection.name.value)) {
+        if (
+          !localNode.selectionSet!.selections.some(
+            (localSelection) => (localSelection as FieldNode).name?.value === remoteSelection.name.value,
+          )
+        ) {
           // @ts-ignore
           localNode.selectionSet!.selections.push(remoteSelection)
         }
@@ -194,7 +219,11 @@ export function updateWorkspaceDocument(
     })
   }
 
-  if (localNode.kind === 'OperationDefinition' && remoteNode.kind === 'OperationDefinition' && filteredNotUpdateField.length) {
+  if (
+    localNode.kind === 'OperationDefinition' &&
+    remoteNode.kind === 'OperationDefinition' &&
+    filteredNotUpdateField.length
+  ) {
     // 聚合接口更新方式
     return {
       ...localNode,
