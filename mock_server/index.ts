@@ -36,6 +36,7 @@ export async function startServer(config: GraphqlKitConfig) {
 
   await server.start()
   app.use('/graphql', cors<cors.CorsRequest>(), json(), expressMiddleware(server))
+  app.use(cors())
   app.use(json())
 
   app.get('/operations', async (req, res) => {

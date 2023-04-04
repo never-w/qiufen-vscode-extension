@@ -23,22 +23,12 @@
   "contributes": {
     "commands": [
       {
-        "command": "graphql-qiufen-pro.startDoc",
-        "title": "start graphql-qiufen-pro operations doc",
-        "category": "Graphql Qiufen Pro"
-      },
-      {
-        "command": "graphql-qiufen-pro.closeDoc",
-        "title": "close graphql-qiufen-pro operations doc",
-        "category": "Graphql Qiufen Pro"
-      },
-      {
-        "command": "graphql-qiufen-pro.mock",
+        "command": "graphql-qiufen-pro.qiufenStart",
         "title": "start mocking graphql-qiufen-pro operations",
         "category": "Graphql Qiufen Pro"
       },
       {
-        "command": "graphql-qiufen-pro.mockClose",
+        "command": "graphql-qiufen-pro.qiufenClosed",
         "title": "close mocking graphql-qiufen-pro operations",
         "category": "Graphql Qiufen Pro"
       }

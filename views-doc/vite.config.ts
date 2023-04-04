@@ -17,15 +17,15 @@ export default defineConfig({
     assetsDir: 'assets',
     minify: 'terser', // 混淆器
   },
-  server: {
-    proxy: {
-      '/operations': {
-        target: 'http://localhost:9400',
-        changeOrigin: true,
-        // rewrite: (path) => path.replace(/^\/api/, ''),
-      },
-    },
-  },
+  // server: {
+  //   proxy: {
+  //     '/operations': {
+  //       target: 'http://localhost:9400',
+  //       changeOrigin: true,
+  //       // rewrite: (path) => path.replace(/^\/api/, ''),
+  //     },
+  //   },
+  // },
   css: {
     // css预处理器
     preprocessorOptions: {

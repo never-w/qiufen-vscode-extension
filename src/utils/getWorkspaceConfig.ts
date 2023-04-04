@@ -3,7 +3,7 @@ import * as path from 'path'
 import fs from 'fs'
 
 /** 获取工作区qiufen配置 */
-function getWorkspaceConfig(tryCatchCallback?: VoidFunction) {
+function getWorkspaceConfig(tryCatchCallback?: () => void) {
   const workspaceRootPath = vscode.workspace.workspaceFolders?.[0].uri.fsPath // 工作区根目录
   const qiufenConfigPath = path.join(workspaceRootPath!, 'qiufen.config.js')
   const isExistConfigFile = fs.existsSync(qiufenConfigPath)

@@ -1,159 +1,35 @@
 import * as vscode from 'vscode'
 import * as path from 'path'
 import type { Server } from 'http'
-import getIpAddress from './utils/getIpAddress'
 import getWorkspaceConfig from './utils/getWorkspaceConfig'
-import fetchRemoteSchemaTypeDefs from './utils/fetchRemoteSchemaTypeDefs'
 import { updateStatusBarItem, loadingStatusBarItem } from './utils/updateStatusBarItem'
 import { defaultQiufenConfig } from './config'
-import { GraphqlQiufenProCloseDocCommandId, GraphqlQiufenProCloseMockCommandId, GraphqlQiufenProStartMockCommandId, GraphqlQiufenProStartDocCommandId } from './config/commands'
-import readLocalSchemaTypeDefs from './utils/readLocalSchemaTypeDefs'
-import { fillOneKeyMessageSignNull, fillOneKeyMessageSignSuccess, MessageEnum } from './config/postMessage'
-import { getWorkspaceAllGqlResolveFilePaths, getWorkspaceGqlFileInfo, syncWorkspaceGqls } from './utils/syncWorkspaceGqls'
 import { startServer } from '../mock_server/index'
 
 let serverMock: Server
-let docStatusBarItem: vscode.StatusBarItem
 let mockStatusBarItem: vscode.StatusBarItem
 let currentPanel: vscode.WebviewPanel | undefined
 
+const GraphqlQiufenProCloseMockCommandId = 'graphql-qiufen-pro.qiufenClosed'
+const GraphqlQiufenProStartMockCommandId = 'graphql-qiufen-pro.qiufenStart'
+
 export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
-    vscode.commands.registerCommand(GraphqlQiufenProStartDocCommandId, async () => {
-      const jsonSettings = vscode.workspace.getConfiguration('graphql-qiufen-pro')
-
-      const columnToShowIn = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined
-      if (currentPanel) {
-        currentPanel.reveal(columnToShowIn)
-      }
-
-      if (!currentPanel) {
-        loadingStatusBarItem(docStatusBarItem, 'Doc')
-        const { url, port } = getWorkspaceConfig(() => {
-          updateStatusBarItem(GraphqlQiufenProStartDocCommandId, `$(target) Doc`, docStatusBarItem)
-        })
-
-        // 获取远程schema typeDefs
-        let backendTypeDefs: string | undefined
-        try {
-          backendTypeDefs = await fetchRemoteSchemaTypeDefs(url)
-        } catch (e) {
-          updateStatusBarItem(GraphqlQiufenProStartDocCommandId, `$(target) Doc`, docStatusBarItem)
-          throw e
-        }
-
-        if (!backendTypeDefs) {
-          return
-        }
-
-        currentPanel = vscode.window.createWebviewPanel('graphql-qiufen-pro', 'Graphql Qiufen Pro', columnToShowIn!, {
-          retainContextWhenHidden: true, // 保证 Webview 所在页面进入后台时不被释放
-          enableScripts: true,
-        })
-        currentPanel.iconPath = vscode.Uri.file(path.join(context.extensionPath, 'assets/logo', 'qiufen-logo.png'))
-        // 获取磁盘上的资源路径且，获取在webview中使用的特殊URI
-        const srcUrl = currentPanel.webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, 'dist', 'webview.js')))
-        currentPanel.webview.html = getWebviewContent(srcUrl)
-
-        // 接受webview发送的信息，且再向webview发送信息，这样做为了解决它们两者通信有时不得行的bug
-        currentPanel.webview.onDidReceiveMessage(
-          (message) => {
-            switch (message.type) {
-              case MessageEnum.FETCH:
-                const resolveGqlFiles = getWorkspaceAllGqlResolveFilePaths()
-                const workspaceGqlFileInfo = getWorkspaceGqlFileInfo(resolveGqlFiles)
-                const workspaceGqlNames = workspaceGqlFileInfo.map((itm) => itm.operationNames).flat(Infinity) as string[]
-
-                // 读取本地的schema类型定义
-                const localTypeDefs = readLocalSchemaTypeDefs()
-                const messageObj = {
-                  typeDefs: backendTypeDefs,
-                  maxDepth: jsonSettings.maxDepth,
-                  directive: jsonSettings.directive,
-                  localTypeDefs,
-                  workspaceGqlNames,
-                  workspaceGqlFileInfo,
-                  port,
-                  IpAddress: getIpAddress(),
-                }
-
-                currentPanel!.webview.postMessage(messageObj)
-                break
-              case MessageEnum.REFETCH:
-                const resolveGqlFiles1 = getWorkspaceAllGqlResolveFilePaths()
-                const workspaceGqlFileInfo1 = getWorkspaceGqlFileInfo(resolveGqlFiles1)
-                const workspaceGqlNames1 = workspaceGqlFileInfo1.map((itm) => itm.operationNames).flat(Infinity) as string[]
-
-                fetchRemoteSchemaTypeDefs(url)
-                  .then((resTypeDefs) => {
-                    // 读取本地的schema类型定义
-                    const localTypeDefs = readLocalSchemaTypeDefs()
-                    const messageObj = {
-                      directive: jsonSettings.directive,
-                      typeDefs: resTypeDefs,
-                      maxDepth: jsonSettings.maxDepth,
-                      workspaceGqlNames: workspaceGqlNames1,
-                      workspaceGqlFileInfo: workspaceGqlFileInfo1,
-                      localTypeDefs,
-                      port,
-                      IpAddress: getIpAddress(),
-                    }
-
-                    currentPanel!.webview.postMessage(messageObj)
-                  })
-                  .catch((e) => {
-                    throw e
-                  })
-                break
-              default:
-                const { gqlStr, gqlName, gqlType, typeDefs } = message
-                syncWorkspaceGqls(gqlStr, gqlName, gqlType, typeDefs)
-                  .then((res) => {
-                    currentPanel!.webview.postMessage(res ? fillOneKeyMessageSignSuccess : fillOneKeyMessageSignNull)
-                  })
-                  .catch(() => {
-                    currentPanel!.webview.postMessage(fillOneKeyMessageSignNull)
-                  })
-            }
-          },
-          undefined,
-          context.subscriptions,
-        )
-
-        updateStatusBarItem(GraphqlQiufenProCloseDocCommandId, `$(target) Close Doc`, docStatusBarItem, 'yellow')
-
-        // 当前面板被关闭后重置
-        currentPanel.onDidDispose(
-          () => {
-            currentPanel = undefined
-            updateStatusBarItem(GraphqlQiufenProStartDocCommandId, `$(target) Doc`, docStatusBarItem)
-          },
-          null,
-          context.subscriptions,
-        )
-      }
-    }),
-    // 关闭gql doc命令注册
-    vscode.commands.registerCommand(GraphqlQiufenProCloseDocCommandId, () => {
-      if (currentPanel) {
-        currentPanel?.dispose()
-        updateStatusBarItem(GraphqlQiufenProStartDocCommandId, `$(target) Doc`, docStatusBarItem)
-      }
-    }),
-    // Close Mock命令注册
     vscode.commands.registerCommand(GraphqlQiufenProCloseMockCommandId, () => {
       serverMock.close()
-      updateStatusBarItem(GraphqlQiufenProStartMockCommandId, `$(play) Mock`, mockStatusBarItem)
+      if (currentPanel) {
+        currentPanel?.dispose()
+      }
+      updateStatusBarItem(GraphqlQiufenProStartMockCommandId, `$(play) Qiufen Start`, mockStatusBarItem)
     }),
-    // Start Mock命令注册
     vscode.commands.registerCommand(GraphqlQiufenProStartMockCommandId, async () => {
       const { isExistConfigFile, url, port, qiufenConfig } = getWorkspaceConfig()
-      loadingStatusBarItem(mockStatusBarItem, 'Mock')
+      loadingStatusBarItem(mockStatusBarItem, 'Qiufen Loading')
       if (isExistConfigFile) {
         try {
           serverMock = await startServer(qiufenConfig!)
         } catch (err) {
-          updateStatusBarItem(GraphqlQiufenProStartMockCommandId, `$(play) Mock`, mockStatusBarItem)
+          updateStatusBarItem(GraphqlQiufenProStartMockCommandId, `$(play) Qiufen Start`, mockStatusBarItem)
           throw err
         }
       } else {
@@ -166,7 +42,7 @@ export function activate(context: vscode.ExtensionContext) {
             ...defaultQiufenConfig,
           })
         } catch (err) {
-          updateStatusBarItem(GraphqlQiufenProStartMockCommandId, `$(play) Mock`, mockStatusBarItem)
+          updateStatusBarItem(GraphqlQiufenProStartMockCommandId, `$(play) Qiufen Start`, mockStatusBarItem)
           throw err
         }
       }
@@ -182,38 +58,70 @@ export function activate(context: vscode.ExtensionContext) {
       // 当点击确定时才打开网页
       if (!!res) {
         vscode.env.openExternal(vscode.Uri.parse(`http://localhost:${port}`))
+      } else {
+        // 打开vscode内置webview Doc
+        const columnToShowIn = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined
+        if (currentPanel) {
+          currentPanel.reveal(columnToShowIn)
+        }
+
+        if (!currentPanel) {
+          currentPanel = vscode.window.createWebviewPanel('graphql-qiufen-pro', 'Graphql Qiufen Pro', columnToShowIn!, {
+            retainContextWhenHidden: true, // 保证 Webview 所在页面进入后台时不被释放
+            enableScripts: true,
+          })
+          currentPanel.iconPath = vscode.Uri.file(path.join(context.extensionPath, 'assets/logo', 'qiufen-logo.png'))
+          currentPanel.webview.html = getWebviewContent(port)
+
+          // 当前面板被关闭后重置
+          currentPanel.onDidDispose(
+            () => {
+              currentPanel = undefined
+              vscode.commands.executeCommand(GraphqlQiufenProCloseMockCommandId)
+            },
+            null,
+            context.subscriptions,
+          )
+        }
       }
 
-      updateStatusBarItem(GraphqlQiufenProCloseMockCommandId, `$(play) Close Mock`, mockStatusBarItem, 'yellow')
+      updateStatusBarItem(GraphqlQiufenProCloseMockCommandId, `$(play) Qiufen Closed`, mockStatusBarItem, 'yellow')
     }),
   )
 
   // 设置底部bar图标
-  docStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left)
   mockStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left)
-  context.subscriptions.push(docStatusBarItem, mockStatusBarItem)
-  updateStatusBarItem(GraphqlQiufenProStartDocCommandId, `$(target) Doc`, docStatusBarItem)
-  docStatusBarItem.show()
-  updateStatusBarItem(GraphqlQiufenProStartMockCommandId, `$(play) Mock`, mockStatusBarItem)
+  updateStatusBarItem(GraphqlQiufenProStartMockCommandId, `$(play) Qiufen Start`, mockStatusBarItem)
   mockStatusBarItem.show()
 }
 
 export function deactivate(context: vscode.ExtensionContext) {}
 
-function getWebviewContent(srcUrl: vscode.Uri) {
+function getWebviewContent(port: number) {
   const renderHtml = `
-          <!DOCTYPE html>
-          <html lang="en">
-           <head>
-             <meta charset="utf-8" />
-             <meta name="viewport" content="width=device-width,initial-scale=1" />
-            <script sandbox="allow-scripts allow-modals allow-forms allow-same-origin" defer="defer" src="${srcUrl}"></script>
-          </head>
-          <body>
-             <noscript>You need to enable JavaScript to run this app.</noscript>
-             <div id="root"></div>
-          </body>
-          </html>
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            body,html {
+                height:100%;
+                margin:0;
+                padding:0;
+                overflow:hidden;
+            }
+            iframe {
+                width:100%;
+                height:100%;
+                border:none;
+            }
+        </style>
+    </head>
+    <body>
+        <iframe src="http://localhost:${port}" sandbox="allow-scripts"></iframe>
+    </body>
+    </html>
           `
   return renderHtml
 }

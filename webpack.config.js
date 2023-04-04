@@ -13,12 +13,6 @@ const extensionConfig = {
   entry: {
     mock_server: './mock_server/index.ts',
     extension: './src/extension.ts',
-    webview: {
-      import: './src/webview/index.tsx',
-      library: {
-        type: 'this',
-      },
-    },
   },
   externals: {},
   output: {
