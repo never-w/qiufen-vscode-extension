@@ -153,17 +153,7 @@ const DocSidebar: FC<IProps> = ({
         )
       })
     }
-  }, [
-    activeItemKey,
-    activeKey,
-    flag,
-    groupedOperations,
-    keyword,
-    onSelect,
-    setActiveItemKey,
-    workspaceGqlFileInfo,
-    workspaceGqlNames,
-  ])
+  }, [activeItemKey, activeKey, flag, groupedOperations, keyword, setActiveItemKey])
 
   return (
     <div className={styles.sidebar}>

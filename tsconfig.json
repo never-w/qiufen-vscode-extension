@@ -6,9 +6,6 @@
     "sourceMap": true,
     "rootDir": "./",
     "baseUrl": ".",
-    "paths": {
-      "@/*": ["src/*"]
-    },
     "strict": true /* enable all strict type-checking options */,
     "jsx": "react", // react18 用 react-jsx，18之前的版本用 react
     "esModuleInterop": true

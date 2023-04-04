@@ -1,6 +1,13 @@
 import React, { useCallback, useLayoutEffect, useMemo, useState } from 'react'
 import type { FC } from 'react'
-import { buildSchema, ConstDirectiveNode, FieldNode, GraphQLSchema, OperationDefinitionNode } from 'graphql'
+import {
+  buildSchema,
+  ConstDirectiveNode,
+  FieldNode,
+  GraphQLArgument,
+  GraphQLSchema,
+  OperationDefinitionNode,
+} from 'graphql'
 import { message, Space, Table, Tooltip, Switch, Divider, Tag, Button, Modal, Select, Form } from 'antd'
 import type { ColumnsType } from 'antd/lib/table'
 import ReactDiffViewer, { DiffMethod } from 'react-diff-viewer'
@@ -9,7 +16,6 @@ import obj2str from 'stringify-object'
 import { CopyOutlined, LoadingOutlined, MenuFoldOutlined, EditOutlined } from '@ant-design/icons'
 import ClipboardJS from 'clipboard'
 import styles from './index.module.less'
-import type { ArgTypeDef } from '@fruits-chain/qiufen-helpers'
 import useBearStore from '@/stores'
 
 import { defaultLocalTypeDefs } from '@/config/const'
@@ -18,7 +24,7 @@ import {
   OperationDefinitionNodeGroupType,
   OperationNodesForFieldAstBySchemaReturnType,
 } from '@/utils/operations'
-import { NewFieldNodeType } from '@/utils/interface'
+import { InputType, NewFieldNodeType } from '@/utils/interface'
 import {
   resolveOperationDefsForFieldNodeTree,
   getOperationDefsForFieldNodeTreeDepthKeys,
@@ -38,7 +44,9 @@ import { isArray } from 'lodash'
 interface IProps {
   operationObj: OperationNodesForFieldAstBySchemaReturnType[number]
 }
-
+interface ArgTypeDef extends Pick<GraphQLArgument, 'name' | 'description' | 'defaultValue' | 'deprecationReason'> {
+  type: InputType
+}
 export type ArgColumnRecord = {
   key: string
   name: ArgTypeDef['name']
@@ -287,7 +295,7 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
           setSpinIcon(false)
         })
     }
-  }, [operationDefNode, operationName, operationType, selectedKeys, typeDefs])
+  }, [operationDefNode, operationName, selectedKeys])
 
   // 点击copy事件，这样创建元素骚操作是为了提高性能
   const handleCopyClick = useCallback(async () => {
@@ -375,7 +383,7 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
           })
       }
     })
-  }, [filteredWorkspaceGqlFileInfo, operationDefNode, selectedKeys])
+  }, [filteredWorkspaceGqlFileInfo, form, operationDefNode, selectedKeys])
 
   return (
     <Space id={operationName} className={styles.operationDoc} direction="vertical">

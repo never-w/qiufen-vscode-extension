@@ -7,7 +7,7 @@ import cors from 'cors'
 import { json } from 'body-parser'
 import express from 'express'
 import path from 'path'
-import fetchRemoteSchemaTypeDefs from '@/utils/fetchRemoteSchemaTypeDefs'
+import fetchRemoteSchemaTypeDefs from '../views-doc/src/utils/fetchRemoteSchemaTypeDefs'
 import {
   getWorkspaceAllGqlResolveFilePaths,
   getWorkspaceGqlFileInfo,
@@ -15,8 +15,8 @@ import {
   fillOperationInWorkspace,
   GetWorkspaceGqlFileInfoReturnType,
 } from '../views-doc/src/utils/syncWorkspaceGqls'
-import readLocalSchemaTypeDefs from '@/utils/readLocalSchemaTypeDefs'
-import getIpAddress from '@/utils/getIpAddress'
+import readLocalSchemaTypeDefs from '../views-doc/src/utils/readLocalSchemaTypeDefs'
+import getIpAddress from '../views-doc/src/utils/getIpAddress'
 import portscanner from 'portscanner'
 
 export async function startServer(config: GraphqlKitConfig) {

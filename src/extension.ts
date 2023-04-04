@@ -2,9 +2,9 @@ import * as vscode from 'vscode'
 import * as path from 'path'
 import type { Server } from 'http'
 import getWorkspaceConfig from './utils/getWorkspaceConfig'
-import { updateStatusBarItem, loadingStatusBarItem } from './utils/updateStatusBarItem'
 import { defaultQiufenConfig } from './config'
 import { startServer } from '../mock_server/index'
+import { StatusBarItem } from 'vscode'
 
 let serverMock: Server
 let mockStatusBarItem: vscode.StatusBarItem
@@ -93,6 +93,20 @@ export function activate(context: vscode.ExtensionContext) {
   mockStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left)
   updateStatusBarItem(GraphqlQiufenProStartMockCommandId, `$(play) Qiufen Start`, mockStatusBarItem)
   mockStatusBarItem.show()
+}
+
+function loadingStatusBarItem(statusBarItem: StatusBarItem, text: string) {
+  statusBarItem.text = `$(sync~spin) ${text}...`
+  statusBarItem.tooltip = 'Loading Doc'
+  statusBarItem.color = undefined
+  statusBarItem.command = undefined
+  statusBarItem.show()
+}
+
+function updateStatusBarItem(commandId: string, text: string, statusBarItem: StatusBarItem, color?: string) {
+  statusBarItem.command = commandId
+  statusBarItem.text = text
+  statusBarItem.color = color
 }
 
 export function deactivate(context: vscode.ExtensionContext) {}
