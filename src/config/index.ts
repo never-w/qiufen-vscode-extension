@@ -25,6 +25,7 @@ export const defaultQiufenConfig = {
       Long: () => Random.integer(0, 10000),
       NumberOrBoolOrStringOrNull: () => null,
       NumberOrString: () => null,
+      Object: () => ({}),
     },
     resolvers: {
       Query: {},
