@@ -4,7 +4,7 @@
   "description": "Graphql Graphql-tool Graphql-Doc schema Operations Ast",
   "author": "never-w",
   "publisher": "never-w",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "engines": {
     "vscode": "^1.62.0"
   },
@@ -42,7 +42,7 @@
         },
         "graphql-qiufen-pro.port": {
           "type": "number",
-          "default": 9400,
+          "default": 6700,
           "description": "backend service port"
         },
         "graphql-qiufen-pro.directive": {
@@ -78,7 +78,7 @@
     "pretest": "yarn run compile-tests && yarn run compile && yarn run lint",
     "lint": "eslint src --ext ts",
     "publish": "vsce publish",
-    "login": "vsce login never-w",
+    "login": "vsce login",
     "test": "node ./out/test/runTest.js",
     "prettier": "prettier --config .prettierrc.json --write './**/*.{js,ts,less,css,json}'"
   },
