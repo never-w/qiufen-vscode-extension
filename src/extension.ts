@@ -23,7 +23,7 @@ export function activate(context: vscode.ExtensionContext) {
       updateStatusBarItem(GraphqlQiufenProStartMockCommandId, `$(play) Qiufen Start`, mockStatusBarItem)
     }),
     vscode.commands.registerCommand(GraphqlQiufenProStartMockCommandId, async () => {
-      const { isExistConfigFile, url, port, qiufenConfig } = getWorkspaceConfig(() => {
+      const { isExistConfigFile, url, port, qiufenConfig } = await getWorkspaceConfig(() => {
         vscode.window.showErrorMessage('No configuration content exists')
       })
       loadingStatusBarItem(mockStatusBarItem, 'Qiufen Loading')
