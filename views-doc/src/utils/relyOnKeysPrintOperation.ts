@@ -23,6 +23,6 @@ export function relyOnKeysPrintOperation(
     parse(operationStr)
     return Promise.resolve(operationStr)
   } catch {
-    return Promise.reject('GraphQLError: Syntax Error')
+    return Promise.reject('Please select the operation fields')
   }
 }
