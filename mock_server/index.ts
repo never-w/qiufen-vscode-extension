@@ -37,7 +37,7 @@ export async function startServer(config: GraphqlKitConfig) {
   await server.start()
   app.use('/graphql', cors<cors.CorsRequest>(), json(), expressMiddleware(server))
   app.use(cors())
-  app.use(json())
+  app.use(json({ limit: Infinity }))
 
   app.get('/operations', async (req, res) => {
     const resolveGqlFiles = getWorkspaceAllGqlResolveFilePaths()

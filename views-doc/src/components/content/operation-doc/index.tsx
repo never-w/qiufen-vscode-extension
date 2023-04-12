@@ -363,6 +363,12 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
         const { filenameList } = res
         const info = filteredWorkspaceGqlFileInfo.filter((itm) => filenameList.includes(itm.filename))
 
+        // TODO: 查看参数 多少kb
+        // const json = JSON.stringify({ info, gql: operationStr })
+        // const byteSize = new Blob([json]).size
+        // const sizeInKB = byteSize / 1024
+        // console.log(`请求参数大小：${sizeInKB.toFixed(2)} KB`)
+
         fetch('/multiple', {
           method: 'POST',
           headers: {
