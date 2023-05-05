@@ -70,7 +70,7 @@ const _groupBy: GroupByFn = (operation: OperationDefinitionNodeGroupType) => {
   const [groupName, description] = operation.operationDefinitionDescription?.includes(':')
     ? operation.operationDefinitionDescription.split(/[:]\s*/)
     : ['default', operation.operationDefinitionDescription]
-  const groupOperation = { ...operation, description }
+  const groupOperation = { description, ...operation }
   return { groupName, operation: groupOperation }
 }
 

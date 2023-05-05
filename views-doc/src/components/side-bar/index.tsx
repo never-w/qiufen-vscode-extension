@@ -6,7 +6,6 @@ import classnames from 'classnames'
 import styles from './index.module.less'
 import type { CollapseProps } from 'antd'
 import type { FC } from 'react'
-import useBearStore from '@/stores'
 import {
   groupOperations as groupOperationsCopy,
   OperationDefinitionNodeGroupType,
@@ -20,7 +19,6 @@ export interface IProps {
   keyword: string
   selectedOperationId: string
   onKeywordChange: (keyword: string) => void
-  onSelect: (operation: OperationDefinitionNodeGroupType) => void
   activeItemKey: string
   setActiveItemKey: (data: string) => void
   handleReload: () => void
@@ -30,7 +28,6 @@ const DocSidebar: FC<IProps> = ({
   keyword,
   activeItemKey,
   onKeywordChange,
-  onSelect,
   selectedOperationId,
   setActiveItemKey,
   handleReload,
@@ -39,7 +36,6 @@ const DocSidebar: FC<IProps> = ({
   const [top, setTop] = useState(0)
   const [flag, setFlag] = useState(false)
   const [isFocus, setIsFocus] = useState(false)
-  const { workspaceGqlNames, workspaceGqlFileInfo } = useBearStore((ste) => ste)
 
   const onScroll = useThrottleFn(
     (evt) => {

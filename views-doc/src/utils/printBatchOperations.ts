@@ -1,8 +1,9 @@
 import { OperationDefinitionNode, print } from 'graphql'
 import { OperationDefinitionNodeGroupType } from './operations'
+import { printWithComments } from './comment'
 
 export function printOneOperation(ast: OperationDefinitionNodeGroupType | OperationDefinitionNode) {
-  return print(ast)
+  return printWithComments(ast)
 }
 
 export function printBatchOperations(asts: OperationDefinitionNodeGroupType[]) {

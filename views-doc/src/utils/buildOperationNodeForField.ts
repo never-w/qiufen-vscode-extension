@@ -4,7 +4,6 @@ import {
   isObjectType,
   getNamedType,
   isUnionType,
-  OperationDefinitionNode,
   VariableDefinitionNode,
   isNonNullType,
   SelectionNode,
@@ -160,6 +159,11 @@ function buildOperationAndCollectVariables({
     kind: Kind.OPERATION_DEFINITION,
     operation: kind,
     operationDefinitionDescription: field.description,
+    descriptionText: field.description,
+    description: {
+      kind: Kind.STRING,
+      value: field.description,
+    },
     name: {
       kind: Kind.NAME,
       value: operationName,
@@ -253,7 +257,11 @@ function resolveSelectionSet({
             checked: false,
             fieldKey: prefix + t.name,
             nameValue: t.name,
-            description: t.description,
+            descriptionText: t.description,
+            description: {
+              kind: Kind.STRING,
+              value: t.description,
+            },
             selectionSet: resolveSelectionSet({
               parent: type,
               type: t,
@@ -304,7 +312,11 @@ function resolveSelectionSet({
             checked: false,
             fieldKey: prefix + t.name,
             nameValue: t.name,
-            description: t.description,
+            descriptionText: t.description,
+            description: {
+              kind: Kind.STRING,
+              value: t.description,
+            },
             selectionSet: resolveSelectionSet({
               parent: type,
               type: t,
@@ -549,7 +561,11 @@ function resolveField({
       fieldKey,
       nameValue: field.name,
       type: getFieldNodeType(field),
-      description: field.description,
+      descriptionText: field.description,
+      description: {
+        kind: Kind.STRING,
+        value: field.description,
+      },
       directives: field.astNode?.directives,
       ...(fieldName !== field.name && { alias: { kind: Kind.NAME, value: fieldName } }),
       selectionSet:
@@ -585,7 +601,11 @@ function resolveField({
       fieldKey,
       nameValue: field.name,
       type: getFieldNodeType(field),
-      description: field.description,
+      descriptionText: field.description,
+      description: {
+        kind: Kind.STRING,
+        value: field.description,
+      },
       enum: (namedType as any)?._values,
       directives: field.astNode?.directives,
       ...(fieldName !== field.name && { alias: { kind: Kind.NAME, value: fieldName } }),
@@ -603,7 +623,11 @@ function resolveField({
     fieldKey,
     nameValue: field.name,
     type: getFieldNodeType(field),
-    description: field.description,
+    descriptionText: field.description,
+    description: {
+      kind: Kind.STRING,
+      value: field.description,
+    },
     directives: field.astNode?.directives,
     ...(fieldName !== field.name && { alias: { kind: Kind.NAME, value: fieldName } }),
     arguments: args,

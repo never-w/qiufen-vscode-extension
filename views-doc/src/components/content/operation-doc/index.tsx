@@ -158,7 +158,7 @@ const fieldsColumns: ColumnsType<NewFieldNodeType> = [
   },
   {
     title: 'Description',
-    dataIndex: 'description',
+    dataIndex: 'descriptionText',
     width: '35%',
   },
   {
