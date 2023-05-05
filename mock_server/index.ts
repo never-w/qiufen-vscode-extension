@@ -61,7 +61,6 @@ export async function startServer(config: GraphqlKitConfig) {
 
   app.post('/update', async (req, res) => {
     const { operationStr, gqlName } = req.body
-
     try {
       const workspaceRes = await getWorkspaceGqls(gqlName)
       if (workspaceRes?.length > 1) {

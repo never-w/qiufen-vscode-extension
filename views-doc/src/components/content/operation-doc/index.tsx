@@ -258,7 +258,7 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
     }
 
     if (operationStr) {
-      fetch('/update', {
+      fetch('http://localhost:9400/update', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

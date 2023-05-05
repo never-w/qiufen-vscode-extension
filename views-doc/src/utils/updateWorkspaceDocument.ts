@@ -60,6 +60,7 @@ export function updateWorkspaceDocument(
 ): DefinitionNode | null {
   const localNode = workspaceDefNode as unknown as CanWrite<FieldNode> | ExecutableDefinitionNode
   const remoteNode = remoteDefNode as unknown as FieldNode | ExecutableDefinitionNode
+
   let filteredNotUpdateField: FieldNode[] = []
 
   if (localNode.kind === 'OperationDefinition' && remoteNode.kind === 'OperationDefinition') {
@@ -233,6 +234,16 @@ export function updateWorkspaceDocument(
       },
     } as DefinitionNode
   } else {
-    return localNode as DefinitionNode
+    return {
+      ...localNode,
+      // @ts-ignore
+      description: localNode?.description?.value
+        ? // @ts-ignore
+          localNode?.description
+        : {
+            // @ts-ignore
+            ...remoteNode?.description,
+          },
+    } as unknown as DefinitionNode
   }
 }

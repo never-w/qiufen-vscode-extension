@@ -3,16 +3,10 @@ import glob from 'glob'
 import fs from 'fs'
 import { workspace, window } from 'vscode'
 import path from 'path'
-import {
-  DefinitionNode,
-  parse,
-  print,
-  FieldNode,
-  OperationDefinitionNode,
-  DocumentNode,
-  ExecutableDefinitionNode,
-} from 'graphql'
+import { DefinitionNode, FieldNode, OperationDefinitionNode, DocumentNode, ExecutableDefinitionNode } from 'graphql'
 import { updateWorkspaceDocument } from './updateWorkspaceDocument'
+import { transformCommentsToDescriptions as parse } from './parseGqlToAstWithComment'
+import { printWithComments as print } from './comment'
 
 /** 填充远程最新的operation到工作区对应文件里面 */
 export function fillOperationInWorkspace(filePath: string, gql: string, documentAst: DocumentNode) {

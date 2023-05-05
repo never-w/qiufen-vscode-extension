@@ -1,13 +1,11 @@
-import { FC, useEffect } from 'react'
+import { FC } from 'react'
 import React, { useCallback, useMemo, useState } from 'react'
 import { Spin, message } from 'antd'
 import DocSidebar from './components/side-bar/index'
 import useBearStore from './stores'
 import Content from './components/content'
-import { Kind, buildSchema } from 'graphql'
+import { buildSchema } from 'graphql'
 import { getOperationNodesForFieldAstBySchema, OperationNodesForFieldAstBySchemaReturnType } from './utils/operations'
-import { printWithComments } from './utils/comment'
-import { transformCommentsToDescriptions } from './utils/parseGqlToAstWithComment'
 
 interface IProps {}
 
@@ -59,31 +57,6 @@ const App: FC<IProps> = () => {
     clearTimeout(timer)
     setLoading(false)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  useEffect(() => {
-    const sdl = transformCommentsToDescriptions(
-      `
-query pageAdjustBill1($input: AdjustBillPageInput) {
-  pageAdjustBill2(input: $input) {
-    pageCurrent2
-    pageSize2
-}
-  }
-
- # 无敌的接口
-query pageAdjustBill($input: AdjustBillPageInput) {
-   # wqwqwq的接口
-  pageAdjustBill(input: $input) {
-    # 的接口
-    pageCurrent
-    pageSize
-}
-  }
-`,
-    )
-
-    console.log(printWithComments(sdl))
   }, [])
 
   return (
