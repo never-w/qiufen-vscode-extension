@@ -49,7 +49,7 @@ const useBearStore = create<BearState>((set, get) => {
     isDisplaySidebar: true,
     captureMessage() {
       return new Promise((resolve) => {
-        fetch(`http://localhost:9400/operations`)
+        fetch(`/operations`)
           .then((response) => response.json())
           .then((data) => {
             set(data)
@@ -60,7 +60,7 @@ const useBearStore = create<BearState>((set, get) => {
     setState: set,
     reloadOperations() {
       return new Promise((resolve) => {
-        fetch(`http://localhost:9400/operations`)
+        fetch(`/operations`)
           .then((response) => response.json())
           .then((data) => {
             set(data)
