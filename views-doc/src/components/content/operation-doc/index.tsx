@@ -177,7 +177,7 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
     operationDefNode.selectionSet.selections[0] as NewFieldNodeType,
   )
 
-  const { isDisplaySidebar, setState, workspaceGqlFileInfo, localTypeDefs, typeDefs, maxDepth } = useBearStore(
+  const { isDisplaySidebar, setState, workspaceGqlFileInfo, localTypeDefs, isAllAddComment, maxDepth } = useBearStore(
     (ste) => ste,
   )
   const [mode, setMode] = useState<SwitchToggleEnum>(SwitchToggleEnum.TABLE)
@@ -210,17 +210,23 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
           kind: operationObj?.operationDefNodeAst?.operation,
           field: operationObj?.operationDefNodeAst?.name!.value,
         }),
+        isAllAddComment,
       )
     } catch {
       operation = 'null...'
     }
 
     return operation
-  }, [operationObj?.operationDefNodeAst?.name, operationObj?.operationDefNodeAst?.operation, workspaceSchema])
+  }, [
+    isAllAddComment,
+    operationObj?.operationDefNodeAst?.name,
+    operationObj?.operationDefNodeAst?.operation,
+    workspaceSchema,
+  ])
 
   const remoteOperationStr = useMemo(() => {
-    return printOneOperation(operationDefNode)
-  }, [operationDefNode])
+    return printOneOperation(operationDefNode, isAllAddComment)
+  }, [isAllAddComment, operationDefNode])
 
   const workspaceOperationArgsStr = useMemo(() => {
     let workspaceOperationDefAst: OperationDefinitionNodeGroupType | undefined
@@ -251,7 +257,7 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
     setSpinIcon(true)
     let operationStr
     try {
-      operationStr = await relyOnKeysPrintOperation(operationDefNode, selectedKeys)
+      operationStr = await relyOnKeysPrintOperation(operationDefNode, selectedKeys, isAllAddComment)
     } catch (error) {
       setSpinIcon(false)
       message.error(error)
@@ -294,12 +300,12 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
           setSpinIcon(false)
         })
     }
-  }, [operationDefNode, operationName, selectedKeys])
+  }, [isAllAddComment, operationDefNode, operationName, selectedKeys])
 
   // 点击copy事件，这样创建元素骚操作是为了提高性能
   const handleCopyClick = useCallback(async () => {
     try {
-      const operationStr = await relyOnKeysPrintOperation(operationDefNode, selectedKeys)
+      const operationStr = await relyOnKeysPrintOperation(operationDefNode, selectedKeys, isAllAddComment)
       function copyClick() {
         copy('#copydiv')
       }
@@ -316,7 +322,7 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
     } catch (error) {
       message.error(error)
     }
-  }, [operationDefNode, selectedKeys])
+  }, [isAllAddComment, operationDefNode, selectedKeys])
 
   useLayoutEffect(() => {
     let resultKeys = [] as string[]
@@ -354,7 +360,7 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
     form.validateFields().then(async (res) => {
       let operationStr: string | undefined
       try {
-        operationStr = await relyOnKeysPrintOperation(operationDefNode, selectedKeys)
+        operationStr = await relyOnKeysPrintOperation(operationDefNode, selectedKeys, isAllAddComment)
       } catch (error) {
         message.error(error)
       }
@@ -388,7 +394,7 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
           })
       }
     })
-  }, [filteredWorkspaceGqlFileInfo, form, operationDefNode, selectedKeys])
+  }, [filteredWorkspaceGqlFileInfo, form, isAllAddComment, operationDefNode, selectedKeys])
 
   return (
     <Space id={operationName} className={styles.operationDoc} direction="vertical">

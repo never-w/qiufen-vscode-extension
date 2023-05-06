@@ -35,7 +35,7 @@ const getOperationNameValue = (name: string = '') => {
 }
 
 const SiderGroup: FC<IProps> = ({ flag, groupName, activeItemKey, operationList, setActiveItemKey }) => {
-  const { workspaceGqlNames, workspaceGqlFileInfo } = useBearStore((ste) => ste)
+  const { workspaceGqlNames, workspaceGqlFileInfo, isAllAddComment } = useBearStore((ste) => ste)
   // 这里是将不合法的字符串转为合法使用的 html id
   const id = groupName.replace(/[.\s]+/g, '_')
 
@@ -44,7 +44,7 @@ const SiderGroup: FC<IProps> = ({ flag, groupName, activeItemKey, operationList,
       <Tooltip title="Copy GQL">
         <CopyOutlined
           id={id}
-          data-clipboard-text={printBatchOperations(operationList)}
+          data-clipboard-text={printBatchOperations(operationList, isAllAddComment)}
           className={styles.copyBtn}
           onClick={() => {
             copy(`#${id}`)

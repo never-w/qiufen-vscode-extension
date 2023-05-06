@@ -123,9 +123,14 @@ type VisitFn = (
   ancestors: NamedTypeNode[],
 ) => any
 
-function addDescription(cb: VisitFn): VisitFn {
+function addDescription(cb: VisitFn, isAllAddComment: boolean = false): VisitFn {
   return (
-    node: { description?: StringValueNode; name?: NameNode; type?: TypeNode; kind: string },
+    node: {
+      description?: StringValueNode & { isNeedComment?: boolean }
+      name?: NameNode
+      type?: TypeNode
+      kind: string
+    },
     _key: string,
     _parent: NamedTypeNode,
     path: string[],
@@ -152,7 +157,8 @@ function addDescription(cb: VisitFn): VisitFn {
       [
         ...items.map(printComment),
         // TODO: 判断头部还是每个字段展示备注
-        node.kind === Kind.OPERATION_DEFINITION && node.description?.value
+        (isAllAddComment || node.kind === Kind.OPERATION_DEFINITION || node.description?.isNeedComment) &&
+        node.description?.value
           ? addHashesToLines(node.description?.value)
           : '',
         cb(node, _key, _parent, path, ancestors),
@@ -415,23 +421,25 @@ const printDocASTReducer: ASTVisitor = {
   },
 }
 
-const printDocASTReducerWithComments = Object.keys(printDocASTReducer).reduce(
-  (prev, key) => ({
-    ...prev,
-    [key]: {
-      // @ts-ignore
-      leave: addDescription(printDocASTReducer[key].leave),
-    },
-  }),
-  {} as typeof printDocASTReducer,
-)
+const printDocASTReducerWithComments = (isAllAddComment: boolean = false) => {
+  return Object.keys(printDocASTReducer).reduce(
+    (prev, key) => ({
+      ...prev,
+      [key]: {
+        // @ts-ignore
+        leave: addDescription(printDocASTReducer[key].leave, isAllAddComment),
+      },
+    }),
+    {} as typeof printDocASTReducer,
+  )
+}
 
 /**
  * Converts an AST into a string, using one set of reasonable
  * formatting rules.
  */
-export function printWithComments(ast: ASTNode): string {
-  return visit(ast, printDocASTReducerWithComments) as any
+export function printWithComments(ast: ASTNode, isAllAddComment = false): string {
+  return visit(ast, printDocASTReducerWithComments(isAllAddComment)) as any
 }
 
 function isFieldDefinitionNode(node: any): node is FieldDefinitionNode {

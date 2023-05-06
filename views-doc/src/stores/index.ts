@@ -18,6 +18,7 @@ export type WorkspaceGqlFileInfoType = {
   content: string
 }
 interface MessageEvent {
+  isAllAddComment: boolean
   IpAddress: string
   isDisplaySidebar: boolean
   port: number
@@ -44,6 +45,7 @@ const useBearStore = create<BearState>((set, get) => {
     operations: [],
     IpAddress: '',
     typeDefs: '',
+    isAllAddComment: false,
     workspaceGqlNames: [],
     workspaceGqlFileInfo: [],
     isDisplaySidebar: true,

@@ -9,7 +9,12 @@ import { transformCommentsToDescriptions as parse } from './parseGqlToAstWithCom
 import { printWithComments as print } from './comment'
 
 /** 填充远程最新的operation到工作区对应文件里面 */
-export function fillOperationInWorkspace(filePath: string, gql: string, documentAst: DocumentNode) {
+export function fillOperationInWorkspace(
+  filePath: string,
+  gql: string,
+  documentAst: DocumentNode,
+  isAllAddComment: boolean = false,
+) {
   const workspaceDocumentAst = documentAst
   const remoteDocumentAst = parse(gql)
 
@@ -30,7 +35,8 @@ export function fillOperationInWorkspace(filePath: string, gql: string, document
         })
 
         if (!remoteDefinition) {
-          return workspaceDefinition
+          // 这里 updateWorkspaceDocument 执行一遍这个有点多余，但是为了 备注 能设置好暂时这样执行一次，原本代码--》"return workspaceDefinition"
+          return updateWorkspaceDocument(workspaceDefinition, workspaceDefinition)
         }
         return updateWorkspaceDocument(workspaceDefinition, remoteDefinition)
       })
@@ -38,7 +44,7 @@ export function fillOperationInWorkspace(filePath: string, gql: string, document
   }
 
   // 将AST转换回查询字符串
-  const updateWorkspaceDocumentStr = print(updatedWorkspaceAst)
+  const updateWorkspaceDocumentStr = print(updatedWorkspaceAst, isAllAddComment)
   fs.writeFileSync(filePath, updateWorkspaceDocumentStr)
 }
 

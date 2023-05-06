@@ -202,8 +202,7 @@ export function updateWorkspaceDocument(
               remoteSelection.typeCondition?.name.value,
           )
         ) {
-          // @ts-ignore
-          localNode.selectionSet!.selections.push(remoteSelection)
+          ;(localNode.selectionSet!.selections as SelectionNode[]).push(remoteSelection)
         }
       } else if (remoteSelection.kind === Kind.FRAGMENT_SPREAD) {
         // TODO 这种类型暂时没有涉及到
@@ -213,8 +212,7 @@ export function updateWorkspaceDocument(
             (localSelection) => (localSelection as FieldNode).name?.value === remoteSelection.name.value,
           )
         ) {
-          // @ts-ignore
-          localNode.selectionSet!.selections.push(remoteSelection)
+          ;(localNode.selectionSet!.selections as SelectionNode[]).push(remoteSelection)
         }
       }
     })
@@ -230,7 +228,7 @@ export function updateWorkspaceDocument(
       ...localNode,
       selectionSet: {
         ...localNode.selectionSet,
-        selections: [...localNode.selectionSet.selections, ...filteredNotUpdateField],
+        selections: [...localNode.selectionSet.selections, ...makeFieldNodeDescriptionComment(filteredNotUpdateField)],
       },
     } as DefinitionNode
   } else {
@@ -238,12 +236,39 @@ export function updateWorkspaceDocument(
       ...localNode,
       // @ts-ignore
       description: localNode?.description?.value
-        ? // @ts-ignore
-          localNode?.description
+        ? {
+            // @ts-ignore
+            ...localNode?.description,
+            isNeedComment: true,
+          }
         : {
             // @ts-ignore
             ...remoteNode?.description,
           },
     } as unknown as DefinitionNode
   }
+}
+
+function traverseField(filed: FieldNode) {
+  // @ts-ignore
+  if (filed?.description?.value) {
+    // @ts-ignore
+    filed.description.isNeedComment = true
+  }
+
+  if (filed?.selectionSet?.selections) {
+    filed.selectionSet.selections = filed.selectionSet.selections.map((node) =>
+      traverseField(node as FieldNode),
+    ) as unknown as SelectionNode[]
+  }
+
+  return filed
+}
+
+function makeFieldNodeDescriptionComment(Fields: FieldNode[]) {
+  return (
+    Fields.map((field) => {
+      return traverseField(field)
+    }) || []
+  )
 }

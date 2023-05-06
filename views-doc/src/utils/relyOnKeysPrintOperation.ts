@@ -6,6 +6,7 @@ import { printOneOperation } from './printBatchOperations'
 export function relyOnKeysPrintOperation(
   operationDefAst: OperationDefinitionNodeGroupType | OperationDefinitionNode,
   keys: string[],
+  isAllAddComment: boolean = false,
 ) {
   const updateOperationDefAst = visit(operationDefAst, {
     enter(node, key, parent, path, ancestors) {
@@ -19,7 +20,7 @@ export function relyOnKeysPrintOperation(
   })
 
   try {
-    const operationStr = printOneOperation(updateOperationDefAst)
+    const operationStr = printOneOperation(updateOperationDefAst, isAllAddComment)
     parse(operationStr)
     return Promise.resolve(operationStr)
   } catch {

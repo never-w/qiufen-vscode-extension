@@ -4,7 +4,7 @@
   "description": "Graphql Graphql-tool Graphql-Doc schema Operations Ast",
   "author": "never-w",
   "publisher": "never-w",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "engines": {
     "vscode": "^1.62.0"
   },
@@ -64,6 +64,11 @@
           "type": "number",
           "default": 2,
           "description": "fields table tree show depth"
+        },
+        "graphql-qiufen-pro.isAllAddComment": {
+          "type": "boolean",
+          "default": false,
+          "description": "inserting comment"
         }
       }
     }

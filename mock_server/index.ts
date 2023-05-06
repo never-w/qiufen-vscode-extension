@@ -42,12 +42,14 @@ export async function startServer(config: GraphqlKitConfig) {
   app.get('/operations', async (req, res) => {
     const resolveGqlFiles = getWorkspaceAllGqlResolveFilePaths()
     const workspaceGqlFileInfo = getWorkspaceGqlFileInfo(resolveGqlFiles)
+
     const workspaceGqlNames = workspaceGqlFileInfo.map((itm) => itm.operationNames).flat(Infinity) as string[]
     const localTypeDefs = readLocalSchemaTypeDefs()
     // 这里再次获取后端sdl，是因为web网页在reload时要及时更新
     const backendTypeDefs1 = await fetchRemoteSchemaTypeDefs(endpoint.url)
 
     res.send({
+      isAllAddComment: jsonSettings.isAllAddComment,
       typeDefs: backendTypeDefs1,
       maxDepth: jsonSettings.maxDepth,
       directive: jsonSettings.directive,
@@ -67,7 +69,12 @@ export async function startServer(config: GraphqlKitConfig) {
         // 如果需要更新的gql存在于本地多个文件夹
         res.send({ message: workspaceRes })
       } else {
-        fillOperationInWorkspace(workspaceRes[0].filename, operationStr, workspaceRes[0].document)
+        fillOperationInWorkspace(
+          workspaceRes[0].filename,
+          operationStr,
+          workspaceRes[0].document,
+          jsonSettings.isAllAddComment,
+        )
         res.send({ message: '一键填入成功' })
       }
     } catch (error) {
@@ -79,7 +86,7 @@ export async function startServer(config: GraphqlKitConfig) {
     const { info, gql } = req.body
 
     info.forEach((infoItm: GetWorkspaceGqlFileInfoReturnType) => {
-      fillOperationInWorkspace(infoItm.filename, gql, infoItm.document)
+      fillOperationInWorkspace(infoItm.filename, gql, infoItm.document, jsonSettings.isAllAddComment)
     })
     res.send({ message: '一键填入成功' })
   })
