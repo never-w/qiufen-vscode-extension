@@ -6,6 +6,7 @@ import useBearStore from './stores'
 import Content from './components/content'
 import { buildSchema } from 'graphql'
 import { getOperationNodesForFieldAstBySchema, OperationNodesForFieldAstBySchemaReturnType } from './utils/operations'
+import Layout from './components/layout'
 
 interface IProps {}
 
@@ -60,7 +61,7 @@ const App: FC<IProps> = () => {
   }, [])
 
   return (
-    <div>
+    <Layout>
       <Spin spinning={!operationObjList.length || loading}>
         <div style={{ display: 'flex', flexDirection: 'row' }}>
           <div style={{ display: isDisplaySidebar ? 'block' : 'none' }}>
@@ -77,7 +78,7 @@ const App: FC<IProps> = () => {
           <Content key={selectedOperationId} operationObj={operationObj} />
         </div>
       </Spin>
-    </div>
+    </Layout>
   )
 }
 
