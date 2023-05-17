@@ -6,7 +6,7 @@ import useBearStore from './stores'
 import Content from './components/content'
 import { buildSchema } from 'graphql'
 import { getOperationNodesForFieldAstBySchema, OperationNodesForFieldAstBySchemaReturnType } from './utils/operations'
-import Layout from './components/layout'
+import Layout, { SideBarIconKey } from './components/layout'
 
 interface IProps {}
 
@@ -60,24 +60,31 @@ const App: FC<IProps> = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  const [sideBarActiveKey, setSideBarActiveKey] = useState(SideBarIconKey.DOCS)
+  console.log('ssssssssss')
+
   return (
-    <Layout>
-      <Spin spinning={!operationObjList.length || loading}>
-        <div style={{ display: 'flex', flexDirection: 'row' }}>
-          <div style={{ display: isDisplaySidebar ? 'block' : 'none' }}>
-            <DocSidebar
-              handleReload={handleReload}
-              activeItemKey={activeItemKey}
-              setActiveItemKey={setActiveItemKey}
-              operationsDefNodeObjList={operationObjList}
-              keyword={keyword}
-              selectedOperationId={selectedOperationId}
-              onKeywordChange={setKeyword}
-            />
+    <Layout sideBarActiveKey={sideBarActiveKey} setSideBarActiveKey={setSideBarActiveKey}>
+      {sideBarActiveKey === SideBarIconKey.DOCS ? (
+        <Spin spinning={!operationObjList.length || loading}>
+          <div style={{ display: 'flex', flexDirection: 'row' }}>
+            <div style={{ display: isDisplaySidebar ? 'block' : 'none' }}>
+              <DocSidebar
+                handleReload={handleReload}
+                activeItemKey={activeItemKey}
+                setActiveItemKey={setActiveItemKey}
+                operationsDefNodeObjList={operationObjList}
+                keyword={keyword}
+                selectedOperationId={selectedOperationId}
+                onKeywordChange={setKeyword}
+              />
+            </div>
+            <Content key={selectedOperationId} operationObj={operationObj} />
           </div>
-          <Content key={selectedOperationId} operationObj={operationObj} />
-        </div>
-      </Spin>
+        </Spin>
+      ) : (
+        <p>sssssssssssss</p>
+      )}
     </Layout>
   )
 }
