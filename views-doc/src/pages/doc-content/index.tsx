@@ -1,4 +1,4 @@
-import React, { memo, useMemo } from 'react'
+import React, { useMemo } from 'react'
 import OperationDoc from './components/operation-doc'
 import type { FC } from 'react'
 import { OperationNodesForFieldAstBySchemaReturnType, getOperationNodesForFieldAstBySchema } from '@/utils/operations'
@@ -27,15 +27,11 @@ const DocContent: FC<IProps> = () => {
     )!
   }, [id, operationObjList])
 
-  const contentJSX = useMemo(() => {
-    if (!operationObj) {
-      return null
-    }
+  if (!operationObj) {
+    return null
+  }
 
-    return <OperationDoc operationObj={operationObj} />
-  }, [operationObj])
-
-  return contentJSX
+  return <OperationDoc operationObj={operationObj} />
 }
 
-export default memo(DocContent)
+export default DocContent

@@ -54,7 +54,7 @@ const SideContent: FC<IProps> = () => {
     }
   }, [setState])
 
-  const key = useMemo(() => {
+  const firstOperationKey = useMemo(() => {
     return operationObjList.length
       ? operationObjList[0]?.operationDefNodeAst?.operation + operationObjList[0]?.operationDefNodeAst?.name?.value
       : ''
@@ -66,9 +66,9 @@ const SideContent: FC<IProps> = () => {
         <div style={{ display: isDisplaySidebar ? 'block' : 'none' }}>
           <DocSidebar
             handleReload={handleReload}
-            activeItemKey={id! || key}
+            activeItemKey={id || firstOperationKey}
             operationsDefNodeObjList={operationObjList}
-            selectedOperationId={id! || key}
+            selectedOperationId={id || firstOperationKey}
           />
         </div>
         <Outlet />

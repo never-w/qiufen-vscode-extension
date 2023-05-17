@@ -39,7 +39,6 @@ import { printOneOperation } from '@/utils/printBatchOperations'
 import { buildOperationNodeForField } from '@/utils/buildOperationNodeForField'
 import { relyOnKeysPrintOperation } from '@/utils/relyOnKeysPrintOperation'
 import { GetWorkspaceGqlFileInfoReturnType } from '@/utils/syncWorkspaceGqls'
-import { useParams } from 'react-router-dom'
 
 interface IProps {
   operationObj: OperationNodesForFieldAstBySchemaReturnType[number]
@@ -170,7 +169,6 @@ const fieldsColumns: ColumnsType<NewFieldNodeType> = [
 ]
 
 const OperationDoc: FC<IProps> = ({ operationObj }) => {
-  const { id } = useParams<'id'>()
   const operationDefNode = operationObj.operationDefNodeAst
   const operationName = operationDefNode.name!.value
   const operationType = operationDefNode.operation
@@ -354,7 +352,7 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
 
     setFieldNodeAstTree(newFieldNodeAstTree)
     setSelectedKeys(selectedKeysTmp)
-  }, [workspaceGqlFileInfo, id])
+  }, [operationObj])
 
   const [form] = Form.useForm()
   const onOk = useCallback(() => {
@@ -398,7 +396,8 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
   }, [filteredWorkspaceGqlFileInfo, form, isAllAddComment, operationDefNode, selectedKeys])
 
   return (
-    <Space id={operationName} className={styles.operationDoc} direction="vertical">
+    // 这里使用key让它根据不同key重新render
+    <Space key={operationType + operationName} id={operationName} className={styles.operationDoc} direction="vertical">
       <Modal
         title="Basic Modal"
         open={isModalOpen}
