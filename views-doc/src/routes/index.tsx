@@ -2,7 +2,7 @@ import React from 'react'
 import NoMatch from '@/pages/no-match'
 import { RouteObject } from 'react-router-dom'
 import Layout from '@/layout'
-import OperationsContent from '@/pages/operations-content'
+import SideContent from '@/pages/side-content'
 import DocContent from '@/pages/doc-content'
 
 const routes: RouteObject[] = [
@@ -12,7 +12,7 @@ const routes: RouteObject[] = [
     children: [
       {
         path: '/',
-        element: <OperationsContent />,
+        element: <SideContent />,
         children: [{ path: '/:id', element: <DocContent /> }],
       },
       {

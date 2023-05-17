@@ -1,5 +1,5 @@
 import React, { memo, useMemo } from 'react'
-import OperationDoc from './operation-doc'
+import OperationDoc from './components/operation-doc'
 import type { FC } from 'react'
 import { OperationNodesForFieldAstBySchemaReturnType, getOperationNodesForFieldAstBySchema } from '@/utils/operations'
 import { buildSchema } from 'graphql'
@@ -33,7 +33,7 @@ const DocContent: FC<IProps> = () => {
     }
 
     return <OperationDoc operationObj={operationObj} />
-  }, [operationObj, id])
+  }, [operationObj])
 
   return contentJSX
 }

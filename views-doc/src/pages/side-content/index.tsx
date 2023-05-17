@@ -4,12 +4,12 @@ import { Spin, message } from 'antd'
 import { buildSchema } from 'graphql'
 import useBearStore from '@/stores'
 import { OperationNodesForFieldAstBySchemaReturnType, getOperationNodesForFieldAstBySchema } from '@/utils/operations'
-import DocSidebar from '@/components/side-bar/index'
+import DocSidebar from './components/side-bar/index'
 import { Outlet, useParams } from 'react-router-dom'
 
 interface IProps {}
 
-const OperationsContent: FC<IProps> = () => {
+const SideContent: FC<IProps> = () => {
   const { id } = useParams<'id'>()
   const { captureMessage, reloadOperations, isDisplaySidebar, typeDefs, setState } = useBearStore((state) => state)
   const [loading, setLoading] = useState(false)
@@ -77,4 +77,4 @@ const OperationsContent: FC<IProps> = () => {
   )
 }
 
-export default OperationsContent
+export default SideContent
