@@ -12,6 +12,7 @@ const NoMatch: FC<IProps> = () => {
         paddingTop: 200,
         height: 'calc(100vh - 200px)',
         backgroundColor: '#fff',
+        fontWeight: 'bold',
       }}
     >
       报错啦 404...

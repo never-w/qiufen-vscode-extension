@@ -12,7 +12,7 @@ import {
   OperationNodesForFieldAstBySchemaReturnType,
 } from '@/utils/operations'
 import { NewFieldNodeType } from '@/utils/interface'
-import SiderGroup from './components/group'
+import SiderGroup from './group'
 import { useNavigate } from 'react-router-dom'
 
 export interface IProps {
@@ -53,7 +53,7 @@ const DocSidebar: FC<IProps> = ({ activeItemKey, selectedOperationId, handleRelo
 
   const navigate = useNavigate()
   useEffect(() => {
-    navigate(`/${activeItemKey}`)
+    navigate(`/docs/${activeItemKey}`)
   }, [activeItemKey, navigate])
 
   const contentJSX = useMemo(() => {

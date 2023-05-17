@@ -11,9 +11,18 @@ const routes: RouteObject[] = [
     element: <Layout />,
     children: [
       {
-        path: '/',
+        index: true,
         element: <SideContent />,
-        children: [{ path: '/:id', element: <DocContent /> }],
+      },
+      {
+        path: '/docs',
+        element: <SideContent />,
+        children: [
+          {
+            path: '/docs/:id',
+            element: <DocContent />,
+          },
+        ],
       },
       {
         path: '/home',

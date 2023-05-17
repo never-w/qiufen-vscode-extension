@@ -1,9 +1,9 @@
-import React, { FC, useState } from 'react'
+import React, { FC, useLayoutEffect, useState } from 'react'
 import styles from './index.module.less'
 import logo from '@/assets/images/logo.png'
 import { FileOutlined, HomeTwoTone, HomeOutlined, FileTwoTone } from '@ant-design/icons'
 import classnames from 'classnames'
-import { Link, Outlet } from 'react-router-dom'
+import { Link, Outlet, useLocation } from 'react-router-dom'
 
 interface IProps {}
 
@@ -13,9 +13,21 @@ export enum SideBarIconKey {
   NONE = 'NONE',
 }
 
+const KEY_MAP: Record<string, SideBarIconKey> = {
+  home: SideBarIconKey.HOME,
+  docs: SideBarIconKey.DOCS,
+  none: SideBarIconKey.NONE,
+}
+
 const Layout: FC<IProps> = () => {
+  const location = useLocation()
   const [sideBarActiveKey, setSideBarActiveKey] = useState(SideBarIconKey.DOCS)
   const [focusKey, setFocusKey] = useState(SideBarIconKey.DOCS)
+
+  useLayoutEffect(() => {
+    const key = location.pathname.split('/')[1]
+    setSideBarActiveKey(KEY_MAP[key])
+  }, [location.pathname])
 
   return (
     <div>
@@ -25,52 +37,46 @@ const Layout: FC<IProps> = () => {
       </div>
       <div className={styles.section}>
         <div className={styles.sideBar}>
-          <div
-            onMouseEnter={() => {
-              setFocusKey(SideBarIconKey.DOCS)
-            }}
-            onMouseLeave={() => {
-              setFocusKey(SideBarIconKey.NONE)
-            }}
-            onClick={() => {
-              setSideBarActiveKey(SideBarIconKey.DOCS)
-            }}
-            className={classnames(styles.icon_item, {
-              [styles.active]: sideBarActiveKey === SideBarIconKey.DOCS || focusKey === SideBarIconKey.DOCS,
-            })}
-          >
-            <Link to="/">
+          <Link to="/docs">
+            <div
+              onMouseEnter={() => {
+                setFocusKey(SideBarIconKey.DOCS)
+              }}
+              onMouseLeave={() => {
+                setFocusKey(SideBarIconKey.NONE)
+              }}
+              className={classnames(styles.icon_item, {
+                [styles.active]: sideBarActiveKey === SideBarIconKey.DOCS || focusKey === SideBarIconKey.DOCS,
+              })}
+            >
               {sideBarActiveKey === SideBarIconKey.DOCS || focusKey === SideBarIconKey.DOCS ? (
                 <FileTwoTone className={styles.icon} />
               ) : (
                 <FileOutlined className={styles.icon} />
               )}
-            </Link>
-          </div>
+            </div>
+          </Link>
 
           {/* ----------- */}
-          <div
-            onMouseEnter={() => {
-              setFocusKey(SideBarIconKey.HOME)
-            }}
-            onMouseLeave={() => {
-              setFocusKey(SideBarIconKey.NONE)
-            }}
-            onClick={() => {
-              setSideBarActiveKey(SideBarIconKey.HOME)
-            }}
-            className={classnames(styles.icon_item, {
-              [styles.active]: sideBarActiveKey === SideBarIconKey.HOME || focusKey === SideBarIconKey.HOME,
-            })}
-          >
-            <Link to="/home">
+          <Link to="/home">
+            <div
+              onMouseEnter={() => {
+                setFocusKey(SideBarIconKey.HOME)
+              }}
+              onMouseLeave={() => {
+                setFocusKey(SideBarIconKey.NONE)
+              }}
+              className={classnames(styles.icon_item, {
+                [styles.active]: sideBarActiveKey === SideBarIconKey.HOME || focusKey === SideBarIconKey.HOME,
+              })}
+            >
               {sideBarActiveKey === SideBarIconKey.HOME || focusKey === SideBarIconKey.HOME ? (
                 <HomeTwoTone className={styles.icon} />
               ) : (
                 <HomeOutlined className={styles.icon} />
               )}
-            </Link>
-          </div>
+            </div>
+          </Link>
         </div>
         <div className={styles.content}>
           <Outlet />

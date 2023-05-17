@@ -4,7 +4,7 @@ import { Tooltip, Space, message } from 'antd'
 import { CopyOutlined, CheckCircleTwoTone } from '@ant-design/icons'
 import classnames from 'classnames'
 import ClipboardJS from 'clipboard'
-import styles from '../../index.module.less'
+import styles from './index.module.less'
 import useBearStore from '@/stores'
 import { OperationDefinitionNodeGroupType } from '@/utils/operations'
 import { printBatchOperations } from '@/utils/printBatchOperations'
@@ -64,7 +64,7 @@ const SiderGroup: FC<IProps> = ({ flag, groupName, activeItemKey, operationList 
               [styles.active]: operation.operation + operation.name?.value === activeItemKey,
             })}
             onClick={() => {
-              navigate(`/${operation.operation + operation.name?.value}`)
+              navigate(`/docs/${operation.operation + operation.name?.value}`)
             }}
           >
             <div>

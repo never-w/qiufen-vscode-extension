@@ -1,0 +1,31 @@
+.operationList {
+  position: relative;
+}
+.copyBtn {
+  position: absolute;
+  top: -35px;
+  right: 0;
+  cursor: pointer;
+  &:hover {
+    color: #0065fe;
+  }
+}
+
+.operationItem {
+  // border-top: 1px solid #eee;
+  padding: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  &:hover {
+    .active;
+    border-radius: 4px;
+  }
+  // &:last-of-type {
+  //   border-bottom: 1px solid #eee;
+  // }
+}
+.active {
+  color: #0065fe;
+  background-color: #eaf2ff;
+}
