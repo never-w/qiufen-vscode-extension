@@ -1,18 +1,17 @@
-import { FC } from 'react'
+import { FC, useEffect } from 'react'
 import React, { useCallback, useMemo, useState } from 'react'
 import { Spin, message } from 'antd'
 import { buildSchema } from 'graphql'
 import useBearStore from '@/stores'
 import { OperationNodesForFieldAstBySchemaReturnType, getOperationNodesForFieldAstBySchema } from '@/utils/operations'
 import DocSidebar from '@/components/side-bar/index'
-import Content from '@/components/content'
+import { Outlet, useParams } from 'react-router-dom'
 
 interface IProps {}
 
 const OperationsContent: FC<IProps> = () => {
-  const { captureMessage, reloadOperations, isDisplaySidebar, typeDefs } = useBearStore((state) => state)
-  const [keyword, setKeyword] = useState<string>('')
-  const [activeItemKey, setActiveItemKey] = useState('')
+  const { id } = useParams<'id'>()
+  const { captureMessage, reloadOperations, isDisplaySidebar, typeDefs, setState } = useBearStore((state) => state)
   const [loading, setLoading] = useState(false)
 
   useMemo(async () => {
@@ -30,16 +29,6 @@ const OperationsContent: FC<IProps> = () => {
     return result
   }, [typeDefs])
 
-  const selectedOperationId = !!activeItemKey
-    ? activeItemKey
-    : operationObjList[0]?.operationDefNodeAst?.operation + operationObjList[0]?.operationDefNodeAst?.name?.value
-
-  const operationObj = useMemo(() => {
-    return operationObjList.find(
-      (item) => item.operationDefNodeAst.operation + item.operationDefNodeAst.name?.value === selectedOperationId,
-    )!
-  }, [operationObjList, selectedOperationId])
-
   const handleReload = useCallback(async () => {
     let timer: NodeJS.Timeout | undefined
     setLoading(true)
@@ -56,8 +45,20 @@ const OperationsContent: FC<IProps> = () => {
     } catch {}
     clearTimeout(timer)
     setLoading(false)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [reloadOperations])
+
+  useEffect(() => {
+    return () => {
+      // 这里是为了重置 状态管理的typeDefs的值，这样点击侧边icon切换时不会出现延迟很久的bug
+      setState({ typeDefs: '' })
+    }
+  }, [setState])
+
+  const key = useMemo(() => {
+    return operationObjList.length
+      ? operationObjList[0]?.operationDefNodeAst?.operation + operationObjList[0]?.operationDefNodeAst?.name?.value
+      : ''
+  }, [operationObjList])
 
   return (
     <Spin spinning={!operationObjList.length || loading}>
@@ -65,15 +66,12 @@ const OperationsContent: FC<IProps> = () => {
         <div style={{ display: isDisplaySidebar ? 'block' : 'none' }}>
           <DocSidebar
             handleReload={handleReload}
-            activeItemKey={activeItemKey}
-            setActiveItemKey={setActiveItemKey}
+            activeItemKey={id! || key}
             operationsDefNodeObjList={operationObjList}
-            keyword={keyword}
-            selectedOperationId={selectedOperationId}
-            onKeywordChange={setKeyword}
+            selectedOperationId={id! || key}
           />
         </div>
-        <Content key={selectedOperationId} operationObj={operationObj} />
+        <Outlet />
       </div>
     </Spin>
   )

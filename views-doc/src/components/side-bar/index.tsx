@@ -13,26 +13,18 @@ import {
 } from '@/utils/operations'
 import { NewFieldNodeType } from '@/utils/interface'
 import SiderGroup from './components/group'
+import { useNavigate } from 'react-router-dom'
 
 export interface IProps {
   operationsDefNodeObjList: OperationNodesForFieldAstBySchemaReturnType
-  keyword: string
   selectedOperationId: string
-  onKeywordChange: (keyword: string) => void
   activeItemKey: string
-  setActiveItemKey: (data: string) => void
   handleReload: () => void
 }
 
-const DocSidebar: FC<IProps> = ({
-  keyword,
-  activeItemKey,
-  onKeywordChange,
-  selectedOperationId,
-  setActiveItemKey,
-  handleReload,
-  operationsDefNodeObjList,
-}) => {
+const DocSidebar: FC<IProps> = ({ activeItemKey, selectedOperationId, handleReload, operationsDefNodeObjList }) => {
+  const [keyword, setKeyword] = useState<string>('')
+  const [activeKey, setActiveKey] = useState([''])
   const [top, setTop] = useState(0)
   const [flag, setFlag] = useState(false)
   const [isFocus, setIsFocus] = useState(false)
@@ -49,8 +41,6 @@ const DocSidebar: FC<IProps> = ({
     return groupOperationsCopy(operationList)
   }, [operationsDefNodeObjList])
 
-  const [activeKey, setActiveKey] = useState([''])
-
   useEffect(() => {
     const activeKey: CollapseProps['defaultActiveKey'] = []
     Object.entries(groupedOperations).some(([groupName, items]) => {
@@ -59,8 +49,12 @@ const DocSidebar: FC<IProps> = ({
       }
     })
     setActiveKey(activeKey as string[])
-    setActiveItemKey(selectedOperationId)
-  }, [groupedOperations, selectedOperationId, setActiveItemKey])
+  }, [groupedOperations, selectedOperationId, activeItemKey])
+
+  const navigate = useNavigate()
+  useEffect(() => {
+    navigate(`/${activeItemKey}`)
+  }, [activeItemKey, navigate])
 
   const contentJSX = useMemo(() => {
     const newKeyword = keyword.trim()
@@ -95,13 +89,7 @@ const DocSidebar: FC<IProps> = ({
             header={groupName}
             className={activeKey.includes(groupName) ? styles.collapse_active : ''}
           >
-            <SiderGroup
-              flag={flag}
-              groupName={groupName}
-              operationList={operationList}
-              activeItemKey={activeItemKey}
-              setActiveItemKey={setActiveItemKey}
-            />
+            <SiderGroup flag={flag} groupName={groupName} operationList={operationList} activeItemKey={activeItemKey} />
           </Collapse.Panel>
         )
       })
@@ -138,18 +126,12 @@ const DocSidebar: FC<IProps> = ({
             header={groupName}
             className={activeKey.includes(groupName) ? styles.collapse_active : ''}
           >
-            <SiderGroup
-              flag={flag}
-              groupName={groupName}
-              operationList={operationList}
-              activeItemKey={activeItemKey}
-              setActiveItemKey={setActiveItemKey}
-            />
+            <SiderGroup flag={flag} groupName={groupName} operationList={operationList} activeItemKey={activeItemKey} />
           </Collapse.Panel>
         )
       })
     }
-  }, [activeItemKey, activeKey, flag, groupedOperations, keyword, setActiveItemKey])
+  }, [activeItemKey, activeKey, flag, groupedOperations, keyword])
 
   return (
     <div className={styles.sidebar}>
@@ -166,7 +148,7 @@ const DocSidebar: FC<IProps> = ({
           size="large"
           placeholder="Search by group/desc/name/type"
           onChange={(evt) => {
-            onKeywordChange(evt.target.value)
+            setKeyword(evt.target.value)
           }}
           value={keyword}
         />

@@ -1,4 +1,4 @@
-import type { FC } from 'react'
+import { FC } from 'react'
 import React, { memo } from 'react'
 import { Tooltip, Space, message } from 'antd'
 import { CopyOutlined, CheckCircleTwoTone } from '@ant-design/icons'
@@ -8,13 +8,13 @@ import styles from '../../index.module.less'
 import useBearStore from '@/stores'
 import { OperationDefinitionNodeGroupType } from '@/utils/operations'
 import { printBatchOperations } from '@/utils/printBatchOperations'
+import { useNavigate } from 'react-router-dom'
 
 interface IProps {
   flag: boolean
   groupName: string
   activeItemKey: string
   operationList: OperationDefinitionNodeGroupType[]
-  setActiveItemKey: (data: string) => void
 }
 
 const copy = (selector: string) => {
@@ -34,7 +34,8 @@ const getOperationNameValue = (name: string = '') => {
   return val
 }
 
-const SiderGroup: FC<IProps> = ({ flag, groupName, activeItemKey, operationList, setActiveItemKey }) => {
+const SiderGroup: FC<IProps> = ({ flag, groupName, activeItemKey, operationList }) => {
+  const navigate = useNavigate()
   const { workspaceGqlNames, workspaceGqlFileInfo, isAllAddComment } = useBearStore((ste) => ste)
   // 这里是将不合法的字符串转为合法使用的 html id
   const id = groupName.replace(/[.\s]+/g, '_')
@@ -63,7 +64,7 @@ const SiderGroup: FC<IProps> = ({ flag, groupName, activeItemKey, operationList,
               [styles.active]: operation.operation + operation.name?.value === activeItemKey,
             })}
             onClick={() => {
-              setActiveItemKey(operation.operation + operation.name?.value)
+              navigate(`/${operation.operation + operation.name?.value}`)
             }}
           >
             <div>
