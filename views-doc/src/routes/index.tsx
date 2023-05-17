@@ -1,24 +1,27 @@
 import React from 'react'
-import Layout from '@/components/layout'
 import NotFound from '@/pages/not-found'
 import { RouteObject } from 'react-router-dom'
+import Layout from '@/layout'
+import OperationsContent from '@/pages/operations-content'
 
 const routes: RouteObject[] = [
   {
     path: '/',
     element: <Layout />,
     children: [
-      { index: true, element: <Home /> },
       {
-        path: '/courses',
-        element: <Courses />,
-        // children: [
-        //   { index: true, element: <CoursesIndex /> },
-        //   { path: '/courses/:id', element: <Course /> },
-        // ],
+        index: true,
+        element: <OperationsContent />,
       },
-      { path: '*', element: <NotFound /> },
+      {
+        path: '/home',
+        element: <p>home page</p>,
+      },
     ],
+  },
+  {
+    path: '*',
+    element: <NotFound />,
   },
 ]
 
