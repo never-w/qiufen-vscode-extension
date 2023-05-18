@@ -21,13 +21,14 @@ const KEY_MAP: Record<string, SideBarIconKey> = {
 
 const Layout: FC<IProps> = () => {
   const location = useLocation()
-  const [sideBarActiveKey, setSideBarActiveKey] = useState(SideBarIconKey.DOCS)
-  const [focusKey, setFocusKey] = useState(SideBarIconKey.DOCS)
+  const key = location.pathname.split('/')[1]
+
+  const [sideBarActiveKey, setSideBarActiveKey] = useState(KEY_MAP[key])
+  const [focusKey, setFocusKey] = useState(KEY_MAP[key])
 
   useLayoutEffect(() => {
-    const key = location.pathname.split('/')[1]
     setSideBarActiveKey(KEY_MAP[key])
-  }, [location.pathname])
+  }, [key, location.pathname])
 
   return (
     <div>

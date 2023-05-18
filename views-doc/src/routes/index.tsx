@@ -4,6 +4,7 @@ import { RouteObject } from 'react-router-dom'
 import Layout from '@/layout'
 import SideContent from '@/pages/side-content'
 import DocContent from '@/pages/doc-content'
+import Home from '@/pages/home'
 
 const routes: RouteObject[] = [
   {
@@ -26,7 +27,7 @@ const routes: RouteObject[] = [
       },
       {
         path: '/home',
-        element: <p>home page</p>,
+        element: <Home />,
       },
     ],
   },
