@@ -243,7 +243,7 @@ function resolveSelectionSet({
             }),
         )
         .map<InlineFragmentNode>((t) => {
-          path.push(t.name)
+          const newPath = [...path, t.name]
 
           return {
             kind: Kind.INLINE_FRAGMENT,
@@ -266,7 +266,7 @@ function resolveSelectionSet({
               parent: type,
               type: t,
               models,
-              path,
+              path: newPath,
               ancestors,
               ignore,
               depthLimit,
@@ -298,7 +298,7 @@ function resolveSelectionSet({
             }),
         )
         .map<InlineFragmentNode>((t) => {
-          path.push(t.name)
+          const newPath = [...path, t.name]
 
           return {
             kind: Kind.INLINE_FRAGMENT,
@@ -321,7 +321,7 @@ function resolveSelectionSet({
               parent: type,
               type: t,
               models,
-              path,
+              path: newPath,
               ancestors,
               ignore,
               depthLimit,

@@ -352,6 +352,7 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
 
     setFieldNodeAstTree(newFieldNodeAstTree)
     setSelectedKeys(selectedKeysTmp)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [operationObj])
 
   const [form] = Form.useForm()
