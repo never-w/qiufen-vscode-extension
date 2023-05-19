@@ -18,6 +18,7 @@ import {
 import readLocalSchemaTypeDefs from '../views-doc/src/utils/readLocalSchemaTypeDefs'
 import getIpAddress from '../views-doc/src/utils/getIpAddress'
 import portscanner from 'portscanner'
+import { buildSchema, printSchema, lexicographicSortSchema } from 'graphql'
 
 export async function startServer(config: GraphqlKitConfig) {
   const { endpoint, port, mock } = config
@@ -48,12 +49,20 @@ export async function startServer(config: GraphqlKitConfig) {
     // 这里再次获取后端sdl，是因为web网页在reload时要及时更新
     const backendTypeDefs1 = await fetchRemoteSchemaTypeDefs(endpoint.url)
 
+    // 排序
+    const sortLocalSchema = lexicographicSortSchema(buildSchema(localTypeDefs))
+    const sortRemoteSchema = lexicographicSortSchema(buildSchema(backendTypeDefs1))
+
+    // 重新转成sdl
+    const newLocalTypeDefs = printSchema(sortLocalSchema)
+    const newRemoteTypeDefs = printSchema(sortRemoteSchema)
+
     res.send({
       isAllAddComment: jsonSettings.isAllAddComment,
-      typeDefs: backendTypeDefs1,
+      typeDefs: newRemoteTypeDefs,
       maxDepth: jsonSettings.maxDepth,
       directive: jsonSettings.directive,
-      localTypeDefs,
+      localTypeDefs: newLocalTypeDefs,
       workspaceGqlNames,
       workspaceGqlFileInfo,
       port,

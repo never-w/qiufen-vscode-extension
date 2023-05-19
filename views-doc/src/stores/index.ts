@@ -8,7 +8,6 @@ export enum MessageEnum {
 }
 
 export const fillOneKeyMessageSignSuccess = 'fill-success'
-
 export const fillOneKeyMessageSignNull = 'fill-null'
 
 export type WorkspaceGqlFileInfoType = {
