@@ -246,8 +246,8 @@ function findTypeChanges(oldSchema: GraphQLSchema, newSchema: GraphQLSchema): Ar
     schemaChanges.push({
       type: BreakingChangeType.TYPE_REMOVED,
       description: isSpecifiedScalarType(oldType)
-        ? `Standard scalar ${oldType.name} was removed because it is not referenced anymore.`
-        : `${oldType.name} was removed.`,
+        ? `Standard scalar *${oldType.name} was removed because it is not referenced anymore.`
+        : `*${oldType.name} was removed.`,
     })
   }
 
@@ -265,7 +265,8 @@ function findTypeChanges(oldSchema: GraphQLSchema, newSchema: GraphQLSchema): Ar
     } else if (oldType.constructor !== newType.constructor) {
       schemaChanges.push({
         type: BreakingChangeType.TYPE_CHANGED_KIND,
-        description: `${oldType.name} changed from ` + `${typeKindName(oldType)} to ${typeKindName(newType)}.`,
+        description:
+          `*${oldType}.${oldType.name} changed from ` + `${typeKindName(oldType)} to ${typeKindName(newType)}.`,
       })
     }
   }
@@ -284,12 +285,12 @@ function findInputObjectTypeChanges(
     if (isRequiredInputField(newField)) {
       schemaChanges.push({
         type: BreakingChangeType.REQUIRED_INPUT_FIELD_ADDED,
-        description: `A required field ${newField.name} on input type ${oldType.name} was added.`,
+        description: `A required field ${newField.name} on input type *${oldType.name} was added.`,
       })
     } else {
       schemaChanges.push({
-        type: DangerousChangeType.OPTIONAL_INPUT_FIELD_ADDED,
-        description: `An optional field ${newField.name} on input type ${oldType.name} was added.`,
+        type: BreakingChangeType.FIELD_ADDED,
+        description: `*${oldType.name} was added.`,
       })
     }
   }
@@ -297,7 +298,7 @@ function findInputObjectTypeChanges(
   for (const oldField of fieldsDiff.removed) {
     schemaChanges.push({
       type: BreakingChangeType.FIELD_REMOVED,
-      description: `${oldType.name}.${oldField.name} was removed.`,
+      description: `*${oldType.name}.${oldField.name} was removed.`,
     })
   }
 
@@ -307,7 +308,7 @@ function findInputObjectTypeChanges(
       schemaChanges.push({
         type: BreakingChangeType.FIELD_CHANGED_KIND,
         description:
-          `${oldType.name}.${oldField.name} changed type from ` +
+          `*${oldType.name}.${oldField.name} changed type from ` +
           `${String(oldField.type)} to ${String(newField.type)}.`,
       })
     }
@@ -398,14 +399,14 @@ function findFieldChanges(
   for (const oldField of fieldsDiff.added) {
     schemaChanges.push({
       type: BreakingChangeType.FIELD_ADDED,
-      description: `${oldType.name}.${oldField.name} was added.`,
+      description: `*${oldType.name}.${oldField.name} was added.`,
     })
   }
 
   for (const oldField of fieldsDiff.removed) {
     schemaChanges.push({
       type: BreakingChangeType.FIELD_REMOVED,
-      description: `${oldType.name}.${oldField.name} was removed.`,
+      description: `*${oldType.name}.${oldField.name} was removed.`,
     })
   }
 
@@ -417,7 +418,7 @@ function findFieldChanges(
       schemaChanges.push({
         type: BreakingChangeType.FIELD_CHANGED_KIND,
         description:
-          `${oldType.name}.${oldField.name} changed type from ` +
+          `*${oldType.name}.${oldField.name} changed type from ` +
           `${String(oldField.type)} to ${String(newField.type)}.`,
       })
     }
@@ -437,7 +438,7 @@ function findArgChanges(
   for (const oldArg of argsDiff.removed) {
     schemaChanges.push({
       type: BreakingChangeType.ARG_REMOVED,
-      description: `${oldType.name}.${oldField.name} arg ${oldArg.name} was removed.`,
+      description: `*${oldType.name}.${oldField.name} arg ${oldArg.name} was removed.`,
     })
   }
 
@@ -563,7 +564,7 @@ function stringifyValue(value: unknown, type: GraphQLInputType): string {
   return print(sortValueNode(ast))
 }
 
-function diff<T extends { name: string }>(
+export function diff<T extends { name: string }>(
   oldArray: ReadonlyArray<T>,
   newArray: ReadonlyArray<T>,
 ): {

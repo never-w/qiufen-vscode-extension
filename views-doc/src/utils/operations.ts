@@ -3,6 +3,7 @@ import {
   getNamedType,
   GraphQLField,
   GraphQLInputType,
+  GraphQLNullableType,
   GraphQLSchema,
   isEnumType,
   isScalarType,
@@ -23,6 +24,7 @@ export type OperationDefsAstArgsType = {
 }
 export type OperationDefinitionNodeGroupType = OperationDefinitionNode & {
   operationDefinitionDescription: string
+  namedTypeList?: GraphQLNullableType[]
   args: OperationDefsAstArgsType[]
 }
 export type OperationNodesForFieldAstBySchemaReturnType = ReturnType<typeof getOperationNodesForFieldAstBySchema>
