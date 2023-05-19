@@ -26,8 +26,10 @@ import {
   isEnumType,
   Kind,
   GraphQLNullableType,
+  isInputObjectType,
+  GraphQLInputField,
 } from 'graphql'
-import { getFieldNodeType } from './getFieldNodeType'
+import { getArgFieldNodeType, getFieldNodeType, getInputFieldDfs } from './getFieldNodeType'
 import { normalizeGraphqlField, OperationDefinitionNodeGroupType } from './operations'
 // import { capitalizeFirstLetter } from "./dealWordFirstLetter"
 
@@ -459,6 +461,26 @@ function resolveVariable(arg: GraphQLArgument, name?: string): VariableDefinitio
         kind: Kind.NON_NULL_TYPE,
         // for v16 compatibility
         type: resolveVariableType(type.ofType) as any,
+      }
+    }
+
+    if (isInputObjectType(type)) {
+      console.log(Object.values(type.getFields()), 'fields') as unknown as GraphQLInputField[]
+      getInputFieldDfs(Object.values(type.getFields()))
+      console.log(
+        Object.values(type.getFields())?.map((field) => {
+          return getArgFieldNodeType(field as any)
+        }),
+        ' 22222//',
+      )
+
+      addVariableTypeList(type)
+      return {
+        kind: Kind.NAMED_TYPE,
+        name: {
+          kind: Kind.NAME,
+          value: type.name,
+        },
       }
     }
 

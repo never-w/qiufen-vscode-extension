@@ -1,8 +1,8 @@
 import React, { FC, useMemo, useState } from 'react'
 import { Spin } from 'antd'
-import { buildSchema, findDangerousChanges } from 'graphql'
+import { buildSchema } from 'graphql'
 import useBearStore from '@/stores'
-import { diff, findBreakingChanges } from '@/utils/schemaDiff'
+import { findBreakingChanges, findDangerousChanges } from '@/utils/schemaDiff'
 import { OperationNodesForFieldAstBySchemaReturnType, getOperationNodesForFieldAstBySchema } from '@/utils/operations'
 import { useNavigate } from 'react-router-dom'
 
@@ -28,25 +28,29 @@ const Home: FC<IProps> = () => {
         operationType: item?.operationDefNodeAst?.operation,
         operationName: item?.operationDefNodeAst?.name?.value,
         namedTypeList: item?.operationDefNodeAst?.namedTypeList,
+        variableTypeList: item?.operationDefNodeAst?.variableTypeList,
       }))
     }
 
     return []
   }, [typeDefs])
+  console.log(operationNamedTypeListInfo, '  operationNamedTypeListInfo')
 
   const operationChangeList = useMemo(() => {
     if (typeDefs && localTypeDefs) {
       const [leftSchema, rightSchema] = [buildSchema(localTypeDefs), buildSchema(typeDefs)]
-      console.log(findDangerousChanges(leftSchema, rightSchema))
 
       const changeList = findBreakingChanges(leftSchema, rightSchema)
+      console.log(
+        [...findDangerousChanges(leftSchema, rightSchema), ...findBreakingChanges(leftSchema, rightSchema)],
+        '       changes',
+      )
+
       return changeList
     }
 
     return []
   }, [localTypeDefs, typeDefs])
-
-  console.log(operationChangeList, '       changes')
 
   const routerPath = useMemo(() => {
     let res = ''

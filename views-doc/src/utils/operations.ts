@@ -1,8 +1,11 @@
 import {
   ConstDirectiveNode,
   getNamedType,
+  GraphQLArgument,
   GraphQLField,
   GraphQLInputType,
+  GraphQLList,
+  GraphQLNonNull,
   GraphQLNullableType,
   GraphQLSchema,
   isEnumType,
@@ -25,6 +28,7 @@ export type OperationDefsAstArgsType = {
 export type OperationDefinitionNodeGroupType = OperationDefinitionNode & {
   operationDefinitionDescription: string
   namedTypeList?: GraphQLNullableType[]
+  variableTypeList?: (GraphQLInputType | GraphQLNonNull<any> | GraphQLList<any> | GraphQLArgument)[]
   args: OperationDefsAstArgsType[]
 }
 export type OperationNodesForFieldAstBySchemaReturnType = ReturnType<typeof getOperationNodesForFieldAstBySchema>
