@@ -143,6 +143,7 @@ const Home: FC<IProps> = () => {
             <Card
               key={change.routePath}
               className="changeItm"
+              aria-disabled={!!change?.type}
               size="small"
               extra={
                 <span
