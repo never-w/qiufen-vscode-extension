@@ -27,9 +27,9 @@ import {
   Kind,
   GraphQLNullableType,
   isInputObjectType,
-  GraphQLInputField,
+  GraphQLNamedOutputType,
 } from 'graphql'
-import { getArgFieldNodeType, getFieldNodeType, getInputFieldDfs } from './getFieldNodeType'
+import { getArgsTreeDataTypeList, getFieldNodeType } from './getFieldNodeType'
 import { normalizeGraphqlField, OperationDefinitionNodeGroupType } from './operations'
 // import { capitalizeFirstLetter } from "./dealWordFirstLetter"
 
@@ -39,9 +39,6 @@ let variableTypeList: (GraphQLInputType | GraphQLNonNull<any> | GraphQLList<any>
 
 function resetVariableTypeList() {
   variableTypeList = []
-}
-function addVariableTypeList(namedType: GraphQLInputType | GraphQLNonNull<any> | GraphQLList<any> | GraphQLArgument) {
-  variableTypeList.push(namedType)
 }
 
 let namedTypeList: GraphQLNullableType[] = []
@@ -125,13 +122,15 @@ export function buildOperationNodeForField({
   ;(operationNode as any).variableDefinitions = [...operationVariables]
   // attach namedTypeList
   ;(operationNode as any).namedTypeList = [...namedTypeList]
-  // attach variableTypeList
-  ;(operationNode as any).variableTypeList = [...variableTypeList]
 
   const type = getDefinedRootType(schema, kind)
   const operationField = type.getFields()[field]
 
   ;(operationNode as any).args = normalizeGraphqlField(operationField)
+  getArgsTreeDataTypeList((operationNode as any).args, '', variableTypeList)
+
+  // attach variableTypeList
+  ;(operationNode as any).variableTypeList = [...variableTypeList]
 
   resetVariableTypeList()
   resetNamedTypeList()
@@ -448,7 +447,6 @@ function resolveVariable(arg: GraphQLArgument, name?: string): VariableDefinitio
   function resolveVariableType(type: GraphQLInputType): TypeNode
   function resolveVariableType(type: GraphQLInputType): TypeNode {
     if (isListType(type)) {
-      addVariableTypeList(type)
       return {
         kind: Kind.LIST_TYPE,
         type: resolveVariableType(type.ofType),
@@ -456,7 +454,6 @@ function resolveVariable(arg: GraphQLArgument, name?: string): VariableDefinitio
     }
 
     if (isNonNullType(type)) {
-      addVariableTypeList(type)
       return {
         kind: Kind.NON_NULL_TYPE,
         // for v16 compatibility
@@ -465,16 +462,6 @@ function resolveVariable(arg: GraphQLArgument, name?: string): VariableDefinitio
     }
 
     if (isInputObjectType(type)) {
-      console.log(Object.values(type.getFields()), 'fields') as unknown as GraphQLInputField[]
-      getInputFieldDfs(Object.values(type.getFields()))
-      console.log(
-        Object.values(type.getFields())?.map((field) => {
-          return getArgFieldNodeType(field as any)
-        }),
-        ' 22222//',
-      )
-
-      addVariableTypeList(type)
       return {
         kind: Kind.NAMED_TYPE,
         name: {
@@ -484,7 +471,6 @@ function resolveVariable(arg: GraphQLArgument, name?: string): VariableDefinitio
       }
     }
 
-    addVariableTypeList(type)
     return {
       kind: Kind.NAMED_TYPE,
       name: {
@@ -553,7 +539,7 @@ function resolveField({
   // "field.type"是operation的返回类型
   const namedType = getNamedType(field.type)
   // * 加入每个字段的Graphql类型
-  addNamedTypeList(namedType)
+  addNamedTypeList(namedType?.name as unknown as GraphQLNamedOutputType)
 
   let args: ArgumentNode[] = []
   let removeField = false
