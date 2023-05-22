@@ -197,62 +197,8 @@ function findSchemaChanges(
   newSchema: GraphQLSchema,
 ): Array<BreakingChange | DangerousChange> {
   // 指令变化暂时不关注
-  return [...findTypeChanges(oldSchema, newSchema) /* , ...findDirectiveChanges(oldSchema, newSchema) */]
+  return [...findTypeChanges(oldSchema, newSchema)]
 }
-
-// function findDirectiveChanges(
-//   oldSchema: GraphQLSchema,
-//   newSchema: GraphQLSchema,
-// ): Array<BreakingChange | DangerousChange> {
-//   const schemaChanges = []
-
-//   const directivesDiff = diff(oldSchema.getDirectives(), newSchema.getDirectives())
-
-//   for (const oldDirective of directivesDiff.removed) {
-//     schemaChanges.push({
-//       type: BreakingChangeType.DIRECTIVE_REMOVED,
-//       description: `${oldDirective.name} was removed.`,
-//     })
-//   }
-
-//   for (const [oldDirective, newDirective] of directivesDiff.persisted) {
-//     const argsDiff = diff(oldDirective.args, newDirective.args)
-
-//     for (const newArg of argsDiff.added) {
-//       if (isRequiredArgument(newArg)) {
-//         schemaChanges.push({
-//           type: BreakingChangeType.REQUIRED_DIRECTIVE_ARG_ADDED,
-//           description: `A required arg ${newArg.name} on directive ${oldDirective.name} was added.`,
-//         })
-//       }
-//     }
-
-//     for (const oldArg of argsDiff.removed) {
-//       schemaChanges.push({
-//         type: BreakingChangeType.DIRECTIVE_ARG_REMOVED,
-//         description: `${oldArg.name} was removed from ${oldDirective.name}.`,
-//       })
-//     }
-
-//     if (oldDirective.isRepeatable && !newDirective.isRepeatable) {
-//       schemaChanges.push({
-//         type: BreakingChangeType.DIRECTIVE_REPEATABLE_REMOVED,
-//         description: `Repeatable flag was removed from ${oldDirective.name}.`,
-//       })
-//     }
-
-//     for (const location of oldDirective.locations) {
-//       if (!newDirective.locations.includes(location)) {
-//         schemaChanges.push({
-//           type: BreakingChangeType.DIRECTIVE_LOCATION_REMOVED,
-//           description: `${location} was removed from ${oldDirective.name}.`,
-//         })
-//       }
-//     }
-//   }
-
-//   return schemaChanges
-// }
 
 function findTypeChanges(oldSchema: GraphQLSchema, newSchema: GraphQLSchema): Array<BreakingChange | DangerousChange> {
   const schemaChanges = []
@@ -320,6 +266,12 @@ function findInputObjectTypeChanges(
       type: BreakingChangeType.FIELD_REMOVED,
       description: `${oldType.name}.${oldField.name} was removed.`,
       typeName: oldType?.name,
+      routePath:
+        oldType?.name === OperationOfType.Query
+          ? 'query' + oldField.name
+          : oldType?.name === OperationOfType.Mutation
+          ? 'mutation' + oldField.name
+          : '',
     })
   }
 
@@ -435,6 +387,12 @@ function findFieldChanges(
       type: BreakingChangeType.FIELD_ADDED,
       description: `${oldType.name}.${oldField.name} was added.`,
       typeName: oldType?.name,
+      routePath:
+        oldType?.name === OperationOfType.Query
+          ? 'query' + oldField.name
+          : oldType?.name === OperationOfType.Mutation
+          ? 'mutation' + oldField.name
+          : '',
     })
   }
 
@@ -443,6 +401,12 @@ function findFieldChanges(
       type: BreakingChangeType.FIELD_REMOVED,
       description: `${oldType.name}.${oldField.name} was removed.`,
       typeName: oldType?.name,
+      routePath:
+        oldType?.name === OperationOfType.Query
+          ? 'query' + oldField.name
+          : oldType?.name === OperationOfType.Mutation
+          ? 'mutation' + oldField.name
+          : '',
     })
   }
 

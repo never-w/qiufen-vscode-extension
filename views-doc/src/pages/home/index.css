@@ -1,0 +1,44 @@
+.wrapper {
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    border-radius: 5px;
+    background-color: #fff;
+    overflow: auto;
+    word-spacing: 3.5px;
+}
+
+.changeItm {
+    width: 40%;
+    margin-bottom: 12px;
+    background-color: #e6f4ff;
+}
+
+.moreBtn {
+    color: #1677ff;
+    cursor: pointer;
+
+}
+
+.moreBtn:hover {
+    opacity: 0.7;
+}
+
+.moreBtn:active {
+    opacity: 1;
+}
+
+.lineThrough {
+    text-decoration: line-through;
+    color: #FF3341;
+}
+
+.btnDisabled {
+    opacity: 0.55;
+    cursor: none;
+    pointer-events: none;
+}
+
+.btnDisabled:hover {
+    cursor: not-allowed !important;
+}

@@ -1,13 +1,46 @@
 import React, { FC, useMemo, useState } from 'react'
-import { Spin } from 'antd'
+import { Alert, Card, Spin } from 'antd'
 import { GraphQLInterfaceType, buildSchema } from 'graphql'
 import useBearStore from '@/stores'
-import { findBreakingChanges } from '@/utils/schemaDiff'
+import { BreakingChangeType, findBreakingChanges } from '@/utils/schemaDiff'
 import { OperationNodesForFieldAstBySchemaReturnType, getOperationNodesForFieldAstBySchema } from '@/utils/operations'
 import { useNavigate } from 'react-router-dom'
+import classnames from 'classnames'
 import _ from 'lodash'
+import './index.css'
 
 interface IProps {}
+
+function formatRoutePath(str: string) {
+  const mutationArr = str.split('mutation')
+  const queryArr = str.split('query')
+
+  if (queryArr[1]) {
+    return {
+      operationType: 'query',
+      operationName: queryArr[1],
+    }
+  } else if (!queryArr[1]) {
+    return {
+      operationType: 'mutation',
+      operationName: mutationArr[1],
+    }
+  }
+
+  if (mutationArr[1]) {
+    return {
+      operationType: 'mutation',
+      operationName: mutationArr[1],
+    }
+  } else if (!mutationArr[1]) {
+    return {
+      operationType: 'query',
+      operationName: mutationArr[0],
+    }
+  }
+
+  return {}
+}
 
 const Home: FC<IProps> = () => {
   const navigate = useNavigate()
@@ -20,93 +53,128 @@ const Home: FC<IProps> = () => {
     setLoading(false)
   }, [captureMessage])
 
-  const operationNamedTypeListInfo = useMemo(() => {
-    if (typeDefs) {
-      const schema = buildSchema(typeDefs)
-      const result: OperationNodesForFieldAstBySchemaReturnType = getOperationNodesForFieldAstBySchema(schema)
+  const changes = useMemo(() => {
+    const result = []
 
-      return result.map((item) => ({
+    if (typeDefs && localTypeDefs) {
+      const [leftSchema, rightSchema] = [buildSchema(localTypeDefs), buildSchema(typeDefs)]
+
+      const operationChangeList = findBreakingChanges(leftSchema, rightSchema)
+
+      const operationFields: OperationNodesForFieldAstBySchemaReturnType =
+        getOperationNodesForFieldAstBySchema(rightSchema)
+
+      const operationNamedTypeListInfo = operationFields.map((item) => ({
+        // @ts-ignore
+        operationComment: item?.operationDefNodeAst?.descriptionText,
         operationType: item?.operationDefNodeAst?.operation,
         operationName: item?.operationDefNodeAst?.name?.value,
         namedTypeList: item?.operationDefNodeAst?.namedTypeList,
         variableTypeList: item?.operationDefNodeAst?.variableTypeList,
       }))
-    }
 
-    return []
-  }, [typeDefs])
-
-  const operationChangeList = useMemo(() => {
-    if (typeDefs && localTypeDefs) {
-      const [leftSchema, rightSchema] = [buildSchema(localTypeDefs), buildSchema(typeDefs)]
-      const changeList = findBreakingChanges(leftSchema, rightSchema)
-      return changeList
-    }
-
-    return []
-  }, [localTypeDefs, typeDefs])
-
-  const changes = useMemo(() => {
-    const result = []
-
-    if (typeDefs && localTypeDefs) {
       const routeTypes = operationNamedTypeListInfo.map((item) => {
         return {
+          operationComment: item?.operationComment,
+          operationType: item?.operationType,
+          operationName: item?.operationName,
           routePath: item?.operationType + item?.operationName,
           nameTypes: [...(item.namedTypeList || []), ...(item.variableTypeList || [])],
         }
       })
 
-      const changeList = operationChangeList.map((item) => {
-        if (item?.routePath) {
-          return {
-            description: item.description,
-            routePath: item?.routePath,
-          }
-        }
+      const changeList = operationChangeList
+        .map((item) => {
+          if (item?.routePath) {
+            const res = routeTypes.find((val) => {
+              return val?.routePath === item?.routePath
+            })
 
-        const existRoute = routeTypes.find((itm) =>
-          itm.nameTypes.includes(item?.typeName as unknown as GraphQLInterfaceType),
-        )
-        if (existRoute) {
-          return {
-            description: item.description,
-            routePath: existRoute?.routePath,
-          }
-        }
-      })
+            const typeNameAndType = formatRoutePath(item?.routePath)
 
-      const tmpChanges = _.groupBy(changeList, 'routePath')
+            return {
+              operationComment: res?.operationComment,
+              operationType: typeNameAndType?.operationType,
+              operationName: typeNameAndType?.operationName,
+              type: item.type === BreakingChangeType.FIELD_REMOVED ? item.type : undefined,
+              description: item.description,
+              routePath: item?.routePath,
+            }
+          }
+
+          const existRoute = routeTypes.find((itm) =>
+            itm.nameTypes.includes(item?.typeName as unknown as GraphQLInterfaceType),
+          )
+          if (existRoute) {
+            return {
+              operationComment: existRoute?.operationComment,
+              operationType: existRoute?.operationType,
+              operationName: existRoute?.operationName,
+              description: item.description,
+              routePath: existRoute?.routePath,
+            }
+          }
+        })
+        ?.filter(Boolean)
+
+      const tmpChanges = _.groupBy(changeList, 'routePath') || {}
 
       for (const key in tmpChanges) {
         const element = tmpChanges[key]
-        result.push({ routePath: key, descriptionList: element?.map((val) => val?.description) || [] })
+        result.push({
+          operationComment: element[0]?.operationComment,
+          operationType: element[0]?.operationType,
+          operationName: element[0]?.operationName,
+          routePath: key,
+          type: element[0]?.type,
+          descriptionList: element?.map((val) => val?.description) || [],
+        })
       }
     }
 
     return result
-  }, [localTypeDefs, operationChangeList, operationNamedTypeListInfo, typeDefs])
+  }, [localTypeDefs, typeDefs])
 
   return (
-    <Spin spinning={loading || !typeDefs || !localTypeDefs} style={{ width: '100%', height: 'calc(100vh - 48px)' }}>
-      {changes.map((change, index) => {
-        console.log(change.routePath)
-
-        return (
-          <div style={{ marginBottom: 20 }} key={index}>
-            <button
-              onClick={() => {
-                navigate(`/docs/${change.routePath}`)
-              }}
+    <Spin spinning={loading || !typeDefs || !localTypeDefs}>
+      <div className="wrapper">
+        {changes.map((change) => {
+          return (
+            <Card
+              key={change.routePath}
+              className="changeItm"
+              size="small"
+              extra={
+                <span
+                  className={classnames('moreBtn', {
+                    btnDisabled: !!change?.type,
+                  })}
+                  onClick={() => {
+                    navigate(`/docs/${change.routePath}`)
+                  }}
+                >
+                  navigate to view
+                </span>
+              }
+              title={
+                <p
+                  className={classnames({
+                    lineThrough: !!change?.type,
+                  })}
+                >
+                  {change?.operationComment
+                    ? `${change?.operationComment}（${change?.operationType}：${change?.operationName}）`
+                    : `${change?.operationType}：${change?.operationName}`}
+                </p>
+              }
             >
-              navigate to the operation
-            </button>
-            {change?.descriptionList?.map((val, indey) => {
-              return <p key={indey}>{val}</p>
-            })}
-          </div>
-        )
-      })}
+              {change?.descriptionList?.map((val, indey) => {
+                return <p key={change.routePath + indey}>{val}</p>
+              })}
+            </Card>
+          )
+        })}
+      </div>
     </Spin>
   )
 }
