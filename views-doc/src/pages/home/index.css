@@ -1,11 +1,13 @@
-.wrapper {
+/* .wrapper {
     display: flex;
-    flex-direction: column;
-    padding: 16px;
+    flex-wrap: wrap;
+    padding: 16px 0;
+    justify-content: center;
+    gap: 32px;
     border-radius: 5px;
     background-color: #fff;
-    overflow: auto;
     word-spacing: 3.5px;
+    overflow-y: auto;
 }
 
 .changeItm {
@@ -14,9 +16,14 @@
     background-color: #e6f4ff;
 }
 
-.changeItm[aria-disabled = true]{
+.changeItm[attr-disabled="true"] {
     background-color: #fff2f0;
     opacity: 0.8;
+}
+
+.changeItm.changeItm[attr-added="true"] {
+    background-color: #f4ffed;
+    opacity: 1;
 }
 
 .moreBtn {
@@ -46,4 +53,4 @@
 
 .btnDisabled:hover {
     cursor: not-allowed !important;
-}
+} */

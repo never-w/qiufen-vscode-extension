@@ -96,7 +96,11 @@ const Home: FC<IProps> = () => {
               operationComment: res?.operationComment,
               operationType: typeNameAndType?.operationType,
               operationName: typeNameAndType?.operationName,
-              type: item.type === BreakingChangeType.FIELD_REMOVED ? item.type : undefined,
+              type:
+                // 这里其实还要算上 "!!item?.routePath" 条件
+                item.type === BreakingChangeType.FIELD_REMOVED || item.type === BreakingChangeType.FIELD_ADDED
+                  ? item.type
+                  : undefined,
               description: item.description,
               routePath: item?.routePath,
             }
@@ -126,7 +130,7 @@ const Home: FC<IProps> = () => {
           operationType: element[0]?.operationType,
           operationName: element[0]?.operationName,
           routePath: key,
-          type: element[0]?.type,
+          type: element.find((ele) => ele?.type)?.type,
           descriptionList: element?.map((val) => val?.description) || [],
         })
       }
@@ -135,49 +139,54 @@ const Home: FC<IProps> = () => {
     return result
   }, [localTypeDefs, typeDefs])
 
-  return (
-    <Spin spinning={loading || !typeDefs || !localTypeDefs}>
-      <div className="wrapper">
-        {changes.map((change) => {
-          return (
-            <Card
-              key={change.routePath}
-              className="changeItm"
-              aria-disabled={!!change?.type}
-              size="small"
-              extra={
-                <span
-                  className={classnames('moreBtn', {
-                    btnDisabled: !!change?.type,
-                  })}
-                  onClick={() => {
-                    navigate(`/docs/${change.routePath}`)
-                  }}
-                >
-                  navigate to view
-                </span>
-              }
-              title={
-                <p
-                  className={classnames({
-                    lineThrough: !!change?.type,
-                  })}
-                >
-                  {change?.operationComment
-                    ? `${change?.operationComment}（${change?.operationType}：${change?.operationName}）`
-                    : `${change?.operationType}：${change?.operationName}`}
-                </p>
-              }
-            >
-              {change?.descriptionList?.map((val, indey) => {
-                return <p key={change.routePath + indey}>{val}</p>
-              })}
-            </Card>
-          )
-        })}
-      </div>
-    </Spin>
-  )
+  console.log(changes)
+
+  // return (
+  //   <Spin spinning={loading || !typeDefs}>
+  //     <div className="wrapper">
+  //       {changes.map((change) => {
+  //         return (
+  //           <Card
+  //             key={change.routePath}
+  //             className="changeItm"
+  //             attr-disabled={change?.type === BreakingChangeType.FIELD_REMOVED ? 'true' : 'false'}
+  //             attr-added={change?.type === BreakingChangeType.FIELD_ADDED ? 'true' : 'false'}
+  //             size="small"
+  //             extra={
+  //               <span
+  //                 className={classnames('moreBtn', {
+  //                   btnDisabled: change?.type === BreakingChangeType.FIELD_REMOVED,
+  //                 })}
+  //                 onClick={() => {
+  //                   navigate(`/docs/${change.routePath}`)
+  //                 }}
+  //               >
+  //                 navigate to view
+  //               </span>
+  //             }
+  //             title={
+  //               <p
+  //                 className={classnames({
+  //                   lineThrough: change?.type === BreakingChangeType.FIELD_REMOVED,
+  //                 })}
+  //               >
+  //                 {change?.operationComment
+  //                   ? `${change?.operationComment}（${change?.operationType}：${change?.operationName}）`
+  //                   : `${change?.operationType}：${change?.operationName}`}
+  //               </p>
+  //             }
+  //           >
+  //             {change?.descriptionList?.map((val, indey) => {
+  //               return <p key={change.routePath + indey}>{val}</p>
+  //             })}
+  //           </Card>
+  //         )
+  //       })}
+  //     </div>
+  //   </Spin>
+  // )
+
+  return <span>sssssssssss</span>
 }
 
 export default Home
