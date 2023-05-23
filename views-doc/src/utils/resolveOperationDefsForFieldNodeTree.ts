@@ -1,5 +1,7 @@
 import { NewFieldNodeType } from './interface'
 
+export type OperationDefsForFieldNodeTreeReturnType = ReturnType<typeof resolveOperationDefsForFieldNodeTree>
+
 export function resolveOperationDefsForFieldNodeTree(fieldNode: NewFieldNodeType, depth = 0) {
   const newFieldNode = { ...fieldNode, depth }
 

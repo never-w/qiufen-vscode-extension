@@ -5,19 +5,62 @@ import AceEditor from 'react-ace'
 import styles from './index.module.less'
 import { SwitchToggleEnum } from '../res-table'
 import { ColumnsType } from 'antd/es/table'
-import { ArgColumnRecord } from '../operation-doc'
 import { buildOperationNodeForField } from '@/utils/buildOperationNodeForField'
 import { OperationDefinitionNodeGroupType, genArgsExample } from '@/utils/operations'
 import obj2str from 'stringify-object'
-import { GraphQLSchema, buildSchema } from 'graphql'
+import { ConstDirectiveNode, GraphQLSchema, buildSchema } from 'graphql'
 import { defaultLocalTypeDefs } from '@/config/const'
 import useBearStore from '@/stores'
+import { ArgTypeDef } from '@/utils/interface'
 
 interface IProps {
-  argsTreeData: any[]
   operationDefNode: OperationDefinitionNodeGroupType
   operationDefNodeAst: OperationDefinitionNodeGroupType
   mode: SwitchToggleEnum
+}
+
+export type ArgColumnRecord = {
+  key: string
+  name: ArgTypeDef['name']
+  type: ArgTypeDef['type']['name']
+  defaultValue: ArgTypeDef['defaultValue']
+  description: ArgTypeDef['description']
+  deprecationReason?: ArgTypeDef['deprecationReason']
+  children: ArgColumnRecord[] | null
+  directives?: ConstDirectiveNode[]
+}
+
+const getArgsTreeData = (args: ArgTypeDef[], keyPrefix = '') => {
+  const result: ArgColumnRecord[] = args.map(({ type, ...originData }) => {
+    const key = `${keyPrefix}${originData.name}`
+    let children: ArgColumnRecord['children'] = []
+    switch (type.kind) {
+      case 'Scalar':
+        children = null
+        break
+      case 'InputObject':
+        children = getArgsTreeData(type.fields, key)
+        break
+      case 'Enum':
+        children = type.values.map((item) => ({
+          key: key + item.value,
+          name: item.name,
+          type: '',
+          defaultValue: item.value,
+          description: item.description,
+          deprecationReason: item.deprecationReason,
+          children: null,
+        }))
+        break
+    }
+    return {
+      ...originData,
+      key,
+      type: type.name,
+      children,
+    }
+  })
+  return result
 }
 
 const argsColumns: ColumnsType<ArgColumnRecord> = [
@@ -62,8 +105,12 @@ const argsColumns: ColumnsType<ArgColumnRecord> = [
   },
 ]
 
-const ArgsTable: FC<IProps> = ({ mode, operationDefNode, operationDefNodeAst, argsTreeData }) => {
+const ArgsTable: FC<IProps> = ({ mode, operationDefNode, operationDefNodeAst }) => {
   const { localTypeDefs } = useBearStore((ste) => ste)
+
+  const argsTreeData = useMemo(() => {
+    return getArgsTreeData(operationDefNode.args)
+  }, [operationDefNode.args])
 
   const workspaceSchema = useMemo(() => {
     let localSchema: GraphQLSchema | undefined

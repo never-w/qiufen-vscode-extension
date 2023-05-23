@@ -15,6 +15,10 @@ import { buildOperationNodeForField } from '@/utils/buildOperationNodeForField'
 import { GraphQLSchema, buildSchema } from 'graphql'
 import { defaultLocalTypeDefs } from '@/config/const'
 import { OperationDefinitionNodeGroupType } from '@/utils/operations'
+import {
+  OperationDefsForFieldNodeTreeReturnType,
+  getOperationDefsForFieldNodeTreeDepthKeys,
+} from '@/utils/resolveOperationDefsForFieldNodeTree'
 
 export enum SwitchToggleEnum {
   EDITOR,
@@ -28,7 +32,7 @@ interface IProps {
   fieldNodeAstTree: NewFieldNodeType
   operationDefNode: OperationDefinitionNodeGroupType
   selectedKeys: string[]
-  defaultExpandedRowKeys: string[]
+  fieldNodeAstTreeTmp: OperationDefsForFieldNodeTreeReturnType
   mode: SwitchToggleEnum
   operationDefNodeAst: OperationDefinitionNodeGroupType
 }
@@ -53,15 +57,17 @@ const fieldsColumns: ColumnsType<NewFieldNodeType> = [
 
 const ResTable: FC<IProps> = ({
   mode,
+  fieldNodeAstTreeTmp,
   operationDefNode,
   operationDefNodeAst,
   selectedKeys,
   fieldNodeAstTree,
-  defaultExpandedRowKeys,
   setSelectedKeys,
   setFieldNodeAstTree,
 }) => {
-  const { isAllAddComment, localTypeDefs } = useBearStore((ste) => ste)
+  const { isAllAddComment, localTypeDefs, maxDepth } = useBearStore((ste) => ste)
+
+  const defaultExpandedRowKeys = getOperationDefsForFieldNodeTreeDepthKeys(fieldNodeAstTreeTmp, maxDepth)
 
   const workspaceSchema = useMemo(() => {
     let localSchema: GraphQLSchema | undefined

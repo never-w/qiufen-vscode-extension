@@ -8,7 +8,7 @@ import styles from './index.module.less'
 import useBearStore from '@/stores'
 import { OperationDefinitionNodeGroupType } from '@/utils/operations'
 import { printBatchOperations } from '@/utils/printBatchOperations'
-import { useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 
 interface IProps {
   flag: boolean
@@ -35,7 +35,6 @@ const getOperationNameValue = (name: string = '') => {
 }
 
 const SiderGroup: FC<IProps> = ({ flag, groupName, activeItemKey, operationList }) => {
-  const navigate = useNavigate()
   const { workspaceGqlNames, workspaceGqlFileInfo, isAllAddComment } = useBearStore((ste) => ste)
   // 这里是将不合法的字符串转为合法使用的 html id
   const id = groupName.replace(/[.\s]+/g, '_')
@@ -63,11 +62,8 @@ const SiderGroup: FC<IProps> = ({ flag, groupName, activeItemKey, operationList 
             className={classnames(styles.operationItem, {
               [styles.active]: operation.operation + operation.name?.value === activeItemKey,
             })}
-            onClick={() => {
-              navigate(`/docs/${operation.operation + operation.name?.value}`)
-            }}
           >
-            <div>
+            <Link to={`/docs/${operation.operation + operation.name?.value}`}>
               <Space direction="horizontal">
                 <CheckCircleTwoTone
                   style={{
@@ -79,7 +75,7 @@ const SiderGroup: FC<IProps> = ({ flag, groupName, activeItemKey, operationList 
                   ? operation.name?.value
                   : getOperationNameValue(operation.operationDefinitionDescription) || operation.name?.value}
               </Space>
-            </div>
+            </Link>
           </div>
         )
       })}

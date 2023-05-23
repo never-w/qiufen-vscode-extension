@@ -1,18 +1,14 @@
-import React, { useCallback, useLayoutEffect, useMemo, useState } from 'react'
+import React, { memo, useCallback, useLayoutEffect, useMemo, useState } from 'react'
 import type { FC } from 'react'
-import { ConstDirectiveNode, FieldNode, GraphQLArgument, OperationDefinitionNode } from 'graphql'
+import { FieldNode, OperationDefinitionNode } from 'graphql'
 import { message, Space, Tooltip, Switch, Button } from 'antd'
 import { CopyOutlined, LoadingOutlined, MenuFoldOutlined, EditOutlined } from '@ant-design/icons'
 import ClipboardJS from 'clipboard'
 import styles from './index.module.less'
 import useBearStore from '@/stores'
-
 import { OperationNodesForFieldAstBySchemaReturnType } from '@/utils/operations'
-import { InputType, NewFieldNodeType } from '@/utils/interface'
-import {
-  resolveOperationDefsForFieldNodeTree,
-  getOperationDefsForFieldNodeTreeDepthKeys,
-} from '@/utils/resolveOperationDefsForFieldNodeTree'
+import { NewFieldNodeType } from '@/utils/interface'
+import { resolveOperationDefsForFieldNodeTree } from '@/utils/resolveOperationDefsForFieldNodeTree'
 import {
   dependOnWorkspaceFieldKeysToFieldAstTree,
   getFieldNodeAstCheckedIsTrueKeys,
@@ -26,52 +22,6 @@ import ArgsTable from '../args-table'
 
 interface IProps {
   operationObj: OperationNodesForFieldAstBySchemaReturnType[number]
-}
-interface ArgTypeDef extends Pick<GraphQLArgument, 'name' | 'description' | 'defaultValue' | 'deprecationReason'> {
-  type: InputType
-}
-export type ArgColumnRecord = {
-  key: string
-  name: ArgTypeDef['name']
-  type: ArgTypeDef['type']['name']
-  defaultValue: ArgTypeDef['defaultValue']
-  description: ArgTypeDef['description']
-  deprecationReason?: ArgTypeDef['deprecationReason']
-  children: ArgColumnRecord[] | null
-  directives?: ConstDirectiveNode[]
-}
-
-const getArgsTreeData = (args: ArgTypeDef[], keyPrefix = '') => {
-  const result: ArgColumnRecord[] = args.map(({ type, ...originData }) => {
-    const key = `${keyPrefix}${originData.name}`
-    let children: ArgColumnRecord['children'] = []
-    switch (type.kind) {
-      case 'Scalar':
-        children = null
-        break
-      case 'InputObject':
-        children = getArgsTreeData(type.fields, key)
-        break
-      case 'Enum':
-        children = type.values.map((item) => ({
-          key: key + item.value,
-          name: item.name,
-          type: '',
-          defaultValue: item.value,
-          description: item.description,
-          deprecationReason: item.deprecationReason,
-          children: null,
-        }))
-        break
-    }
-    return {
-      ...originData,
-      key,
-      type: type.name,
-      children,
-    }
-  })
-  return result
 }
 
 const copy = (selector: string) => {
@@ -87,26 +37,25 @@ const copy = (selector: string) => {
 }
 
 const OperationDoc: FC<IProps> = ({ operationObj }) => {
-  const operationDefNode = operationObj.operationDefNodeAst
-  const operationName = operationDefNode.name!.value
-  const operationType = operationDefNode.operation
-  // 远程得到的operation第一层的 selectionSet.selections 始终都只会存在数组长度为1，因为这是我转换schema对象转好operation ast函数里写的就是这样
-  const fieldNodeAstTreeTmp = resolveOperationDefsForFieldNodeTree(
-    operationDefNode.selectionSet.selections[0] as NewFieldNodeType,
+  const { operationDefNode, operationName, operationType } = useMemo(
+    () => ({
+      operationDefNode: operationObj.operationDefNodeAst,
+      operationName: operationObj.operationDefNodeAst.name!.value,
+      operationType: operationObj.operationDefNodeAst.operation,
+    }),
+    [operationObj.operationDefNodeAst],
   )
 
-  const { isDisplaySidebar, setState, workspaceGqlFileInfo, localTypeDefs, isAllAddComment, maxDepth } = useBearStore(
-    (ste) => ste,
-  )
+  const fieldNodeAstTreeTmp = useMemo(() => {
+    // 远程得到的operation第一层的 selectionSet.selections 始终都只会存在数组长度为1，因为这是我转换schema对象转好operation ast函数里写的就是这样
+    return resolveOperationDefsForFieldNodeTree(operationDefNode.selectionSet.selections[0] as NewFieldNodeType)
+  }, [operationDefNode.selectionSet.selections])
+
+  const { isDisplaySidebar, setState, workspaceGqlFileInfo, isAllAddComment } = useBearStore((ste) => ste)
   const [mode, setMode] = useState<SwitchToggleEnum>(SwitchToggleEnum.TABLE)
   const [spinIcon, setSpinIcon] = useState(false)
   const [selectedKeys, setSelectedKeys] = useState<string[]>([])
   const [fieldNodeAstTree, setFieldNodeAstTree] = useState<NewFieldNodeType>(fieldNodeAstTreeTmp)
-  const defaultExpandedRowKeys = getOperationDefsForFieldNodeTreeDepthKeys(fieldNodeAstTreeTmp, maxDepth)
-
-  const argsTreeData = useMemo(() => {
-    return getArgsTreeData(operationDefNode.args)
-  }, [operationDefNode.args])
 
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [filteredWorkspaceGqlFileInfo, setFilteredWorkspaceGqlFileInfo] = useState<GetWorkspaceGqlFileInfoReturnType[]>(
@@ -213,12 +162,15 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
 
     setFieldNodeAstTree(newFieldNodeAstTree)
     setSelectedKeys(selectedKeysTmp)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [operationObj])
+  }, [fieldNodeAstTreeTmp, operationName, workspaceGqlFileInfo])
 
   return (
     // 这里使用key让它根据不同key重新render
-    <Space key={operationType + operationName} id={operationName} className={styles.operationDoc} direction="vertical">
+    <Space
+      /*  key={operationType + operationName} */ id={operationName}
+      className={styles.operationDoc}
+      direction="vertical"
+    >
       {!!isModalOpen && (
         <InSetModal
           operationDefNode={operationDefNode}
@@ -302,17 +254,16 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
 
       <ArgsTable
         mode={mode}
-        argsTreeData={argsTreeData}
         operationDefNode={operationDefNode}
         operationDefNodeAst={operationObj?.operationDefNodeAst}
       />
       <ResTable
+        fieldNodeAstTreeTmp={fieldNodeAstTreeTmp}
         selectedKeys={selectedKeys}
         setSelectedKeys={setSelectedKeys}
         setFieldNodeAstTree={setFieldNodeAstTree}
         fieldNodeAstTree={fieldNodeAstTree}
         operationDefNodeAst={operationObj?.operationDefNodeAst}
-        defaultExpandedRowKeys={defaultExpandedRowKeys}
         mode={mode}
         operationDefNode={operationDefNode}
       />
@@ -320,4 +271,4 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
   )
 }
 
-export default OperationDoc
+export default memo(OperationDoc)

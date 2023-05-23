@@ -22,12 +22,14 @@ const DocContent: FC<IProps> = () => {
   }, [typeDefs])
 
   const operationObj = useMemo(() => {
-    return operationObjList.find(
+    const result = operationObjList.find(
       (item) => item.operationDefNodeAst.operation + item.operationDefNodeAst.name?.value === id,
-    )!
+    )
+
+    return result
   }, [id, operationObjList])
 
-  if (!operationObj) {
+  if (!operationObj?.operationDefNodeAst) {
     return null
   }
 

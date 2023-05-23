@@ -1,6 +1,6 @@
 import { GraphQLField, Kind } from 'graphql'
 import { ArgTypeDef } from './interface'
-import { ArgColumnRecord } from '@/pages/doc-content/components/operation-doc'
+import { ArgColumnRecord } from '@/pages/doc-content/components/args-table'
 
 function dfs(filedType: any): string {
   if (filedType.kind === Kind.LIST_TYPE) {
