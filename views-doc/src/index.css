@@ -79,7 +79,7 @@ table {
 body {
   font: 12px/150% Arial, Verdana, "\5b8b\4f53";
   /*宋体，Unicode，统一码*/
-  color: #666;
+  color: #31373D;
   background: #efefef
 }
 
@@ -99,12 +99,12 @@ body {
 }
 
 a {
-  color: #666;
+  color: #31373D;
   text-decoration: none;
 }
 
 a:hover {
-  color: #C81623;
+  color: #31373D;
 }
 
 h1,
