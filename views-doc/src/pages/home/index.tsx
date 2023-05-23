@@ -7,7 +7,7 @@ import { OperationNodesForFieldAstBySchemaReturnType, getOperationNodesForFieldA
 import { useNavigate } from 'react-router-dom'
 import classnames from 'classnames'
 import _ from 'lodash'
-import './index.css'
+import styles from './index.module.less'
 
 interface IProps {}
 
