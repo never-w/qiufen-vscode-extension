@@ -71,7 +71,7 @@ const DiffViewer: FC<IProps> = ({ isShow, operationDefNode }) => {
   }, [isAllAddComment, operationDefNode])
 
   return (
-    <Space direction="vertical" size={16}>
+    <Space style={{ width: '100%' }} direction="vertical" size={16}>
       <>
         <div className={styles.paramsText}>Params: </div>
         {isShow && (

@@ -26,7 +26,7 @@ const OperationStructure: FC<IProps> = ({ isShow, operationDefNode }) => {
   const operationType = operationDefNode.operation
 
   return (
-    <div>
+    <>
       <div style={{ marginBottom: 16 }}>
         <div className={styles.paramsText}>Params: </div>
         {isShow && (
@@ -65,7 +65,7 @@ const OperationStructure: FC<IProps> = ({ isShow, operationDefNode }) => {
           />
         )}
       </>
-    </div>
+    </>
   )
 }
 
