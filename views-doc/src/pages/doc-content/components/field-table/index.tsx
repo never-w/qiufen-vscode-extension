@@ -149,7 +149,7 @@ const FieldTable: FC<IProps> = ({
   return (
     <>
       {!!argsTreeData.length && (
-        <>
+        <div style={{ marginBottom: 12 }}>
           <Divider className={styles.divider} />
           <div className={styles.paramsText}>Params: </div>
           {isShow && (
@@ -164,9 +164,9 @@ const FieldTable: FC<IProps> = ({
               bordered
             />
           )}
-        </>
+        </div>
       )}
-      <div>Response: </div>
+      <div className={styles.paramsText}>Response: </div>
       {isShow && (
         <Table
           size="small"
