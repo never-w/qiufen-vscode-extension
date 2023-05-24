@@ -14,14 +14,14 @@ const OperationItem = ({
   operation,
   workspaceGqlNames,
   isMoreExist,
-  flag,
+  switchBothZhEn,
   active,
 }: {
   operation: OperationDefinitionNodeGroupType
   active: boolean
   workspaceGqlNames: string[]
   isMoreExist: boolean
-  flag: boolean
+  switchBothZhEn: boolean
 }) => {
   return (
     <div>
@@ -38,7 +38,7 @@ const OperationItem = ({
               }}
               twoToneColor={isMoreExist ? '#FE9800' : '#52c41a'}
             />
-            {flag
+            {switchBothZhEn
               ? operation.name?.value
               : getOperationNameValue(operation.operationDefinitionDescription) || operation.name?.value}
           </Space>
@@ -50,7 +50,7 @@ const OperationItem = ({
 const OperationItemCom = memo(OperationItem)
 
 interface IProps {
-  flag: boolean
+  switchBothZhEn: boolean
   groupName: string
   activeItemKey: string
   operationList: OperationDefinitionNodeGroupType[]
@@ -73,7 +73,7 @@ const getOperationNameValue = (name: string = '') => {
   return val
 }
 
-const SiderGroup: FC<IProps> = ({ flag, groupName, activeItemKey, operationList }) => {
+const SiderGroup: FC<IProps> = ({ switchBothZhEn, groupName, activeItemKey, operationList }) => {
   const { workspaceGqlNames, workspaceGqlFileInfo, isAllAddComment } = useBearStore((ste) => ste)
   // 这里是将不合法的字符串转为合法使用的 html id
   const id = groupName.replace(/[.\s]+/g, '_')
@@ -92,11 +92,11 @@ const SiderGroup: FC<IProps> = ({ flag, groupName, activeItemKey, operationList 
           operation={operation}
           workspaceGqlNames={workspaceGqlNames}
           isMoreExist={isMoreExist}
-          flag={flag}
+          switchBothZhEn={switchBothZhEn}
         />
       )
     })
-  }, [activeItemKey, flag, operationList, workspaceGqlFileInfo, workspaceGqlNames])
+  }, [activeItemKey, switchBothZhEn, operationList, workspaceGqlFileInfo, workspaceGqlNames])
 
   return (
     <div className={styles.operationList}>

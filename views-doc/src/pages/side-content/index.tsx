@@ -1,6 +1,7 @@
-import { FC, useEffect } from 'react'
-import React, { useCallback, useMemo, useState } from 'react'
+import { FC, useEffect, useLayoutEffect } from 'react'
+import React, { useMemo, useState } from 'react'
 import { Spin, message } from 'antd'
+import { useMemoizedFn } from 'ahooks'
 import { buildSchema } from 'graphql'
 import useBearStore from '@/stores'
 import { OperationNodesForFieldAstBySchemaReturnType, getOperationNodesForFieldAstBySchema } from '@/utils/operations'
@@ -14,11 +15,10 @@ const SideContent: FC<IProps> = () => {
   const { captureMessage, reloadOperations, isDisplaySidebar, typeDefs, setState } = useBearStore((state) => state)
   const [loading, setLoading] = useState(false)
 
-  useMemo(async () => {
-    setLoading(true)
-    await captureMessage()
-    setLoading(false)
-  }, [captureMessage])
+  useLayoutEffect(() => {
+    captureMessage()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const operationObjList = useMemo(() => {
     let result: OperationNodesForFieldAstBySchemaReturnType = []
@@ -29,7 +29,7 @@ const SideContent: FC<IProps> = () => {
     return result
   }, [typeDefs])
 
-  const handleReload = useCallback(async () => {
+  const handleReload = useMemoizedFn(async () => {
     let timer: NodeJS.Timeout | undefined
     setLoading(true)
     try {
@@ -37,15 +37,15 @@ const SideContent: FC<IProps> = () => {
         reloadOperations(),
         new Promise((_, reject) => {
           timer = setTimeout(() => {
-            message.error('network error')
-            return reject(new Error('request timeout'))
+            message.error('network timeout')
+            return reject(new Error('network timeout'))
           }, 10000)
         }),
       ])
     } catch {}
     clearTimeout(timer)
     setLoading(false)
-  }, [reloadOperations])
+  })
 
   useEffect(() => {
     return () => {
@@ -68,7 +68,6 @@ const SideContent: FC<IProps> = () => {
             handleReload={handleReload}
             activeItemKey={id || firstOperationKey}
             operationsDefNodeObjList={operationObjList}
-            selectedOperationId={id || firstOperationKey}
           />
         </div>
         <Outlet />

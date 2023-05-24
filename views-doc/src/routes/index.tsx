@@ -18,7 +18,6 @@ const routes: RouteObject[] = [
       {
         path: '/docs',
         element: <SideContent />,
-
         children: [
           {
             path: '/docs/:id',

@@ -17,16 +17,15 @@ import { useNavigate } from 'react-router-dom'
 
 export interface IProps {
   operationsDefNodeObjList: OperationNodesForFieldAstBySchemaReturnType
-  selectedOperationId: string
   activeItemKey: string
   handleReload: () => void
 }
 
-const DocSidebar: FC<IProps> = ({ activeItemKey, selectedOperationId, handleReload, operationsDefNodeObjList }) => {
+const DocSidebar: FC<IProps> = ({ activeItemKey, handleReload, operationsDefNodeObjList }) => {
   const [keyword, setKeyword] = useState<string>('')
   const [activeKey, setActiveKey] = useState([''])
   const [top, setTop] = useState(0)
-  const [flag, setFlag] = useState(false)
+  const [switchBothZhEn, setSwitchBothZhEn] = useState(false)
   const [isFocus, setIsFocus] = useState(false)
 
   const onScroll = useThrottleFn(
@@ -44,12 +43,12 @@ const DocSidebar: FC<IProps> = ({ activeItemKey, selectedOperationId, handleRelo
   useEffect(() => {
     const activeKey: CollapseProps['defaultActiveKey'] = []
     Object.entries(groupedOperations).some(([groupName, items]) => {
-      if (items.some((item) => item.operation + item.name?.value === selectedOperationId)) {
+      if (items.some((item) => item.operation + item.name?.value === activeItemKey)) {
         activeKey.push(groupName)
       }
     })
     setActiveKey(activeKey as string[])
-  }, [groupedOperations, selectedOperationId, activeItemKey])
+  }, [groupedOperations, activeItemKey])
 
   const navigate = useNavigate()
   useEffect(() => {
@@ -89,7 +88,13 @@ const DocSidebar: FC<IProps> = ({ activeItemKey, selectedOperationId, handleRelo
             header={groupName}
             className={activeKey.includes(groupName) ? styles.collapse_active : ''}
           >
-            <SiderGroup flag={flag} groupName={groupName} operationList={operationList} activeItemKey={activeItemKey} />
+            <SiderGroup
+              // 当分组为 "default" 时，接口就是不存在中文备注的所以为了节约渲染直接传 "false" 下去
+              switchBothZhEn={groupName === 'default' ? false : switchBothZhEn}
+              groupName={groupName}
+              operationList={operationList}
+              activeItemKey={activeItemKey}
+            />
           </Collapse.Panel>
         )
       })
@@ -126,12 +131,18 @@ const DocSidebar: FC<IProps> = ({ activeItemKey, selectedOperationId, handleRelo
             header={groupName}
             className={activeKey.includes(groupName) ? styles.collapse_active : ''}
           >
-            <SiderGroup flag={flag} groupName={groupName} operationList={operationList} activeItemKey={activeItemKey} />
+            <SiderGroup
+              // 当分组为 "default" 时，接口就是不存在中文备注的所以为了节约渲染直接传 "false" 下去
+              switchBothZhEn={groupName === 'default' ? false : switchBothZhEn}
+              groupName={groupName}
+              operationList={operationList}
+              activeItemKey={activeItemKey}
+            />
           </Collapse.Panel>
         )
       })
     }
-  }, [activeItemKey, activeKey, flag, groupedOperations, keyword])
+  }, [activeItemKey, activeKey, switchBothZhEn, groupedOperations, keyword])
 
   return (
     <div className={styles.sidebar}>
@@ -170,7 +181,7 @@ const DocSidebar: FC<IProps> = ({ activeItemKey, selectedOperationId, handleRelo
       <Tooltip title="switching operation language">
         <div
           onClick={() => {
-            setFlag(!flag)
+            setSwitchBothZhEn(!switchBothZhEn)
           }}
           style={{ bottom: 200 }}
           className={classnames(styles.topBtn, styles.show)}

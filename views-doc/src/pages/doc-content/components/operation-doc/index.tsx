@@ -167,7 +167,7 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
   return (
     // 这里使用key让它根据不同key重新render
     <Space
-      /*  key={operationType + operationName} */ id={operationName}
+      /* key={operationType + operationName} */ id={operationName}
       className={styles.operationDoc}
       direction="vertical"
     >
