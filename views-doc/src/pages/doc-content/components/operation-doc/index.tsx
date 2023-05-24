@@ -253,19 +253,25 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
             </div>
           </Space>
         </div>
-        <FieldTable
-          // 这里唯一key是为了支持默认打开的 tree data depth
-          key={operationType + operationName}
-          mode={mode}
-          operationDefNode={operationDefNode}
-          selectedKeys={selectedKeys}
-          setSelectedKeys={setSelectedKeys}
-          setFieldNodeAstTree={setFieldNodeAstTree}
-          fieldNodeAstTree={fieldNodeAstTree}
-          fieldNodeAstTreeTmp={fieldNodeAstTreeTmp}
-        />
-        <OperationStructure mode={mode} operationDefNode={operationDefNode} />
-        <DiffViewer mode={mode} operationDefNode={operationDefNode} />
+        {mode === SwitchToggleEnum.TABLE && (
+          <FieldTable
+            // 这里唯一key是为了支持默认打开的 tree data depth
+            key={operationType + operationName}
+            isShow={mode === SwitchToggleEnum.TABLE}
+            operationDefNode={operationDefNode}
+            selectedKeys={selectedKeys}
+            setSelectedKeys={setSelectedKeys}
+            setFieldNodeAstTree={setFieldNodeAstTree}
+            fieldNodeAstTree={fieldNodeAstTree}
+            fieldNodeAstTreeTmp={fieldNodeAstTreeTmp}
+          />
+        )}
+        {mode === SwitchToggleEnum.EDITOR && (
+          <OperationStructure isShow={mode === SwitchToggleEnum.EDITOR} operationDefNode={operationDefNode} />
+        )}
+        {mode === SwitchToggleEnum.DIFF && (
+          <DiffViewer isShow={mode === SwitchToggleEnum.DIFF} operationDefNode={operationDefNode} />
+        )}
       </Space>
     </>
   )

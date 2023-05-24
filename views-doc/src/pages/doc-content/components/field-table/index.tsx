@@ -3,7 +3,6 @@ import { ColumnsType } from 'antd/es/table'
 import React, { FC, useMemo } from 'react'
 import { ArgTypeDef, NewFieldNodeType } from '@/utils/interface'
 import { OperationDefinitionNodeGroupType } from '@/utils/operations'
-import { SwitchToggleEnum } from '../operation-doc'
 import styles from './index.module.less'
 import { ConstDirectiveNode } from 'graphql'
 import {
@@ -17,7 +16,7 @@ import {
 import useBearStore from '@/stores'
 
 interface IProps {
-  mode: SwitchToggleEnum
+  isShow: boolean
   operationDefNode: OperationDefinitionNodeGroupType
   selectedKeys: string[]
   setFieldNodeAstTree: (val: NewFieldNodeType) => void
@@ -131,7 +130,7 @@ const fieldsColumns: ColumnsType<NewFieldNodeType> = [
 ]
 
 const FieldTable: FC<IProps> = ({
-  mode,
+  isShow,
   operationDefNode,
   fieldNodeAstTree,
   selectedKeys,
@@ -153,7 +152,7 @@ const FieldTable: FC<IProps> = ({
         <>
           <Divider className={styles.divider} />
           <div className={styles.paramsText}>Params: </div>
-          {mode === SwitchToggleEnum.TABLE && (
+          {isShow && (
             <Table
               size="small"
               indentSize={21}
@@ -168,7 +167,7 @@ const FieldTable: FC<IProps> = ({
         </>
       )}
       <div>Response: </div>
-      {mode === SwitchToggleEnum.TABLE && (
+      {isShow && (
         <Table
           size="small"
           rowKey="fieldKey"
