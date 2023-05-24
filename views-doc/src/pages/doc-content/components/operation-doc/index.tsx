@@ -17,11 +17,18 @@ import { getWorkspaceOperationsExistFieldKeys } from '@/utils/getWorkspaceOperat
 import { relyOnKeysPrintOperation } from '@/utils/relyOnKeysPrintOperation'
 import { GetWorkspaceGqlFileInfoReturnType } from '@/utils/syncWorkspaceGqls'
 import InSetModal from '../modal'
-import ResTable, { SwitchToggleEnum } from '../res-table'
-import ArgsTable from '../args-table'
+import FieldTable from '../field-table'
+import OperationStructure from '../operation-structure'
+import DiffViewer from '../diff-viewer'
 
 interface IProps {
   operationObj: OperationNodesForFieldAstBySchemaReturnType[number]
+}
+
+export enum SwitchToggleEnum {
+  EDITOR,
+  TABLE,
+  DIFF,
 }
 
 const copy = (selector: string) => {
@@ -165,12 +172,7 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
   }, [fieldNodeAstTreeTmp, operationName, workspaceGqlFileInfo])
 
   return (
-    // 这里使用key让它根据不同key重新render
-    <Space
-      /* key={operationType + operationName} */ id={operationName}
-      className={styles.operationDoc}
-      direction="vertical"
-    >
+    <>
       {!!isModalOpen && (
         <InSetModal
           operationDefNode={operationDefNode}
@@ -182,92 +184,90 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
           }}
         />
       )}
-
-      <div className={styles.name}>
-        <Space size={40}>
-          <span>
-            Operation name:
-            <span className={styles.operationName}>{` ${operationName}`}</span>
-          </span>
-          <span>
-            Operation type:
-            <span className={styles.operationName}>{` ${operationType}`}</span>
-          </span>
-        </Space>
-        <Space size={50}>
-          <Tooltip title="Hide Sidebar">
-            <Button
-              type="text"
-              onClick={() => {
-                setState({ isDisplaySidebar: !isDisplaySidebar })
-              }}
-            >
-              <Space id="sidebar" className={styles.copyBtn}>
-                <MenuFoldOutlined />
-                <span className={styles.text}>Hide Sidebar</span>
+      <Space className={styles.operationDoc} direction="vertical">
+        <div className={styles.name}>
+          <Space size={40}>
+            <span>
+              Operation name:
+              <span className={styles.operationName}>{` ${operationName}`}</span>
+            </span>
+            <span>
+              Operation type:
+              <span className={styles.operationName}>{` ${operationType}`}</span>
+            </span>
+          </Space>
+          <Space size={50}>
+            <Tooltip title="Hide Sidebar">
+              <Button
+                type="text"
+                onClick={() => {
+                  setState({ isDisplaySidebar: !isDisplaySidebar })
+                }}
+              >
+                <Space id="sidebar" className={styles.copyBtn}>
+                  <MenuFoldOutlined />
+                  <span className={styles.text}>Hide Sidebar</span>
+                </Space>
+              </Button>
+            </Tooltip>
+            <Tooltip title="一键填入">
+              <Space className={styles.copyBtn} onClick={handleOneKeyFillEvent}>
+                {!spinIcon ? <EditOutlined /> : <LoadingOutlined />}
+                <span className={styles.text}>一键填入</span>
               </Space>
-            </Button>
-          </Tooltip>
-          <Tooltip title="一键填入">
-            <Space className={styles.copyBtn} onClick={handleOneKeyFillEvent}>
-              {!spinIcon ? <EditOutlined /> : <LoadingOutlined />}
-              <span className={styles.text}>一键填入</span>
-            </Space>
-          </Tooltip>
-          <Tooltip title="Copy GQL">
-            <Space className={styles.copyBtn} onClick={handleCopyClick}>
-              <CopyOutlined />
-              <span className={styles.text}>Copy GQL</span>
-            </Space>
-          </Tooltip>
-          <div className={styles.switch_box}>
-            <Switch
-              className={styles.switch_diff}
-              size="default"
-              checked={mode === SwitchToggleEnum.DIFF}
-              checkedChildren="diff"
-              unCheckedChildren="diff"
-              onClick={(checked) => {
-                if (checked) {
-                  setMode(SwitchToggleEnum.DIFF)
-                } else {
-                  setMode(SwitchToggleEnum.TABLE)
-                }
-              }}
-            />
-            <Switch
-              size="default"
-              checked={mode === SwitchToggleEnum.EDITOR}
-              checkedChildren="editor"
-              unCheckedChildren="table"
-              onClick={(checked) => {
-                if (checked) {
-                  setMode(SwitchToggleEnum.EDITOR)
-                } else {
-                  setMode(SwitchToggleEnum.TABLE)
-                }
-              }}
-            />
-          </div>
-        </Space>
-      </div>
-
-      <ArgsTable
-        mode={mode}
-        operationDefNode={operationDefNode}
-        operationDefNodeAst={operationObj?.operationDefNodeAst}
-      />
-      <ResTable
-        fieldNodeAstTreeTmp={fieldNodeAstTreeTmp}
-        selectedKeys={selectedKeys}
-        setSelectedKeys={setSelectedKeys}
-        setFieldNodeAstTree={setFieldNodeAstTree}
-        fieldNodeAstTree={fieldNodeAstTree}
-        operationDefNodeAst={operationObj?.operationDefNodeAst}
-        mode={mode}
-        operationDefNode={operationDefNode}
-      />
-    </Space>
+            </Tooltip>
+            <Tooltip title="Copy GQL">
+              <Space className={styles.copyBtn} onClick={handleCopyClick}>
+                <CopyOutlined />
+                <span className={styles.text}>Copy GQL</span>
+              </Space>
+            </Tooltip>
+            <div className={styles.switch_box}>
+              <Switch
+                className={styles.switch_diff}
+                size="default"
+                checked={mode === SwitchToggleEnum.DIFF}
+                checkedChildren="diff"
+                unCheckedChildren="diff"
+                onClick={(checked) => {
+                  if (checked) {
+                    setMode(SwitchToggleEnum.DIFF)
+                  } else {
+                    setMode(SwitchToggleEnum.TABLE)
+                  }
+                }}
+              />
+              <Switch
+                size="default"
+                checked={mode === SwitchToggleEnum.EDITOR}
+                checkedChildren="editor"
+                unCheckedChildren="table"
+                onClick={(checked) => {
+                  if (checked) {
+                    setMode(SwitchToggleEnum.EDITOR)
+                  } else {
+                    setMode(SwitchToggleEnum.TABLE)
+                  }
+                }}
+              />
+            </div>
+          </Space>
+        </div>
+        <FieldTable
+          // 这里唯一key是为了支持默认打开的 tree data depth
+          key={operationType + operationName}
+          mode={mode}
+          operationDefNode={operationDefNode}
+          selectedKeys={selectedKeys}
+          setSelectedKeys={setSelectedKeys}
+          setFieldNodeAstTree={setFieldNodeAstTree}
+          fieldNodeAstTree={fieldNodeAstTree}
+          fieldNodeAstTreeTmp={fieldNodeAstTreeTmp}
+        />
+        <OperationStructure mode={mode} operationDefNode={operationDefNode} />
+        <DiffViewer mode={mode} operationDefNode={operationDefNode} />
+      </Space>
+    </>
   )
 }
 
