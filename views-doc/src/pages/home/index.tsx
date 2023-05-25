@@ -141,7 +141,7 @@ const Home: FC<IProps> = () => {
     return result
   }, [localTypeDefs, typeDefs])
 
-  console.log(changes)
+  // console.log(changes)
 
   return (
     <Spin spinning={loading || !typeDefs}>
