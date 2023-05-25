@@ -24,16 +24,17 @@ export interface IProps {
 const DocSidebar: FC<IProps> = ({ activeItemKey, handleReload, operationsDefNodeObjList }) => {
   const [keyword, setKeyword] = useState<string>('')
   const [activeKey, setActiveKey] = useState([''])
-  const [top, setTop] = useState(0)
   const [switchBothZhEn, setSwitchBothZhEn] = useState(false)
   const [isFocus, setIsFocus] = useState(false)
 
-  const onScroll = useThrottleFn(
-    (evt) => {
-      setTop(evt.nativeEvent.target.scrollTop)
-    },
-    { wait: 500 },
-  )
+  // TODO: 暂时注释
+  // const [top, setTop] = useState(0)
+  // const onScroll = useThrottleFn(
+  //   (evt) => {
+  //     setTop(evt.nativeEvent.target.scrollTop)
+  //   },
+  //   { wait: 500 },
+  // )
 
   const groupedOperations = useMemo(() => {
     const operationList = operationsDefNodeObjList.map((val) => val.operationDefNodeAst)
@@ -145,7 +146,7 @@ const DocSidebar: FC<IProps> = ({ activeItemKey, handleReload, operationsDefNode
   }, [activeItemKey, activeKey, switchBothZhEn, groupedOperations, keyword])
 
   return (
-    <div className={styles.sidebar}>
+    <>
       <div className={styles.wrapper_search}>
         <Input
           className={styles.search}
@@ -164,62 +165,55 @@ const DocSidebar: FC<IProps> = ({ activeItemKey, handleReload, operationsDefNode
           value={keyword}
         />
       </div>
-      <div className={styles.main} id="sideBar" onScroll={onScroll.run}>
-        <Collapse
-          className={styles.collapse_box}
-          bordered={false}
-          activeKey={activeKey}
-          onChange={(key) => {
-            if (Array.isArray(key)) {
-              setActiveKey(key)
-            }
-          }}
-        >
-          {contentJSX}
-        </Collapse>
+      <div className={styles.sidebar} id="sideContainer" /* onScroll={onScroll.run} */>
+        <div>
+          <Collapse
+            className={styles.collapse_box}
+            bordered={false}
+            activeKey={activeKey}
+            onChange={(key) => {
+              if (Array.isArray(key)) {
+                setActiveKey(key)
+              }
+            }}
+          >
+            {contentJSX}
+          </Collapse>
+        </div>
+
+        {/* 侧边栏图标部分 */}
+        <div className={styles.iconBox}>
+          <Tooltip title="switching operation language">
+            <div
+              onClick={() => {
+                setSwitchBothZhEn(!switchBothZhEn)
+              }}
+            >
+              <SwapOutlined className={classnames(styles.icon)} />
+            </div>
+          </Tooltip>
+          <Tooltip title="reload doc">
+            <ReloadOutlined onClick={handleReload} className={classnames(styles.icon)} />
+          </Tooltip>
+          <Tooltip title="Collapse all">
+            <MenuFoldOutlined
+              onClick={() => {
+                setActiveKey([])
+              }}
+              className={classnames(styles.icon)}
+            />
+          </Tooltip>
+          <Tooltip title="Back to top">
+            <UpOutlined
+              onClick={() => {
+                document.getElementById('sideContainer')?.scrollTo(0, 0)
+              }}
+              className={classnames(styles.icon)}
+            />
+          </Tooltip>
+        </div>
       </div>
-      <Tooltip title="switching operation language">
-        <div
-          onClick={() => {
-            setSwitchBothZhEn(!switchBothZhEn)
-          }}
-          style={{ bottom: 200 }}
-          className={classnames(styles.topBtn, styles.show)}
-        >
-          <SwapOutlined className={classnames(styles.img)} />
-        </div>
-      </Tooltip>
-      <Tooltip title="reload doc">
-        <div onClick={handleReload} style={{ bottom: 150 }} className={classnames(styles.topBtn, styles.show)}>
-          <ReloadOutlined className={classnames(styles.img)} />
-        </div>
-      </Tooltip>
-      <Tooltip title="Collapse all">
-        <div
-          style={{ bottom: 100 }}
-          className={classnames(styles.topBtn, {
-            [styles.show]: activeKey.length,
-          })}
-          onClick={() => {
-            setActiveKey([])
-          }}
-        >
-          <MenuFoldOutlined className={classnames(styles.img)} />
-        </div>
-      </Tooltip>
-      <Tooltip title="Back to top">
-        <div
-          className={classnames(styles.topBtn, {
-            [styles.show]: top > 700,
-          })}
-          onClick={() => {
-            document.getElementById('sideBar')?.scrollTo(0, 0)
-          }}
-        >
-          <UpOutlined className={classnames(styles.img)} />
-        </div>
-      </Tooltip>
-    </div>
+    </>
   )
 }
 
