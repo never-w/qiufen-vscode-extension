@@ -206,7 +206,7 @@ const DocSidebar: FC<IProps> = ({ activeItemKey, handleReload, operationsDefNode
           <Tooltip title="Back to top">
             <UpOutlined
               onClick={() => {
-                document.getElementById('sideContent')?.scrollTo(0, 0)
+                document.getElementById('sidebarContent')?.scrollTo(0, 0)
               }}
               className={classnames(styles.icon)}
             />
