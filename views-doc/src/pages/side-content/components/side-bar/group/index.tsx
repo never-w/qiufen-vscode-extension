@@ -1,4 +1,4 @@
-import { FC, useMemo } from 'react'
+import { FC, useEffect, useMemo } from 'react'
 import React, { memo } from 'react'
 import { Tooltip, Space, message } from 'antd'
 import { CopyOutlined, CheckCircleTwoTone } from '@ant-design/icons'
@@ -9,6 +9,9 @@ import useBearStore from '@/stores'
 import { OperationDefinitionNodeGroupType } from '@/utils/operations'
 import { printBatchOperations } from '@/utils/printBatchOperations'
 import { Link } from 'react-router-dom'
+
+// 控制滚动条滚动那部分代码执行一次
+let isControllingExecuted = false
 
 const OperationItem = ({
   operation,
@@ -23,10 +26,28 @@ const OperationItem = ({
   isMoreExist: boolean
   switchBothZhEn: boolean
 }) => {
+  useEffect(() => {
+    if (!isControllingExecuted) {
+      // 找到当前被激活的分类标题
+      const antCollapseContentActive = document.querySelector('.ant-collapse-content-active') as HTMLDivElement
+      // 当前激活的item
+      const activeItm = document.querySelector('#activeItem') as HTMLDivElement
+      // 滚动条归属的盒子
+      const sidebarContent = document.querySelector('#sidebarContent') as HTMLDivElement
+
+      // 将滚动条滚到当前被激活的分类标题的位置
+      sidebarContent?.scrollTo({
+        top: Math.max(0, activeItm?.offsetTop + antCollapseContentActive?.offsetTop - 200),
+      })
+      isControllingExecuted = true
+    }
+  }, [])
+
   return (
     <div>
       <Link to={`/docs/${operation.operation + operation.name?.value}`}>
         <div
+          id={active ? 'activeItem' : ''}
           className={classnames(styles.operationItem, {
             [styles.active]: active,
           })}
