@@ -146,7 +146,7 @@ const DocSidebar: FC<IProps> = ({ activeItemKey, handleReload, operationsDefNode
   }, [activeItemKey, activeKey, switchBothZhEn, groupedOperations, keyword])
 
   return (
-    <div>
+    <>
       <div className={styles.wrapper_search}>
         <Input
           className={styles.search}
@@ -213,7 +213,7 @@ const DocSidebar: FC<IProps> = ({ activeItemKey, handleReload, operationsDefNode
           </Tooltip>
         </div>
       </div>
-    </div>
+    </>
   )
 }
 
