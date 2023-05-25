@@ -1,0 +1,55 @@
+.wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 16px 0;
+  justify-content: center;
+  gap: 32px;
+  border-radius: 5px;
+  background-color: #fff;
+  word-spacing: 3.5px;
+  overflow-y: auto;
+}
+
+.changeItm {
+  width: 40%;
+  margin-bottom: 12px;
+  background-color: #e6f4ff;
+}
+
+.changeItm[attr-disabled='true'] {
+  background-color: #fff2f0;
+  opacity: 0.8;
+}
+
+.changeItm.changeItm[attr-added='true'] {
+  background-color: #f4ffed;
+  opacity: 1;
+}
+
+.moreBtn {
+  color: #1677ff;
+  cursor: pointer;
+}
+
+.moreBtn:hover {
+  opacity: 0.7;
+}
+
+.moreBtn:active {
+  opacity: 1;
+}
+
+.lineThrough {
+  text-decoration: line-through;
+  color: #ff3341;
+}
+
+.btnDisabled {
+  opacity: 0.55;
+  cursor: none;
+  pointer-events: none;
+}
+
+.btnDisabled:hover {
+  cursor: not-allowed !important;
+}
