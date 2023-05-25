@@ -1,7 +1,7 @@
 import React, { memo, useEffect, useMemo, useState } from 'react'
 import { Input, Collapse, Tooltip } from 'antd'
 import { SearchOutlined, SwapOutlined, ReloadOutlined, MenuFoldOutlined, UpOutlined } from '@ant-design/icons'
-import { useThrottleFn } from '@fruits-chain/hooks-laba'
+// import { useThrottleFn } from '@fruits-chain/hooks-laba'
 import classnames from 'classnames'
 import styles from './index.module.less'
 import type { CollapseProps } from 'antd'
@@ -165,8 +165,8 @@ const DocSidebar: FC<IProps> = ({ activeItemKey, handleReload, operationsDefNode
           value={keyword}
         />
       </div>
-      <div className={styles.sidebar} id="sideContainer" /* onScroll={onScroll.run} */>
-        <div>
+      <div className={styles.sidebarContent} id="sidebarContent" /* onScroll={onScroll.run} */>
+        <div id="operationContent">
           <Collapse
             className={styles.collapse_box}
             bordered={false}
@@ -206,7 +206,7 @@ const DocSidebar: FC<IProps> = ({ activeItemKey, handleReload, operationsDefNode
           <Tooltip title="Back to top">
             <UpOutlined
               onClick={() => {
-                document.getElementById('sideContainer')?.scrollTo(0, 0)
+                document.getElementById('sideContent')?.scrollTo(0, 0)
               }}
               className={classnames(styles.icon)}
             />
