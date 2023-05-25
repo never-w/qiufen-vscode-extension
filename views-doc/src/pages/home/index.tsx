@@ -1,4 +1,4 @@
-import React, { FC, useMemo, useState } from 'react'
+import React, { FC, useEffect, useMemo, useState } from 'react'
 import { Alert, Card, Spin } from 'antd'
 import { GraphQLInterfaceType, buildSchema } from 'graphql'
 import useBearStore from '@/stores'
@@ -43,103 +43,105 @@ function formatRoutePath(str: string) {
 }
 
 const Home: FC<IProps> = () => {
-  const navigate = useNavigate()
-  const { captureMessage, typeDefs, localTypeDefs } = useBearStore((state) => state)
+  // const navigate = useNavigate()
+  const { fetchRemoteTypeDefs, localTypeDefs, setState } = useBearStore((state) => state)
   const [loading, setLoading] = useState(false)
+  const [typeDef, setTypeDefs] = useState('')
 
   useMemo(async () => {
     setLoading(true)
-    await captureMessage()
+    const res = await fetchRemoteTypeDefs()
+    setTypeDefs(res.typeDefs)
     setLoading(false)
-  }, [captureMessage])
+  }, [fetchRemoteTypeDefs])
 
-  const changes = useMemo(() => {
-    const result = []
+  // const changes = useMemo(() => {
+  //   const result = []
 
-    if (typeDefs && localTypeDefs) {
-      const [leftSchema, rightSchema] = [buildSchema(localTypeDefs), buildSchema(typeDefs)]
+  //   if (typeDefs && localTypeDefs) {
+  //     const [leftSchema, rightSchema] = [buildSchema(localTypeDefs), buildSchema(typeDefs)]
 
-      const operationChangeList = findBreakingChanges(leftSchema, rightSchema)
+  //     const operationChangeList = findBreakingChanges(leftSchema, rightSchema)
 
-      const operationFields: OperationNodesForFieldAstBySchemaReturnType =
-        getOperationNodesForFieldAstBySchema(rightSchema)
+  //     const operationFields: OperationNodesForFieldAstBySchemaReturnType =
+  //       getOperationNodesForFieldAstBySchema(rightSchema)
 
-      const operationNamedTypeListInfo = operationFields.map((item) => ({
-        // @ts-ignore
-        operationComment: item?.operationDefNodeAst?.descriptionText,
-        operationType: item?.operationDefNodeAst?.operation,
-        operationName: item?.operationDefNodeAst?.name?.value,
-        namedTypeList: item?.operationDefNodeAst?.namedTypeList,
-        variableTypeList: item?.operationDefNodeAst?.variableTypeList,
-      }))
+  //     const operationNamedTypeListInfo = operationFields.map((item) => ({
+  //       // @ts-ignore
+  //       operationComment: item?.operationDefNodeAst?.descriptionText,
+  //       operationType: item?.operationDefNodeAst?.operation,
+  //       operationName: item?.operationDefNodeAst?.name?.value,
+  //       namedTypeList: item?.operationDefNodeAst?.namedTypeList,
+  //       variableTypeList: item?.operationDefNodeAst?.variableTypeList,
+  //     }))
 
-      const routeTypes = operationNamedTypeListInfo.map((item) => {
-        return {
-          operationComment: item?.operationComment,
-          operationType: item?.operationType,
-          operationName: item?.operationName,
-          routePath: item?.operationType + item?.operationName,
-          nameTypes: [...(item.namedTypeList || []), ...(item.variableTypeList || [])],
-        }
-      })
+  //     const routeTypes = operationNamedTypeListInfo.map((item) => {
+  //       return {
+  //         operationComment: item?.operationComment,
+  //         operationType: item?.operationType,
+  //         operationName: item?.operationName,
+  //         routePath: item?.operationType + item?.operationName,
+  //         nameTypes: [...(item.namedTypeList || []), ...(item.variableTypeList || [])],
+  //       }
+  //     })
 
-      const changeList = operationChangeList
-        .map((item) => {
-          if (item?.routePath) {
-            const res = routeTypes.find((val) => {
-              return val?.routePath === item?.routePath
-            })
+  //     const changeList = operationChangeList
+  //       .map((item) => {
+  //         if (item?.routePath) {
+  //           const res = routeTypes.find((val) => {
+  //             return val?.routePath === item?.routePath
+  //           })
 
-            const typeNameAndType = formatRoutePath(item?.routePath)
+  //           const typeNameAndType = formatRoutePath(item?.routePath)
 
-            return {
-              operationComment: res?.operationComment,
-              operationType: typeNameAndType?.operationType,
-              operationName: typeNameAndType?.operationName,
-              type:
-                // 这里其实还要算上 "!!item?.routePath" 条件
-                item.type === BreakingChangeType.FIELD_REMOVED || item.type === BreakingChangeType.FIELD_ADDED
-                  ? item.type
-                  : undefined,
-              description: item.description,
-              routePath: item?.routePath,
-            }
-          }
+  //           return {
+  //             operationComment: res?.operationComment,
+  //             operationType: typeNameAndType?.operationType,
+  //             operationName: typeNameAndType?.operationName,
+  //             type:
+  //               // 这里其实还要算上 "!!item?.routePath" 条件
+  //               item.type === BreakingChangeType.FIELD_REMOVED || item.type === BreakingChangeType.FIELD_ADDED
+  //                 ? item.type
+  //                 : undefined,
+  //             description: item.description,
+  //             routePath: item?.routePath,
+  //           }
+  //         }
 
-          const existRoute = routeTypes.find((itm) =>
-            itm.nameTypes.includes(item?.typeName as unknown as GraphQLInterfaceType),
-          )
-          if (existRoute) {
-            return {
-              operationComment: existRoute?.operationComment,
-              operationType: existRoute?.operationType,
-              operationName: existRoute?.operationName,
-              description: item.description,
-              routePath: existRoute?.routePath,
-            }
-          }
-        })
-        ?.filter(Boolean)
+  //         const existRoute = routeTypes.find((itm) =>
+  //           itm.nameTypes.includes(item?.typeName as unknown as GraphQLInterfaceType),
+  //         )
+  //         if (existRoute) {
+  //           return {
+  //             operationComment: existRoute?.operationComment,
+  //             operationType: existRoute?.operationType,
+  //             operationName: existRoute?.operationName,
+  //             description: item.description,
+  //             routePath: existRoute?.routePath,
+  //           }
+  //         }
+  //       })
+  //       ?.filter(Boolean)
 
-      const tmpChanges = _.groupBy(changeList, 'routePath') || {}
+  //     const tmpChanges = _.groupBy(changeList, 'routePath') || {}
 
-      for (const key in tmpChanges) {
-        const element = tmpChanges[key]
-        result.push({
-          operationComment: element[0]?.operationComment,
-          operationType: element[0]?.operationType,
-          operationName: element[0]?.operationName,
-          routePath: key,
-          type: element.find((ele) => ele?.type)?.type,
-          descriptionList: element?.map((val) => val?.description) || [],
-        })
-      }
-    }
+  //     for (const key in tmpChanges) {
+  //       const element = tmpChanges[key]
+  //       result.push({
+  //         operationComment: element[0]?.operationComment,
+  //         operationType: element[0]?.operationType,
+  //         operationName: element[0]?.operationName,
+  //         routePath: key,
+  //         type: element.find((ele) => ele?.type)?.type,
+  //         descriptionList: element?.map((val) => val?.description) || [],
+  //       })
+  //     }
+  //   }
 
-    return result
-  }, [localTypeDefs, typeDefs])
+  //   return result
+  // }, [localTypeDefs, typeDefs])
 
-  console.log(changes)
+  // console.log(changes)
 
   // return (
   //   <Spin spinning={loading || !typeDefs}>
@@ -186,7 +188,11 @@ const Home: FC<IProps> = () => {
   //   </Spin>
   // )
 
-  return <span>sssssssssss</span>
+  return (
+    <Spin spinning={loading}>
+      <span>sssssssssss</span>
+    </Spin>
+  )
 }
 
 export default Home

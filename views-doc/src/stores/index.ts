@@ -30,12 +30,15 @@ interface MessageEvent {
 }
 
 interface BearState extends MessageEvent {
+  fetchRemoteTypeDefs: () => Promise<{
+    typeDefs: string
+  }>
   captureMessage: () => Promise<boolean>
   reloadOperations: () => Promise<boolean>
   setState: SetState<BearState>
 }
 
-const useBearStore = create<BearState>((set, get) => {
+const useBearStore = create<BearState>((set) => {
   return {
     port: 9400,
     maxDepth: 2,
@@ -48,6 +51,15 @@ const useBearStore = create<BearState>((set, get) => {
     workspaceGqlNames: [],
     workspaceGqlFileInfo: [],
     isDisplaySidebar: true,
+    fetchRemoteTypeDefs() {
+      return new Promise((resolve) => {
+        fetch(`http://localhost:9400/operations`)
+          .then((response) => response.json())
+          .then((data) => {
+            resolve({ typeDefs: data.typeDefs })
+          })
+      })
+    },
     captureMessage() {
       return new Promise((resolve) => {
         fetch(`http://localhost:9400/operations`)
