@@ -1,17 +1,20 @@
-import { FC, useEffect, useMemo } from 'react'
+import { FC, useEffect } from 'react'
 import React, { memo } from 'react'
 import { Tooltip, Space, message } from 'antd'
 import { CopyOutlined, CheckCircleTwoTone } from '@ant-design/icons'
 import classnames from 'classnames'
 import ClipboardJS from 'clipboard'
-import styles from './index.module.less'
 import useBearStore from '@/stores'
 import { OperationDefinitionNodeGroupType } from '@/utils/operations'
 import { printBatchOperations } from '@/utils/printBatchOperations'
 import { Link } from 'react-router-dom'
+import VirtualList from 'rc-virtual-list'
+import styles from './index.module.less'
 
 // 控制滚动条滚动那部分代码执行一次
 let isControllingExecuted = false
+// 分组大小
+const groupCount = 50
 
 const OperationItem = ({
   operation,
@@ -99,25 +102,7 @@ const SiderGroup: FC<IProps> = ({ switchBothZhEn, groupName, activeItemKey, oper
   // 这里是将不合法的字符串转为合法使用的 html id
   const id = groupName.replace(/[.\s]+/g, '_')
 
-  const contentJSX = useMemo(() => {
-    return operationList.map((operation) => {
-      const filtrationWorkspaceGqlFileInfo = workspaceGqlFileInfo.filter((item) =>
-        item.operationNames.includes(operation.name!.value),
-      )
-      const isMoreExist = filtrationWorkspaceGqlFileInfo?.length > 1
-
-      return (
-        <OperationItemCom
-          active={operation.operation + operation.name?.value === activeItemKey}
-          key={operation.operation + operation.name?.value}
-          operation={operation}
-          workspaceGqlNames={workspaceGqlNames}
-          isMoreExist={isMoreExist}
-          switchBothZhEn={switchBothZhEn}
-        />
-      )
-    })
-  }, [activeItemKey, switchBothZhEn, operationList, workspaceGqlFileInfo, workspaceGqlNames])
+  const containerHeight = Math.min(operationList.length * 42, 750)
 
   return (
     <div className={styles.operationList}>
@@ -131,7 +116,52 @@ const SiderGroup: FC<IProps> = ({ switchBothZhEn, groupName, activeItemKey, oper
           }}
         />
       </Tooltip>
-      {contentJSX}
+      {/* 分组小于等于 groupCount 渲染  */}
+      {operationList.length <= groupCount &&
+        operationList.map((operation) => {
+          const filtrationWorkspaceGqlFileInfo = workspaceGqlFileInfo.filter((item) =>
+            item.operationNames.includes(operation.name!.value),
+          )
+          const isMoreExist = filtrationWorkspaceGqlFileInfo?.length > 1
+
+          return (
+            <OperationItemCom
+              active={operation.operation + operation.name?.value === activeItemKey}
+              key={operation.operation + operation.name?.value}
+              operation={operation}
+              workspaceGqlNames={workspaceGqlNames}
+              isMoreExist={isMoreExist}
+              switchBothZhEn={switchBothZhEn}
+            />
+          )
+        })}
+      {/* 分组大于 groupCount 渲染  */}
+      {operationList.length > groupCount && (
+        <VirtualList
+          data={operationList}
+          height={containerHeight}
+          itemHeight={45}
+          itemKey={(operation) => operation.operation + operation.name?.value}
+        >
+          {(operation) => {
+            const filtrationWorkspaceGqlFileInfo = workspaceGqlFileInfo.filter((item) =>
+              item.operationNames.includes(operation.name!.value),
+            )
+            const isMoreExist = filtrationWorkspaceGqlFileInfo?.length > 1
+
+            return (
+              <OperationItemCom
+                active={operation.operation + operation.name?.value === activeItemKey}
+                key={operation.operation + operation.name?.value}
+                operation={operation}
+                workspaceGqlNames={workspaceGqlNames}
+                isMoreExist={isMoreExist}
+                switchBothZhEn={switchBothZhEn}
+              />
+            )
+          }}
+        </VirtualList>
+      )}
     </div>
   )
 }
