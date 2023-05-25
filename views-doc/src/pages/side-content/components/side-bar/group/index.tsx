@@ -1,4 +1,4 @@
-import { FC, useEffect } from 'react'
+import { FC, useEffect, useMemo, useRef } from 'react'
 import React, { memo } from 'react'
 import { Tooltip, Space, message } from 'antd'
 import { CopyOutlined, CheckCircleTwoTone } from '@ant-design/icons'
@@ -8,7 +8,7 @@ import useBearStore from '@/stores'
 import { OperationDefinitionNodeGroupType } from '@/utils/operations'
 import { printBatchOperations } from '@/utils/printBatchOperations'
 import { Link } from 'react-router-dom'
-import VirtualList from 'rc-virtual-list'
+import VirtualList, { ListRef } from 'rc-virtual-list'
 import styles from './index.module.less'
 
 // 控制滚动条滚动那部分代码执行一次
@@ -30,6 +30,7 @@ const OperationItem = ({
   switchBothZhEn: boolean
 }) => {
   useEffect(() => {
+    // 一下是不通过虚拟列表实现的时候滚动条滚到当前激活的item位置
     if (!isControllingExecuted) {
       // 找到当前被激活的分类标题
       const antCollapseContentActive = document.querySelector('.ant-collapse-content-active') as HTMLDivElement
@@ -98,11 +99,26 @@ const getOperationNameValue = (name: string = '') => {
 }
 
 const SiderGroup: FC<IProps> = ({ switchBothZhEn, groupName, activeItemKey, operationList }) => {
+  const virtualListRef = useRef<ListRef>(null)
   const { workspaceGqlNames, workspaceGqlFileInfo, isAllAddComment } = useBearStore((ste) => ste)
   // 这里是将不合法的字符串转为合法使用的 html id
   const id = groupName.replace(/[.\s]+/g, '_')
-
   const containerHeight = Math.min(operationList.length * 42, 750)
+
+  useEffect(() => {
+    // 以下是 虚拟列表滚到到当前激活的item位置
+    let index = 0
+    operationList.forEach((itm, indey) => {
+      if (itm.operation + itm.name?.value === activeItemKey) {
+        index = indey
+      }
+    })
+
+    virtualListRef.current?.scrollTo({
+      index,
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <div className={styles.operationList}>
@@ -138,6 +154,7 @@ const SiderGroup: FC<IProps> = ({ switchBothZhEn, groupName, activeItemKey, oper
       {/* 分组大于 groupCount 渲染  */}
       {operationList.length > groupCount && (
         <VirtualList
+          ref={virtualListRef}
           data={operationList}
           height={containerHeight}
           itemHeight={45}
