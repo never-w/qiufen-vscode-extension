@@ -14,6 +14,9 @@ import styles from './index.module.less'
 // 分组大小
 const groupCount = 35
 
+// 控制滚动条滚动那部分代码执行一次
+let isControllingExecuted = false
+
 const OperationItem = ({
   operation,
   workspaceGqlNames,
@@ -30,11 +33,9 @@ const OperationItem = ({
   isMoreExist: boolean
   switchBothZhEn: boolean
 }) => {
-  // 控制滚动条滚动那部分代码执行一次
-  const isControllingExecuted = useRef(false)
   useEffect(() => {
     // 一下是不通过虚拟列表实现的时候滚动条滚到当前激活的item位置
-    if (!isControllingExecuted.current && !isMakeVirtual) {
+    if (!isControllingExecuted && !isMakeVirtual) {
       // 找到当前被激活的分类标题
       const antCollapseContentActive = document.querySelector('.ant-collapse-content-active') as HTMLDivElement
       // 当前激活的item
@@ -46,7 +47,11 @@ const OperationItem = ({
       sidebarContent?.scrollTo({
         top: Math.max(0, activeItm?.offsetTop + antCollapseContentActive?.offsetTop - 200),
       })
-      isControllingExecuted.current = true
+      isControllingExecuted = true
+    }
+
+    return () => {
+      isControllingExecuted = false
     }
   }, [isMakeVirtual])
 
