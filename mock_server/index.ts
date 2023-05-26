@@ -101,6 +101,10 @@ export async function startServer(config: GraphqlKitConfig) {
   })
 
   app.use(express.static(path.resolve(__dirname, '../dist-page-view')))
+  // 处理所有路由请求，返回React应用的HTML文件
+  app.get('*', (req, res) => {
+    res.sendFile(path.resolve(__dirname, '../dist-page-view', 'index.html'))
+  })
 
   // 监听本地端口号是否可用
   try {
