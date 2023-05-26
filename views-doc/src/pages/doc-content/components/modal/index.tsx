@@ -65,7 +65,7 @@ const InSetModal: FC<IProps> = ({
   }, [filteredWorkspaceGqlFileInfo, form, isAllAddComment, onCancel, operationDefNode, selectedKeys])
 
   return (
-    <Modal title="Basic Modal" open={isModalOpen} onOk={onOk} onCancel={onCancel}>
+    <Modal title="路径选择" open={isModalOpen} onOk={onOk} onCancel={onCancel}>
       <Form form={form}>
         <Form.Item name="filenameList" rules={[{ message: '请选择路径', required: true }]}>
           <Select
