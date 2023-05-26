@@ -1,13 +1,13 @@
-import React, { FC, useEffect, useMemo, useState } from 'react'
-import { Alert, Card, Radio, RadioChangeEvent, Space, Spin } from 'antd'
+import React, { FC, useMemo, useState } from 'react'
+import { Radio, RadioChangeEvent, Spin } from 'antd'
 import { GraphQLInterfaceType, buildSchema } from 'graphql'
 import useBearStore from '@/stores'
 import { BreakingChangeType, findBreakingChanges } from '@/utils/schemaDiff'
 import { OperationNodesForFieldAstBySchemaReturnType, getOperationNodesForFieldAstBySchema } from '@/utils/operations'
 import { useNavigate } from 'react-router-dom'
-import classnames from 'classnames'
 import _ from 'lodash'
 import styles from './index.module.less'
+import OperationItem from './operationItem'
 
 interface IProps {}
 
@@ -42,7 +42,7 @@ function formatRoutePath(str: string) {
   return {}
 }
 
-enum OperationStatusTypeEnum {
+export enum OperationStatusTypeEnum {
   'ALL' = 'ALL',
   'ADDED' = 'ADDED',
   'EDITED' = 'EDITED',
@@ -60,6 +60,7 @@ const Home: FC<IProps> = () => {
   const navigate = useNavigate()
   const { fetchRemoteTypeDefs } = useBearStore((state) => state)
   const [loading, setLoading] = useState(false)
+  const [radioValue, setRadioValue] = useState(OperationStatusTypeEnum.ALL)
   const [graphqlSdl, setGraphqlSdl] = useState({
     typeDefs: '',
     localTypeDefs: '',
@@ -179,9 +180,8 @@ const Home: FC<IProps> = () => {
     return tmpResult
   }, [graphqlSdl])
 
-  const [value4, setValue4] = useState(OperationStatusTypeEnum.ALL)
-  const onChange4 = ({ target: { value } }: RadioChangeEvent) => {
-    setValue4(value)
+  const onRadioChange = ({ target: { value } }: RadioChangeEvent) => {
+    setRadioValue(value)
   }
 
   return (
@@ -189,87 +189,83 @@ const Home: FC<IProps> = () => {
       <Radio.Group
         style={{ marginBottom: 16 }}
         options={radioOptions}
-        onChange={onChange4}
-        value={value4}
+        onChange={onRadioChange}
+        value={radioValue}
         optionType="button"
         buttonStyle="solid"
       />
       <div className={styles.container}>
-        {changes.map((change) => {
-          return (
-            <div key={change.routePath} className={styles.operationItem}>
-              <div className={styles.operationItemHeader}>
-                <div className={styles.operationItemTitle}>
-                  {change?.operationComment
-                    ? `${change?.operationComment}（${change?.operationType}：${change?.operationName}）`
-                    : `${change?.operationType}：${change?.operationName}`}
+        <>
+          {!!graphqlSdl.localTypeDefs && (
+            <>
+              {radioValue === OperationStatusTypeEnum.ALL && (
+                <div className={styles.flexLayout} attr-flex={changes.length >= 3 ? 'true' : 'false'}>
+                  {changes.map((change) => {
+                    return <OperationItem key={change.routePath} changeItem={change} navigate={navigate} />
+                  })}
                 </div>
+              )}
+
+              {radioValue === OperationStatusTypeEnum.DELETED && (
                 <div
-                  className={styles.operationItemNavigator}
-                  onClick={() => {
-                    navigate(`/docs/${change.routePath}`)
-                  }}
+                  className={styles.flexLayout}
+                  attr-flex={
+                    changes.filter((change) => change.type === OperationStatusTypeEnum.DELETED).length >= 3
+                      ? 'true'
+                      : 'false'
+                  }
                 >
-                  navigate to view
+                  {changes.map((change) => {
+                    if (change.type === OperationStatusTypeEnum.DELETED) {
+                      return <OperationItem key={change.routePath} changeItem={change} navigate={navigate} />
+                    }
+                    return null
+                  })}
                 </div>
-              </div>
-              {change?.descriptionList?.map((val, indey) => {
-                return (
-                  <div key={change.routePath + indey} className={styles.operationItemBody}>
-                    {val}
-                  </div>
-                )
-              })}
-            </div>
-          )
-        })}
+              )}
+
+              {radioValue === OperationStatusTypeEnum.EDITED && (
+                <div
+                  className={styles.flexLayout}
+                  attr-flex={
+                    changes.filter((change) => change.type === OperationStatusTypeEnum.EDITED).length >= 3
+                      ? 'true'
+                      : 'false'
+                  }
+                >
+                  {changes.map((change) => {
+                    if (change.type === OperationStatusTypeEnum.EDITED) {
+                      return <OperationItem key={change.routePath} changeItem={change} navigate={navigate} />
+                    }
+                    return null
+                  })}
+                </div>
+              )}
+
+              {radioValue === OperationStatusTypeEnum.ADDED && (
+                <div
+                  className={styles.flexLayout}
+                  attr-flex={
+                    changes.filter((change) => change.type === OperationStatusTypeEnum.ADDED).length >= 3
+                      ? 'true'
+                      : 'false'
+                  }
+                >
+                  {changes.map((change) => {
+                    if (change.type === OperationStatusTypeEnum.ADDED) {
+                      return <OperationItem key={change.routePath} changeItem={change} navigate={navigate} />
+                    }
+                    return null
+                  })}
+                </div>
+              )}
+            </>
+          )}
+          {!graphqlSdl.localTypeDefs && null}
+        </>
       </div>
     </Spin>
   )
-  // return (
-  //   <Spin spinning={loading || !typeDefs}>
-  //     <div className="wrapper">
-  //       {changes.map((change) => {
-  //         return (
-  //           <Card
-  //             key={change.routePath}
-  //             className="changeItm"
-  //             attr-disabled={change?.type === BreakingChangeType.FIELD_REMOVED ? 'true' : 'false'}
-  //             attr-added={change?.type === BreakingChangeType.FIELD_ADDED ? 'true' : 'false'}
-  //             size="small"
-  //             extra={
-  //               <span
-  //                 className={classnames('moreBtn', {
-  //                   btnDisabled: change?.type === BreakingChangeType.FIELD_REMOVED,
-  //                 })}
-  //                 onClick={() => {
-  //                   navigate(`/docs/${change.routePath}`)
-  //                 }}
-  //               >
-  //                 navigate to view
-  //               </span>
-  //             }
-  //             title={
-  //               <p
-  //                 className={classnames({
-  //                   lineThrough: change?.type === BreakingChangeType.FIELD_REMOVED,
-  //                 })}
-  //               >
-  //                 {change?.operationComment
-  //                   ? `${change?.operationComment}（${change?.operationType}：${change?.operationName}）`
-  //                   : `${change?.operationType}：${change?.operationName}`}
-  //               </p>
-  //             }
-  //           >
-  //             {change?.descriptionList?.map((val, indey) => {
-  //               return <p key={change.routePath + indey}>{val}</p>
-  //             })}
-  //           </Card>
-  //         )
-  //       })}
-  //     </div>
-  //   </Spin>
-  // )
 }
 
 export default Home
