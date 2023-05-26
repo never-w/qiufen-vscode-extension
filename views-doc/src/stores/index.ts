@@ -32,6 +32,7 @@ interface MessageEvent {
 interface BearState extends MessageEvent {
   fetchRemoteTypeDefs: () => Promise<{
     typeDefs: string
+    localTypeDefs: string
   }>
   captureMessage: () => Promise<boolean>
   reloadOperations: () => Promise<boolean>
@@ -56,7 +57,7 @@ const useBearStore = create<BearState>((set) => {
         fetch(`http://localhost:9400/operations`)
           .then((response) => response.json())
           .then((data) => {
-            resolve({ typeDefs: data.typeDefs })
+            resolve({ typeDefs: data.typeDefs, localTypeDefs: data.localTypeDefs })
           })
       })
     },

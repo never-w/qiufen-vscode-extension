@@ -1,5 +1,5 @@
 import React, { FC, useEffect, useMemo, useState } from 'react'
-import { Alert, Card, Spin } from 'antd'
+import { Alert, Card, Radio, RadioChangeEvent, Space, Spin } from 'antd'
 import { GraphQLInterfaceType, buildSchema } from 'graphql'
 import useBearStore from '@/stores'
 import { BreakingChangeType, findBreakingChanges } from '@/utils/schemaDiff'
@@ -7,7 +7,7 @@ import { OperationNodesForFieldAstBySchemaReturnType, getOperationNodesForFieldA
 import { useNavigate } from 'react-router-dom'
 import classnames from 'classnames'
 import _ from 'lodash'
-import './index.less'
+import styles from './index.module.less'
 
 interface IProps {}
 
@@ -42,24 +42,41 @@ function formatRoutePath(str: string) {
   return {}
 }
 
+enum OperationStatusTypeEnum {
+  'ALL' = 'ALL',
+  'ADDED' = 'ADDED',
+  'EDITED' = 'EDITED',
+  'DELETED' = 'DELETED',
+}
+
+const radioOptions = [
+  { label: '全部', value: OperationStatusTypeEnum.ALL },
+  { label: '新增', value: OperationStatusTypeEnum.ADDED },
+  { label: '修改', value: OperationStatusTypeEnum.EDITED },
+  { label: '删除', value: OperationStatusTypeEnum.DELETED },
+]
+
 const Home: FC<IProps> = () => {
   const navigate = useNavigate()
-  const { fetchRemoteTypeDefs, localTypeDefs, setState } = useBearStore((state) => state)
+  const { fetchRemoteTypeDefs } = useBearStore((state) => state)
   const [loading, setLoading] = useState(false)
-  const [typeDefs, setTypeDefs] = useState('')
+  const [graphqlSdl, setGraphqlSdl] = useState({
+    typeDefs: '',
+    localTypeDefs: '',
+  })
 
   useMemo(async () => {
     setLoading(true)
     const res = await fetchRemoteTypeDefs()
-    setTypeDefs(res.typeDefs)
+    setGraphqlSdl(res)
     setLoading(false)
   }, [fetchRemoteTypeDefs])
 
   const changes = useMemo(() => {
     const result = []
 
-    if (typeDefs && localTypeDefs) {
-      const [leftSchema, rightSchema] = [buildSchema(localTypeDefs), buildSchema(typeDefs)]
+    if (graphqlSdl.typeDefs && graphqlSdl.localTypeDefs) {
+      const [leftSchema, rightSchema] = [buildSchema(graphqlSdl.localTypeDefs), buildSchema(graphqlSdl.typeDefs)]
 
       const operationChangeList = findBreakingChanges(leftSchema, rightSchema)
 
@@ -138,55 +155,121 @@ const Home: FC<IProps> = () => {
       }
     }
 
-    return result
-  }, [localTypeDefs, typeDefs])
+    const tmpResult = result.map((operation) => {
+      if (operation.type === BreakingChangeType.FIELD_REMOVED) {
+        return {
+          ...operation,
+          type: OperationStatusTypeEnum.DELETED,
+        }
+      }
 
-  // console.log(changes)
+      if (operation.type === BreakingChangeType.FIELD_ADDED) {
+        return {
+          ...operation,
+          type: OperationStatusTypeEnum.ADDED,
+        }
+      }
+
+      return {
+        ...operation,
+        type: OperationStatusTypeEnum.EDITED,
+      }
+    })
+
+    return tmpResult
+  }, [graphqlSdl])
+
+  const [value4, setValue4] = useState(OperationStatusTypeEnum.ALL)
+  const onChange4 = ({ target: { value } }: RadioChangeEvent) => {
+    setValue4(value)
+  }
 
   return (
-    <Spin spinning={loading || !typeDefs}>
-      <div className="wrapper">
+    <Spin spinning={loading || !graphqlSdl.typeDefs}>
+      <Radio.Group
+        style={{ marginBottom: 16 }}
+        options={radioOptions}
+        onChange={onChange4}
+        value={value4}
+        optionType="button"
+        buttonStyle="solid"
+      />
+      <div className={styles.container}>
         {changes.map((change) => {
           return (
-            <Card
-              key={change.routePath}
-              className="changeItm"
-              attr-disabled={change?.type === BreakingChangeType.FIELD_REMOVED ? 'true' : 'false'}
-              attr-added={change?.type === BreakingChangeType.FIELD_ADDED ? 'true' : 'false'}
-              size="small"
-              extra={
-                <span
-                  className={classnames('moreBtn', {
-                    btnDisabled: change?.type === BreakingChangeType.FIELD_REMOVED,
-                  })}
+            <div key={change.routePath} className={styles.operationItem}>
+              <div className={styles.operationItemHeader}>
+                <div className={styles.operationItemTitle}>
+                  {change?.operationComment
+                    ? `${change?.operationComment}（${change?.operationType}：${change?.operationName}）`
+                    : `${change?.operationType}：${change?.operationName}`}
+                </div>
+                <div
+                  className={styles.operationItemNavigator}
                   onClick={() => {
                     navigate(`/docs/${change.routePath}`)
                   }}
                 >
                   navigate to view
-                </span>
-              }
-              title={
-                <p
-                  className={classnames({
-                    lineThrough: change?.type === BreakingChangeType.FIELD_REMOVED,
-                  })}
-                >
-                  {change?.operationComment
-                    ? `${change?.operationComment}（${change?.operationType}：${change?.operationName}）`
-                    : `${change?.operationType}：${change?.operationName}`}
-                </p>
-              }
-            >
+                </div>
+              </div>
               {change?.descriptionList?.map((val, indey) => {
-                return <p key={change.routePath + indey}>{val}</p>
+                return (
+                  <div key={change.routePath + indey} className={styles.operationItemBody}>
+                    {val}
+                  </div>
+                )
               })}
-            </Card>
+            </div>
           )
         })}
       </div>
     </Spin>
   )
+  // return (
+  //   <Spin spinning={loading || !typeDefs}>
+  //     <div className="wrapper">
+  //       {changes.map((change) => {
+  //         return (
+  //           <Card
+  //             key={change.routePath}
+  //             className="changeItm"
+  //             attr-disabled={change?.type === BreakingChangeType.FIELD_REMOVED ? 'true' : 'false'}
+  //             attr-added={change?.type === BreakingChangeType.FIELD_ADDED ? 'true' : 'false'}
+  //             size="small"
+  //             extra={
+  //               <span
+  //                 className={classnames('moreBtn', {
+  //                   btnDisabled: change?.type === BreakingChangeType.FIELD_REMOVED,
+  //                 })}
+  //                 onClick={() => {
+  //                   navigate(`/docs/${change.routePath}`)
+  //                 }}
+  //               >
+  //                 navigate to view
+  //               </span>
+  //             }
+  //             title={
+  //               <p
+  //                 className={classnames({
+  //                   lineThrough: change?.type === BreakingChangeType.FIELD_REMOVED,
+  //                 })}
+  //               >
+  //                 {change?.operationComment
+  //                   ? `${change?.operationComment}（${change?.operationType}：${change?.operationName}）`
+  //                   : `${change?.operationType}：${change?.operationName}`}
+  //               </p>
+  //             }
+  //           >
+  //             {change?.descriptionList?.map((val, indey) => {
+  //               return <p key={change.routePath + indey}>{val}</p>
+  //             })}
+  //           </Card>
+  //         )
+  //       })}
+  //     </div>
+  //   </Spin>
+  // )
 }
 
 export default Home

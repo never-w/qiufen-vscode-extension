@@ -1,0 +1,119 @@
+// .wrapper {
+//   display: flex;
+//   flex-wrap: wrap;
+//   padding: 16px 0;
+//   justify-content: center;
+//   gap: 32px;
+//   border-radius: 5px;
+//   background-color: #fff;
+//   word-spacing: 3.5px;
+//   overflow-y: auto;
+// }
+
+// .changeItm {
+//   width: 40%;
+//   margin-bottom: 12px;
+//   background-color: #e6f4ff;
+// }
+
+// .changeItm[attr-disabled='true'] {
+//   background-color: #fff2f0;
+//   opacity: 0.8;
+// }
+
+// .changeItm.changeItm[attr-added='true'] {
+//   background-color: #f4ffed;
+//   opacity: 1;
+// }
+
+// .moreBtn {
+//   color: #1677ff;
+//   cursor: pointer;
+// }
+
+// .moreBtn:hover {
+//   opacity: 0.7;
+// }
+
+// .moreBtn:active {
+//   opacity: 1;
+// }
+
+// .lineThrough {
+//   text-decoration: line-through;
+//   color: #ff3341;
+// }
+
+// .btnDisabled {
+//   opacity: 0.55;
+//   cursor: none;
+//   pointer-events: none;
+// }
+
+// .btnDisabled:hover {
+//   cursor: not-allowed !important;
+// }
+
+.container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  box-sizing: border-box;
+  height: calc(100vh - 128px);
+  border-radius: 5px;
+  gap: 12px 120px;
+  padding: 16px;
+  background-color: #fff;
+  overflow: auto;
+
+  // 让滚动条宽度
+  &::-webkit-scrollbar {
+    width: 5px;
+    height: 0px;
+  }
+  /*定义滑块：内阴影+圆角*/
+  &::-webkit-scrollbar-thumb {
+    background-color: #555;
+    border-radius: 6px;
+  }
+}
+
+.operationItem {
+  width: 40%;
+  border: 1px solid #e8e8e8;
+  border-radius: 5px;
+  border-top: 5px solid #3f6ce8;
+}
+
+.operationItemHeader {
+  display: flex;
+  height: 45px;
+  padding: 0 16px;
+  border-bottom: 1px solid #f3f3f3;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.operationItemTitle {
+  font-family: PingFangSC-Medium;
+  font-size: 14px;
+  font-weight: bold;
+  line-height: 22px;
+}
+
+.operationItemNavigator {
+  font-family: PingFangSC-Medium;
+  font-size: 14px;
+  font-weight: normal;
+  line-height: 22px;
+  color: #0065fe;
+  cursor: pointer;
+}
+
+.operationItemBody {
+  font-family: PingFangSC-Regular;
+  color: rgba(0, 0, 0, 0.45);
+  font-size: 14px;
+  font-weight: normal;
+  padding: 8px 16px;
+}
