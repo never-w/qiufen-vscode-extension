@@ -45,7 +45,7 @@ export async function startServer(config: GraphqlKitConfig) {
     const workspaceGqlFileInfo = getWorkspaceGqlFileInfo(resolveGqlFiles)
 
     const workspaceGqlNames = workspaceGqlFileInfo.map((itm) => itm.operationNames).flat(Infinity) as string[]
-    const localTypeDefs = readLocalSchemaTypeDefs()
+    const localTypeDefs = readLocalSchemaTypeDefs(jsonSettings.patternSchemaRelativePath)
     // 这里再次获取后端sdl，是因为web网页在reload时要及时更新
     const backendTypeDefs1 = await fetchRemoteSchemaTypeDefs(endpoint.url)
 
