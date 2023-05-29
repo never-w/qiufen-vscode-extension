@@ -74,7 +74,7 @@ const useBearStore = create<BearState>((set) => {
     setState: set,
     reloadOperations() {
       return new Promise((resolve) => {
-        fetch(`/operations`)
+        fetch(`/reload/operations`)
           .then((response) => response.json())
           .then((data) => {
             set(data)

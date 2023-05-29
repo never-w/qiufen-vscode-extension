@@ -14,11 +14,12 @@ import {
   getWorkspaceGqls,
   fillOperationInWorkspace,
   GetWorkspaceGqlFileInfoReturnType,
+  ReturnTypeGetWorkspaceGqlFileInfo,
 } from '../views-doc/src/utils/syncWorkspaceGqls'
 import readLocalSchemaTypeDefs from '../views-doc/src/utils/readLocalSchemaTypeDefs'
 import getIpAddress from '../views-doc/src/utils/getIpAddress'
 import portscanner from 'portscanner'
-import { buildSchema, printSchema, lexicographicSortSchema } from 'graphql'
+import { buildSchema, printSchema, lexicographicSortSchema, GraphQLSchema } from 'graphql'
 
 export async function startServer(config: GraphqlKitConfig) {
   const { endpoint, port, mock } = config
@@ -26,7 +27,7 @@ export async function startServer(config: GraphqlKitConfig) {
 
   const app = express()
 
-  const backendTypeDefs = await fetchRemoteSchemaTypeDefs(endpoint.url)
+  let backendTypeDefs = await fetchRemoteSchemaTypeDefs(endpoint.url)
 
   const server = new ApolloServer({
     schema: addMocksToSchema({
@@ -35,27 +36,60 @@ export async function startServer(config: GraphqlKitConfig) {
     }),
   })
 
+  // 获取响应时的相关数据
+  let resolveGqlFiles: string[] = []
+  let workspaceGqlFileInfo: ReturnTypeGetWorkspaceGqlFileInfo = []
+  let workspaceGqlNames: string[] = []
+  let localTypeDefs: string = ''
+  let sortLocalSchema: GraphQLSchema
+  let sortRemoteSchema: GraphQLSchema
+  let newLocalTypeDefs: string = ''
+  let newRemoteTypeDefs: string = ''
+
+  resolveGqlFiles = getWorkspaceAllGqlResolveFilePaths()
+  workspaceGqlFileInfo = getWorkspaceGqlFileInfo(resolveGqlFiles)
+  workspaceGqlNames = workspaceGqlFileInfo.map((itm) => itm.operationNames).flat(Infinity) as string[]
+  localTypeDefs = readLocalSchemaTypeDefs(jsonSettings.patternSchemaRelativePath)
+  // 排序
+  sortLocalSchema = lexicographicSortSchema(buildSchema(localTypeDefs))
+  sortRemoteSchema = lexicographicSortSchema(buildSchema(backendTypeDefs))
+  // 重新转成sdl
+  newLocalTypeDefs = printSchema(sortLocalSchema)
+  newRemoteTypeDefs = printSchema(sortRemoteSchema)
+
+  // 启动服务
   await server.start()
   app.use('/graphql', cors<cors.CorsRequest>(), json(), expressMiddleware(server))
   app.use(cors())
   app.use(json({ limit: Infinity }))
 
   app.get('/operations', async (req, res) => {
-    const resolveGqlFiles = getWorkspaceAllGqlResolveFilePaths()
-    const workspaceGqlFileInfo = getWorkspaceGqlFileInfo(resolveGqlFiles)
+    res.send({
+      isAllAddComment: jsonSettings.isAllAddComment,
+      typeDefs: newRemoteTypeDefs,
+      maxDepth: jsonSettings.maxDepth,
+      directive: jsonSettings.directive,
+      localTypeDefs: newLocalTypeDefs,
+      workspaceGqlNames,
+      workspaceGqlFileInfo,
+      port,
+      IpAddress: getIpAddress(),
+    })
+  })
 
-    const workspaceGqlNames = workspaceGqlFileInfo.map((itm) => itm.operationNames).flat(Infinity) as string[]
-    const localTypeDefs = readLocalSchemaTypeDefs(jsonSettings.patternSchemaRelativePath)
+  app.get('/reload/operations', async (req, res) => {
     // 这里再次获取后端sdl，是因为web网页在reload时要及时更新
-    const backendTypeDefs1 = await fetchRemoteSchemaTypeDefs(endpoint.url)
-
+    backendTypeDefs = await fetchRemoteSchemaTypeDefs(endpoint.url)
+    resolveGqlFiles = getWorkspaceAllGqlResolveFilePaths()
+    workspaceGqlFileInfo = getWorkspaceGqlFileInfo(resolveGqlFiles)
+    workspaceGqlNames = workspaceGqlFileInfo.map((itm) => itm.operationNames).flat(Infinity) as string[]
+    localTypeDefs = readLocalSchemaTypeDefs(jsonSettings.patternSchemaRelativePath)
     // 排序
-    const sortLocalSchema = lexicographicSortSchema(buildSchema(localTypeDefs))
-    const sortRemoteSchema = lexicographicSortSchema(buildSchema(backendTypeDefs1))
-
+    sortLocalSchema = lexicographicSortSchema(buildSchema(localTypeDefs))
+    sortRemoteSchema = lexicographicSortSchema(buildSchema(backendTypeDefs))
     // 重新转成sdl
-    const newLocalTypeDefs = printSchema(sortLocalSchema)
-    const newRemoteTypeDefs = printSchema(sortRemoteSchema)
+    newLocalTypeDefs = printSchema(sortLocalSchema)
+    newRemoteTypeDefs = printSchema(sortRemoteSchema)
 
     res.send({
       isAllAddComment: jsonSettings.isAllAddComment,

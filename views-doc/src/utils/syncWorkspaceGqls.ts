@@ -88,6 +88,7 @@ export type GetWorkspaceGqlFileInfoReturnType = {
   operationNames: string[]
 }
 
+export type ReturnTypeGetWorkspaceGqlFileInfo = ReturnType<typeof getWorkspaceGqlFileInfo>
 export function getWorkspaceGqlFileInfo(files: string[]) {
   const result = files.map((file) => {
     const content = fs.readFileSync(file, 'utf8')
