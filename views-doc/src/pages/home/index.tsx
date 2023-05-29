@@ -11,6 +11,15 @@ import OperationItem from './operationItem'
 
 interface IProps {}
 
+type ChangeListType = {
+  operationComment?: string
+  operationType?: string
+  operationName?: string
+  description: string
+  routePath: string
+  type?: BreakingChangeType
+}
+
 function formatRoutePath(str: string) {
   const mutationArr = str.split('mutation')
   const queryArr = str.split('query')
@@ -103,43 +112,53 @@ const Home: FC<IProps> = () => {
         }
       })
 
-      const changeList = operationChangeList
-        .map((item) => {
-          if (item?.routePath) {
-            const res = routeTypes.find((val) => {
-              return val?.routePath === item?.routePath
-            })
+      const changeList: ChangeListType[] = []
+      operationChangeList.forEach((item) => {
+        if (item?.routePath) {
+          const res = routeTypes.find((val) => {
+            return val?.routePath === item?.routePath
+          })
 
-            const typeNameAndType = formatRoutePath(item?.routePath)
+          const typeNameAndType = formatRoutePath(item?.routePath)
 
-            return {
-              operationComment: res?.operationComment,
-              operationType: typeNameAndType?.operationType,
-              operationName: typeNameAndType?.operationName,
-              type:
-                // 这里其实还要算上 "!!item?.routePath" 条件
-                item.type === BreakingChangeType.FIELD_REMOVED || item.type === BreakingChangeType.FIELD_ADDED
-                  ? item.type
-                  : undefined,
-              description: item.description,
-              routePath: item?.routePath,
-            }
-          }
+          changeList.push({
+            operationComment: res?.operationComment,
+            operationType: typeNameAndType?.operationType,
+            operationName: typeNameAndType?.operationName,
+            type:
+              // 这里其实还要算上 "!!item?.routePath" 条件
+              item.type === BreakingChangeType.FIELD_REMOVED || item.type === BreakingChangeType.FIELD_ADDED
+                ? item.type
+                : undefined,
+            description: item.description,
+            routePath: item?.routePath,
+          })
+        }
 
-          const existRoute = routeTypes.find((itm) =>
-            itm.nameTypes.includes(item?.typeName as unknown as GraphQLInterfaceType),
-          )
-          if (existRoute) {
-            return {
-              operationComment: existRoute?.operationComment,
-              operationType: existRoute?.operationType,
-              operationName: existRoute?.operationName,
-              description: item.description,
-              routePath: existRoute?.routePath,
-            }
-          }
-        })
-        ?.filter(Boolean)
+        const existRoute = routeTypes.filter((itm) =>
+          itm.nameTypes.includes(item?.typeName as unknown as GraphQLInterfaceType),
+        )
+
+        if (existRoute.length === 1) {
+          changeList.push({
+            operationComment: existRoute[0]?.operationComment,
+            operationType: existRoute[0]?.operationType,
+            operationName: existRoute[0]?.operationName,
+            description: item.description,
+            routePath: existRoute[0]?.routePath,
+          })
+        } else if (existRoute.length > 1) {
+          const result = existRoute.map((routeItem) => ({
+            operationComment: routeItem?.operationComment,
+            operationType: routeItem?.operationType,
+            operationName: routeItem?.operationName,
+            description: item.description,
+            routePath: routeItem?.routePath,
+          }))
+
+          changeList.push(...result)
+        }
+      })
 
       const tmpChanges = _.groupBy(changeList, 'routePath') || {}
 
