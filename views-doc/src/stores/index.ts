@@ -54,7 +54,7 @@ const useBearStore = create<BearState>((set) => {
     isDisplaySidebar: true,
     fetchRemoteTypeDefs() {
       return new Promise((resolve) => {
-        fetch(`/operations`)
+        fetch(`http://localhost:4100/operations`)
           .then((response) => response.json())
           .then((data) => {
             resolve({ typeDefs: data.typeDefs, localTypeDefs: data.localTypeDefs })
@@ -63,7 +63,7 @@ const useBearStore = create<BearState>((set) => {
     },
     captureMessage() {
       return new Promise((resolve) => {
-        fetch(`/operations`)
+        fetch(`http://localhost:4100/operations`)
           .then((response) => response.json())
           .then((data) => {
             set(data)
@@ -74,7 +74,7 @@ const useBearStore = create<BearState>((set) => {
     setState: set,
     reloadOperations() {
       return new Promise((resolve) => {
-        fetch(`/reload/operations`)
+        fetch(`http://localhost:4100/reload/operations`)
           .then((response) => response.json())
           .then((data) => {
             set(data)

@@ -1,10 +1,10 @@
 import * as vscode from 'vscode'
+import { StatusBarItem } from 'vscode'
 import * as path from 'path'
 import type { Server } from 'http'
 import getWorkspaceConfig from './utils/getWorkspaceConfig'
 import { defaultQiufenConfig } from './config'
 import { startServer } from '../mock_server/index'
-import { StatusBarItem } from 'vscode'
 
 let serverMock: Server
 let mockStatusBarItem: vscode.StatusBarItem
@@ -24,7 +24,7 @@ export function activate(context: vscode.ExtensionContext) {
     }),
     vscode.commands.registerCommand(GraphqlQiufenProStartMockCommandId, async () => {
       const { isExistConfigFile, url, port, qiufenConfig } = await getWorkspaceConfig(() => {
-        vscode.window.showErrorMessage('No configuration content exists')
+        vscode.window.showErrorMessage('There is no configuration content.')
       })
       loadingStatusBarItem(mockStatusBarItem, 'Qiufen Loading')
       if (isExistConfigFile) {
