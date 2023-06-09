@@ -77,5 +77,6 @@ export type NewFieldNodeType = FieldNode & {
   description: string
   type: string
   depth: number
+  halfChecked?: boolean
   children?: NewFieldNodeType[]
 }

@@ -1,36 +1,49 @@
 import { NewFieldNodeType } from './interface'
 
-/**
- * 用于table select选择时对 operation fieldNode ast tree操作格式化的函数
- */
-export function dependOnSelectedAndKeyFieldAst(
-  ast: NewFieldNodeType,
-  checked: boolean,
-  key: string,
-  isSelectionSetAction = false,
-) {
-  const newAst = { ...ast }
+// 更新节点 checkBox全选、不选中
+function updateChecked(node: NewFieldNodeType, checked: boolean) {
+  node.checked = checked
 
-  newAst.checked = isSelectionSetAction ? checked : newAst.checked
+  if (node?.children) {
+    node.children = node.children.map((child) => updateChecked(child, checked))
+  }
+
+  return node
+}
+/**
+ * 用于table select选择时对 operation fieldNode ast tree操作格式化的函数，支持checkBox全选、半选、不选中.
+ */
+export function dependOnSelectedAndKeyFieldAst(ast: NewFieldNodeType, checked: boolean, key: string) {
+  const newAst = { ...ast }
 
   if (newAst.fieldKey === key) {
     newAst.checked = checked
     if (newAst?.children) {
-      isSelectionSetAction = true
+      newAst.children = newAst?.children?.map((child) => updateChecked(child, checked)) as NewFieldNodeType[]
+    }
+  } else {
+    if (newAst?.children) {
+      newAst.children = newAst?.children?.map((child) =>
+        dependOnSelectedAndKeyFieldAst(child, checked, key),
+      ) as NewFieldNodeType[]
     }
   }
 
   if (newAst?.children) {
-    newAst.children = newAst?.children?.map((child) =>
-      dependOnSelectedAndKeyFieldAst(child, checked, key, isSelectionSetAction),
-    ) as NewFieldNodeType[]
-  }
+    const flag = newAst?.children?.every((itm) => itm.checked)
+    const flag1 = newAst?.children?.some((itm) => itm.checked)
 
-  if (newAst?.children) {
-    const flag = newAst?.children?.some((itm) => itm.checked)
-    if (flag) {
+    if (!flag && flag1) {
+      newAst.halfChecked = true
+      newAst.checked = false
+    } else if (flag) {
+      newAst.halfChecked = false
       newAst.checked = true
+    } else if (!flag1) {
+      newAst.halfChecked = false
+      newAst.checked = false
     } else {
+      newAst.halfChecked = false
       newAst.checked = false
     }
   }
@@ -44,12 +57,26 @@ export function dependOnSelectedAndKeyFieldAst(
 export function getFieldNodeAstCheckedIsTrueKeys(ast: NewFieldNodeType, keys: string[] = []) {
   if (ast.checked) {
     keys.push(ast.fieldKey)
+  }
 
-    if (ast?.children) {
-      ast.children.forEach((child) => {
-        getFieldNodeAstCheckedIsTrueKeys(child, keys)
-      })
-    }
+  if (ast?.children) {
+    ast.children.forEach((child) => {
+      getFieldNodeAstCheckedIsTrueKeys(child, keys)
+    })
+  }
+
+  return keys
+}
+
+export function getRenderCheckKeys(ast: NewFieldNodeType, keys: string[] = []) {
+  if (ast.checked || ast?.halfChecked) {
+    keys.push(ast.fieldKey)
+  }
+
+  if (ast?.children) {
+    ast.children.forEach((child) => {
+      getRenderCheckKeys(child, keys)
+    })
   }
 
   return keys
