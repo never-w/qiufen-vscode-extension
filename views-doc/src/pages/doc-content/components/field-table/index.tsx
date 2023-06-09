@@ -172,6 +172,9 @@ const FieldTable: FC<IProps> = ({
           size="small"
           rowKey="fieldKey"
           rowSelection={{
+            renderCell: (checked, record, index, originNode) => {
+              return originNode
+            },
             selectedRowKeys: selectedKeys,
             hideSelectAll: true,
             onSelect: (record, selected) => {

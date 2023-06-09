@@ -30,16 +30,16 @@ export function dependOnSelectedAndKeyFieldAst(ast: NewFieldNodeType, checked: b
   }
 
   if (newAst?.children) {
-    const flag = newAst?.children?.every((itm) => itm.checked)
-    const flag1 = newAst?.children?.some((itm) => itm.checked)
+    const everyoneChecked = newAst?.children?.every((itm) => itm.checked)
+    const someoneChecked = newAst?.children?.some((itm) => itm.checked)
 
-    if (!flag && flag1) {
+    if (!everyoneChecked && someoneChecked) {
       newAst.halfChecked = true
       newAst.checked = false
-    } else if (flag) {
+    } else if (everyoneChecked) {
       newAst.halfChecked = false
       newAst.checked = true
-    } else if (!flag1) {
+    } else if (!someoneChecked) {
       newAst.halfChecked = false
       newAst.checked = false
     } else {
