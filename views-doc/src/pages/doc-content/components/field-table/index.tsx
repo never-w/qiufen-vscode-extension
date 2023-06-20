@@ -173,6 +173,19 @@ const FieldTable: FC<IProps> = ({
           rowKey="fieldKey"
           rowSelection={{
             renderCell: (checked, record, index, originNode) => {
+              if (record?.halfChecked && !record?.checked) {
+                // 这里只能这样做才能渲染正常
+                return {
+                  // @ts-ignore
+                  ...originNode,
+                  props: {
+                    // @ts-ignore
+                    ...originNode.props,
+                    indeterminate: record?.halfChecked,
+                    checked: record?.checked,
+                  },
+                }
+              }
               return originNode
             },
             selectedRowKeys: selectedKeys,
@@ -192,7 +205,7 @@ const FieldTable: FC<IProps> = ({
           pagination={false}
           defaultExpandedRowKeys={defaultExpandedRowKeys}
           bordered
-          indentSize={21}
+          indentSize={31}
         />
       )}
     </>

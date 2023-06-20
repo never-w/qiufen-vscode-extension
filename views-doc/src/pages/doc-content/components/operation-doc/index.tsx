@@ -12,6 +12,8 @@ import { resolveOperationDefsForFieldNodeTree } from '@/utils/resolveOperationDe
 import {
   dependOnWorkspaceFieldKeysToFieldAstTree,
   getFieldNodeAstCheckedIsTrueKeys,
+  getRenderCheckKeys,
+  dependOnSelectedAndKeyFieldAst,
 } from '@/utils/dependOnSelectedAndKeyFieldAst'
 import { getWorkspaceOperationsExistFieldKeys } from '@/utils/getWorkspaceOperationsExistFieldKeys'
 import { relyOnKeysPrintOperation } from '@/utils/relyOnKeysPrintOperation'
@@ -63,7 +65,6 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
   const [spinIcon, setSpinIcon] = useState(false)
   const [selectedKeys, setSelectedKeys] = useState<string[]>([])
   const [fieldNodeAstTree, setFieldNodeAstTree] = useState<NewFieldNodeType>(fieldNodeAstTreeTmp)
-
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [filteredWorkspaceGqlFileInfo, setFilteredWorkspaceGqlFileInfo] = useState<GetWorkspaceGqlFileInfoReturnType[]>(
     [],
@@ -74,7 +75,8 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
     setSpinIcon(true)
     let operationStr
     try {
-      operationStr = await relyOnKeysPrintOperation(operationDefNode, selectedKeys, isAllAddComment)
+      const needKeys = getRenderCheckKeys(fieldNodeAstTree)
+      operationStr = await relyOnKeysPrintOperation(operationDefNode, needKeys, isAllAddComment)
     } catch (error) {
       setSpinIcon(false)
       message.error(error)
@@ -117,12 +119,13 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
           setSpinIcon(false)
         })
     }
-  }, [isAllAddComment, operationDefNode, operationName, selectedKeys])
+  }, [fieldNodeAstTree, isAllAddComment, operationDefNode, operationName])
 
   // 点击copy事件，这样创建元素骚操作是为了提高性能
   const handleCopyClick = useCallback(async () => {
     try {
-      const operationStr = await relyOnKeysPrintOperation(operationDefNode, selectedKeys, isAllAddComment)
+      const needKeys = getRenderCheckKeys(fieldNodeAstTree)
+      const operationStr = await relyOnKeysPrintOperation(operationDefNode, needKeys, isAllAddComment)
       function copyClick() {
         copy('#copydiv')
       }
@@ -139,7 +142,7 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
     } catch (error) {
       message.error(error)
     }
-  }, [isAllAddComment, operationDefNode, selectedKeys])
+  }, [fieldNodeAstTree, isAllAddComment, operationDefNode])
 
   useLayoutEffect(() => {
     let resultKeys = [] as string[]
@@ -164,7 +167,9 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
       resultKeys = getWorkspaceOperationsExistFieldKeys(operationNameFieldNode)
     }
 
-    const newFieldNodeAstTree = dependOnWorkspaceFieldKeysToFieldAstTree(fieldNodeAstTreeTmp, resultKeys)
+    const tmpFieldNodeAstTree = dependOnWorkspaceFieldKeysToFieldAstTree(fieldNodeAstTreeTmp, resultKeys)
+    // 这步是在格式化astFieldTree数据，让该数据拥有halfChecked
+    const newFieldNodeAstTree = dependOnSelectedAndKeyFieldAst(tmpFieldNodeAstTree)
     const selectedKeysTmp = getFieldNodeAstCheckedIsTrueKeys(newFieldNodeAstTree)
 
     setFieldNodeAstTree(newFieldNodeAstTree)

@@ -283,6 +283,7 @@ function resolveSelectionSet({
               },
             },
             checked: false,
+            halfChecked: false,
             fieldKey: prefix + t.name,
             nameValue: t.name,
             descriptionText: t.description,
@@ -338,6 +339,7 @@ function resolveSelectionSet({
               },
             },
             checked: false,
+            halfChecked: false,
             fieldKey: prefix + t.name,
             nameValue: t.name,
             descriptionText: t.description,
@@ -396,8 +398,8 @@ function resolveSelectionSet({
 
     // 得到自身的所有字段
     const fields = type.getFields()
-    // 将继承的字段覆盖自身的字段，这样是
-    const tmpFields = { ...fields, ..._interfacesFields }
+    // 将继承的字段覆盖自身的字段，这样是，需要自定义指令时 " const tmpFields = { ..._interfacesFields,...fields, ..._interfacesFields }"
+    const tmpFields = { ..._interfacesFields, ...fields }
 
     return {
       kind: Kind.SELECTION_SET,
@@ -598,6 +600,7 @@ function resolveField({
         value: field.name,
       },
       checked: false,
+      halfChecked: false,
       fieldKey,
       nameValue: field.name,
       type: getFieldNodeType(field),
@@ -638,6 +641,7 @@ function resolveField({
         value: field.name,
       },
       checked: false,
+      halfChecked: false,
       fieldKey,
       nameValue: field.name,
       type: getFieldNodeType(field),
@@ -660,6 +664,7 @@ function resolveField({
       value: field.name,
     },
     checked: false,
+    halfChecked: false,
     fieldKey,
     nameValue: field.name,
     type: getFieldNodeType(field),
