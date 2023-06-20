@@ -13,3 +13,6 @@ vsc-extension-quickstart.md
 **/.eslintrc.json
 **/*.map
 **/*.ts
+.prettierignore
+.prettierrc.json
+yarn.lock

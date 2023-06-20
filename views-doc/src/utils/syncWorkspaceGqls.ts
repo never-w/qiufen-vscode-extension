@@ -7,6 +7,7 @@ import { DefinitionNode, FieldNode, OperationDefinitionNode, DocumentNode, Execu
 import { updateWorkspaceDocument } from './updateWorkspaceDocument'
 import { transformCommentsToDescriptions as parse } from './parseGqlToAstWithComment'
 import { printWithComments as print } from './comment'
+import _ from 'lodash'
 
 /** 填充远程最新的operation到工作区对应文件里面 */
 export function fillOperationInWorkspace(
@@ -15,7 +16,7 @@ export function fillOperationInWorkspace(
   documentAst: DocumentNode,
   isAllAddComment: boolean = false,
 ) {
-  const workspaceDocumentAst = documentAst
+  const workspaceDocumentAst = _.cloneDeep(documentAst)
   const remoteDocumentAst = parse(gql)
 
   // 更新本地AST
@@ -35,8 +36,7 @@ export function fillOperationInWorkspace(
         })
 
         if (!remoteDefinition) {
-          // 这里 updateWorkspaceDocument 执行一遍这个有点多余，但是为了 备注 能设置好暂时这样执行一次，原本代码--》"return workspaceDefinition"
-          return updateWorkspaceDocument(workspaceDefinition, workspaceDefinition)
+          return workspaceDefinition
         }
         return updateWorkspaceDocument(workspaceDefinition, remoteDefinition)
       })

@@ -112,12 +112,8 @@ export async function startServer(config: GraphqlKitConfig) {
         // 如果需要更新的gql存在于本地多个文件夹
         res.send({ message: workspaceRes })
       } else {
-        fillOperationInWorkspace(
-          workspaceRes[0].filename,
-          operationStr,
-          workspaceRes[0].document,
-          jsonSettings.isAllAddComment,
-        )
+        // 本地更新时需要全字段comment ---> true，所以传入 true
+        fillOperationInWorkspace(workspaceRes[0].filename, operationStr, workspaceRes[0].document, true)
         res.send({ message: '一键填入成功' })
       }
     } catch (error) {
@@ -129,7 +125,8 @@ export async function startServer(config: GraphqlKitConfig) {
     const { info, gql } = req.body
 
     info.forEach((infoItm: GetWorkspaceGqlFileInfoReturnType) => {
-      fillOperationInWorkspace(infoItm.filename, gql, infoItm.document, jsonSettings.isAllAddComment)
+      // 本地更新时需要全字段comment ---> true，所以传入 true
+      fillOperationInWorkspace(infoItm.filename, gql, infoItm.document, true)
     })
     res.send({ message: '一键填入成功' })
   })
