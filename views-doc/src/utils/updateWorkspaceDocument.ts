@@ -163,8 +163,33 @@ export function updateWorkspaceDocument(
     localNode.alias = localNode.alias || remoteNode.alias
   }
 
-  // 根据selectionSet 递归条件
+  if (!localNode.selectionSet && remoteNode.selectionSet) {
+    /* 这里修复添加新字段，records这种对象体更新bug
+  old: query adhocNamePage($input: adhocPageInput) {
+           adhocNamePage(input: $input) {
+            records
+            totalRecords
+         }
+        }
+
+  new: query adhocPage($input: adhocPageInput) {
+           adhocPage(input: $input) {
+            records {
+              amount
+              buyerAddress
+              buyerBank
+            }
+            totalRecords
+        } 
+       }
+  */
+
+    // @ts-ignore
+    localNode.selectionSet = remoteNode.selectionSet
+  }
+
   if (localNode.selectionSet && remoteNode.selectionSet) {
+    // 根据selectionSet 递归条件
     // 更新已有字段
     localNode.selectionSet.selections = localNode.selectionSet.selections
       .map((localSelection) => {
