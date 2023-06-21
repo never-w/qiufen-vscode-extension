@@ -1,9 +1,18 @@
-import React, { FC, useLayoutEffect, useState } from 'react'
-import styles from './index.module.less'
-import logo from '@/assets/images/logo.png'
-import { FileOutlined, HomeTwoTone, HomeOutlined, FileTwoTone } from '@ant-design/icons'
+import {
+  FileOutlined,
+  HomeTwoTone,
+  HomeOutlined,
+  FileTwoTone,
+} from '@ant-design/icons'
 import classnames from 'classnames'
+import React, { useLayoutEffect, useState } from 'react'
 import { Link, Outlet, useLocation } from 'react-router-dom'
+
+import logo from '@/assets/images/logo.png'
+
+import styles from './index.module.less'
+
+import type { FC } from 'react'
 
 interface IProps {}
 
@@ -47,10 +56,12 @@ const Layout: FC<IProps> = () => {
                 setFocusKey(SideBarIconKey.NONE)
               }}
               className={classnames(styles.icon_item, {
-                [styles.active]: sideBarActiveKey === SideBarIconKey.DOCS || focusKey === SideBarIconKey.DOCS,
-              })}
-            >
-              {sideBarActiveKey === SideBarIconKey.DOCS || focusKey === SideBarIconKey.DOCS ? (
+                [styles.active]:
+                  sideBarActiveKey === SideBarIconKey.DOCS ||
+                  focusKey === SideBarIconKey.DOCS,
+              })}>
+              {sideBarActiveKey === SideBarIconKey.DOCS ||
+              focusKey === SideBarIconKey.DOCS ? (
                 <FileTwoTone className={styles.icon} />
               ) : (
                 <FileOutlined className={styles.icon} />
@@ -68,10 +79,12 @@ const Layout: FC<IProps> = () => {
                 setFocusKey(SideBarIconKey.NONE)
               }}
               className={classnames(styles.icon_item, {
-                [styles.active]: sideBarActiveKey === SideBarIconKey.HOME || focusKey === SideBarIconKey.HOME,
-              })}
-            >
-              {sideBarActiveKey === SideBarIconKey.HOME || focusKey === SideBarIconKey.HOME ? (
+                [styles.active]:
+                  sideBarActiveKey === SideBarIconKey.HOME ||
+                  focusKey === SideBarIconKey.HOME,
+              })}>
+              {sideBarActiveKey === SideBarIconKey.HOME ||
+              focusKey === SideBarIconKey.HOME ? (
                 <HomeTwoTone className={styles.icon} />
               ) : (
                 <HomeOutlined className={styles.icon} />

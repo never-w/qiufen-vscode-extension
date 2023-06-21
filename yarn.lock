@@ -210,28 +210,20 @@
   resolved "https://registry.npmjs.org/@fruits-chain/hooks-laba/-/hooks-laba-1.0.2.tgz#15912cf62d77d439233500106ca33b240af89fe7"
   integrity sha512-6UR6UvnRFW1XfRrcPszucDLGvv7Z3LwjynDV0t7lLfhVdnb5/ih3cnxCWL3QLhRUbZ8zBDZWINQLs4ey7BuQjg==
 
-"@fruits-chain/qiufen-pro-graphql-mock@^0.0.2-beta":
-  version "0.0.2-beta"
-  resolved "https://registry.npmjs.org/@fruits-chain/qiufen-pro-graphql-mock/-/qiufen-pro-graphql-mock-0.0.2-beta.tgz#9d0a4be99cd51b35a52e66bb8804949689786f39"
-  integrity sha512-N+ot1yuvV6AU3m2ascJAvc6hmpxCJvo4AZuE58mcWLFzJiBReGVeZBawLuyHKB5wfBDdW4wWPfGrM732T/UgTg==
+"@fruits-chain/qiufen-pro-graphql-mock@^0.0.4-beta":
+  version "0.0.4-beta"
+  resolved "https://registry.npmjs.org/@fruits-chain/qiufen-pro-graphql-mock/-/qiufen-pro-graphql-mock-0.0.4-beta.tgz#e361bcd570ee5d5acc1d658c32836b85ffbac0a0"
+  integrity sha512-m2Qzxxs08GPa6OnE0SV6sv+Zl3d7pVu+J/Sgq4VFXYr+v81OfREI2REA2qXrfy/YApjGuuIfyJR+o65/woTvqA==
   dependencies:
     "@apollo/server" "^4.7.4"
-    "@fruits-chain/qiufen-pro-helpers" "^0.0.2beta"
+    "@fruits-chain/qiufen-pro-helpers" "^0.0.4beta"
     "@graphql-tools/mock" "^9.0.0"
     "@graphql-tools/schema" "^10.0.0"
 
-"@fruits-chain/qiufen-pro-helpers@^0.0.2beta":
-  version "0.0.2-beta"
-  resolved "https://registry.npmjs.org/@fruits-chain/qiufen-pro-helpers/-/qiufen-pro-helpers-0.0.2-beta.tgz#72f79a91590ee4fe4ae5ade61a95dacdd98c4f73"
-  integrity sha512-NKpwelWDo9ly8oF7jsrr1vwhl7cWr7YM7pAWIv88REeu8e/Dizntgyt1JWZRdKJG3HVboFSXvZZffxYPAn7ipA==
-  dependencies:
-    lodash "^4.17.21"
-    node-fetch "2"
-
-"@fruits-chain/qiufen-pro-helpers@^0.0.3-beta":
-  version "0.0.3-beta"
-  resolved "https://registry.npmjs.org/@fruits-chain/qiufen-pro-helpers/-/qiufen-pro-helpers-0.0.3-beta.tgz#e641ad630635e5f0382a1be39ad5b11777adc6c4"
-  integrity sha512-+sx1NUph+qwauxTZoiBG8FHzSP47DmyE15ws1sJ++ar5p1WK7buG5Cmx1yxXwFjXodxHRVyu09O4iIR2c3v/bQ==
+"@fruits-chain/qiufen-pro-helpers@^0.0.4-beta", "@fruits-chain/qiufen-pro-helpers@^0.0.4beta":
+  version "0.0.4-beta"
+  resolved "https://registry.npmjs.org/@fruits-chain/qiufen-pro-helpers/-/qiufen-pro-helpers-0.0.4-beta.tgz#fcc49d854bfb77a560ce7dccfbf3713e5231c6f0"
+  integrity sha512-eQX3SwgEkIPYiyXCN7i3vkhG49WDf6M6U2rBwoHnZhDNUOGJlW/g0EIW+XkEUbNJxsUvTlHGj+RVZrtg31bjNA==
   dependencies:
     lodash "^4.17.21"
     node-fetch "2"

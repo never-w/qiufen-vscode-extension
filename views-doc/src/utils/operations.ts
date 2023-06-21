@@ -1,6 +1,6 @@
 import { getNamedType, isEnumType, isScalarType } from 'graphql'
 
-import type { InputType, ScalarMap } from './interface'
+import type { InputType, ScalarMap } from '@fruits-chain/qiufen-pro-helpers'
 import type {
   ConstDirectiveNode,
   GraphQLField,

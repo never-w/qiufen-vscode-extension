@@ -1,4 +1,4 @@
-import type { NewFieldNodeType } from './interface'
+import type { NewFieldNodeType } from '@fruits-chain/qiufen-pro-helpers'
 
 // 更新节点 checkBox全选、不选中
 function updateChecked(node: NewFieldNodeType, checked: boolean) {

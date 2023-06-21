@@ -25,6 +25,7 @@ import type {
   GetWorkspaceGqlFileInfoReturnType,
   ReturnTypeGetWorkspaceGqlFileInfo,
 } from './utils/syncWorkspaceGqls'
+import type { GraphqlKitConfig } from '@fruits-chain/qiufen-pro-graphql-mock'
 import type { GraphQLSchema } from 'graphql'
 
 export async function startServer(config: GraphqlKitConfig) {
