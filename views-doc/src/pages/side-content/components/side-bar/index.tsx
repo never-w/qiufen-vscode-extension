@@ -1,19 +1,27 @@
-import React, { memo, useEffect, useMemo, useState } from 'react'
-import { Input, Collapse, Tooltip } from 'antd'
-import { SearchOutlined, SwapOutlined, ReloadOutlined, MenuFoldOutlined, UpOutlined } from '@ant-design/icons'
-// import { useThrottleFn } from '@fruits-chain/hooks-laba'
-import classnames from 'classnames'
-import styles from './index.module.less'
-import type { CollapseProps } from 'antd'
-import type { FC } from 'react'
 import {
-  groupOperations as groupOperationsCopy,
+  SearchOutlined,
+  SwapOutlined,
+  ReloadOutlined,
+  MenuFoldOutlined,
+  UpOutlined,
+} from '@ant-design/icons'
+import { Input, Collapse, Tooltip } from 'antd'
+import classnames from 'classnames'
+import React, { memo, useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+
+import type { NewFieldNodeType } from '@/utils/interface'
+import type {
   OperationDefinitionNodeGroupType,
   OperationNodesForFieldAstBySchemaReturnType,
 } from '@/utils/operations'
-import { NewFieldNodeType } from '@/utils/interface'
+import { groupOperations as groupOperationsCopy } from '@/utils/operations'
+
 import SiderGroup from './group'
-import { useNavigate } from 'react-router-dom'
+import styles from './index.module.less'
+
+import type { CollapseProps } from 'antd'
+import type { FC } from 'react'
 
 export interface IProps {
   operationsDefNodeObjList: OperationNodesForFieldAstBySchemaReturnType
@@ -21,30 +29,30 @@ export interface IProps {
   handleReload: () => void
 }
 
-const DocSidebar: FC<IProps> = ({ activeItemKey, handleReload, operationsDefNodeObjList }) => {
+const DocSidebar: FC<IProps> = ({
+  activeItemKey,
+  handleReload,
+  operationsDefNodeObjList,
+}) => {
   const [keyword, setKeyword] = useState<string>('')
   const [activeKey, setActiveKey] = useState([''])
   const [switchBothZhEn, setSwitchBothZhEn] = useState(false)
   const [isFocus, setIsFocus] = useState(false)
 
-  // TODO: 暂时注释
-  // const [top, setTop] = useState(0)
-  // const onScroll = useThrottleFn(
-  //   (evt) => {
-  //     setTop(evt.nativeEvent.target.scrollTop)
-  //   },
-  //   { wait: 500 },
-  // )
-
   const groupedOperations = useMemo(() => {
-    const operationList = operationsDefNodeObjList.map((val) => val.operationDefNodeAst)
+    const operationList = operationsDefNodeObjList.map(
+      val => val.operationDefNodeAst,
+    )
     return groupOperationsCopy(operationList)
   }, [operationsDefNodeObjList])
 
   useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-shadow
     const activeKey: CollapseProps['defaultActiveKey'] = []
     Object.entries(groupedOperations).some(([groupName, items]) => {
-      if (items.some((item) => item.operation + item.name?.value === activeItemKey)) {
+      if (
+        items.some(item => item.operation + item.name?.value === activeItemKey)
+      ) {
         activeKey.push(groupName)
       }
     })
@@ -60,12 +68,17 @@ const DocSidebar: FC<IProps> = ({ activeItemKey, handleReload, operationsDefNode
     const newKeyword = keyword.trim()
     const groupedOperationsEntries = Object.entries(groupedOperations)
 
-    let exactGroupedOperationsEntries = [] as [string, OperationDefinitionNodeGroupType[]][]
+    let exactGroupedOperationsEntries = [] as [
+      string,
+      OperationDefinitionNodeGroupType[],
+    ][]
     if (newKeyword) {
-      exactGroupedOperationsEntries = groupedOperationsEntries.filter(([groupName, operationData]) => {
-        const names = operationData.map((i) => i.name?.value)
-        return names.includes(newKeyword)
-      })
+      exactGroupedOperationsEntries = groupedOperationsEntries.filter(
+        ([groupName, operationData]) => {
+          const names = operationData.map(i => i.name?.value)
+          return names.includes(newKeyword)
+        },
+      )
     }
 
     // 精确匹配operation name
@@ -74,7 +87,7 @@ const DocSidebar: FC<IProps> = ({ activeItemKey, handleReload, operationsDefNode
         let operationList = operationData
 
         if (newKeyword) {
-          operationList = operationData.filter((item) => {
+          operationList = operationData.filter(item => {
             return item.name?.value === newKeyword
           })
         }
@@ -87,8 +100,9 @@ const DocSidebar: FC<IProps> = ({ activeItemKey, handleReload, operationsDefNode
           <Collapse.Panel
             key={groupName}
             header={groupName}
-            className={activeKey.includes(groupName) ? styles.collapse_active : ''}
-          >
+            className={
+              activeKey.includes(groupName) ? styles.collapse_active : ''
+            }>
             <SiderGroup
               // 当分组为 "default" 时，接口就是不存在中文备注的所以为了节约渲染直接传 "false" 下去
               switchBothZhEn={groupName === 'default' ? false : switchBothZhEn}
@@ -108,16 +122,18 @@ const DocSidebar: FC<IProps> = ({ activeItemKey, handleReload, operationsDefNode
         if (pattern.test(groupName)) {
           // break
         } else if (newKeyword) {
-          operationList = operationData.filter((item) => {
+          operationList = operationData.filter(item => {
             return (
               // search by name
               pattern.test(item.name!.value) ||
               // search by description
               pattern.test(item.operationDefinitionDescription || '') ||
               // search by arg type
-              item.args.some((arg) => pattern.test(arg.type.name)) ||
+              item.args.some(arg => pattern.test(arg.type.name)) ||
               // search by return type
-              pattern.test((item.selectionSet.selections[0] as NewFieldNodeType).type)
+              pattern.test(
+                (item.selectionSet.selections[0] as NewFieldNodeType).type,
+              )
             )
           })
         }
@@ -130,8 +146,9 @@ const DocSidebar: FC<IProps> = ({ activeItemKey, handleReload, operationsDefNode
           <Collapse.Panel
             key={groupName}
             header={groupName}
-            className={activeKey.includes(groupName) ? styles.collapse_active : ''}
-          >
+            className={
+              activeKey.includes(groupName) ? styles.collapse_active : ''
+            }>
             <SiderGroup
               // 当分组为 "default" 时，接口就是不存在中文备注的所以为了节约渲染直接传 "false" 下去
               switchBothZhEn={groupName === 'default' ? false : switchBothZhEn}
@@ -156,27 +173,31 @@ const DocSidebar: FC<IProps> = ({ activeItemKey, handleReload, operationsDefNode
           onBlur={() => {
             setIsFocus(false)
           }}
-          suffix={<SearchOutlined className={isFocus ? styles.icon_color : ''} />}
+          suffix={
+            <SearchOutlined className={isFocus ? styles.icon_color : ''} />
+          }
           size="large"
           placeholder="Search by group/desc/name/type"
-          onChange={(evt) => {
+          onChange={evt => {
             setKeyword(evt.target.value)
           }}
           value={keyword}
         />
       </div>
-      <div className={styles.sidebarContent} id="sidebarContent" /* onScroll={onScroll.run} */>
+      <div
+        className={styles.sidebarContent}
+        id="sidebarContent" /* onScroll={onScroll.run} */
+      >
         <div id="operationContent">
           <Collapse
             className={styles.collapse_box}
             bordered={false}
             activeKey={activeKey}
-            onChange={(key) => {
+            onChange={key => {
               if (Array.isArray(key)) {
                 setActiveKey(key)
               }
-            }}
-          >
+            }}>
             {contentJSX}
           </Collapse>
         </div>
@@ -187,13 +208,15 @@ const DocSidebar: FC<IProps> = ({ activeItemKey, handleReload, operationsDefNode
             <div
               onClick={() => {
                 setSwitchBothZhEn(!switchBothZhEn)
-              }}
-            >
+              }}>
               <SwapOutlined className={classnames(styles.icon)} />
             </div>
           </Tooltip>
           <Tooltip title="reload doc">
-            <ReloadOutlined onClick={handleReload} className={classnames(styles.icon)} />
+            <ReloadOutlined
+              onClick={handleReload}
+              className={classnames(styles.icon)}
+            />
           </Tooltip>
           <Tooltip title="Collapse all">
             <MenuFoldOutlined

@@ -101,7 +101,7 @@ const copy = (selector: string) => {
   })
 }
 
-const getOperationNameValue = (name: string = '') => {
+const getOperationNameValue = (name = '') => {
   const [_, val] = name.split(':')
   return val
 }

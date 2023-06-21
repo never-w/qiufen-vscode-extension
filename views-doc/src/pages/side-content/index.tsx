@@ -1,23 +1,32 @@
-import { FC, useEffect, useLayoutEffect } from 'react'
-import React, { useMemo, useState } from 'react'
-import { Spin, message } from 'antd'
 import { useMemoizedFn } from 'ahooks'
+import { Spin, message } from 'antd'
 import { buildSchema } from 'graphql'
-import useBearStore from '@/stores'
-import { OperationNodesForFieldAstBySchemaReturnType, getOperationNodesForFieldAstBySchema } from '@/utils/operations'
-import DocSidebar from './components/side-bar/index'
+import React, { useEffect, useLayoutEffect, useMemo, useState } from 'react'
 import { Outlet, useParams } from 'react-router-dom'
+
+import useBearStore from '@/stores'
+import type { OperationNodesForFieldAstBySchemaReturnType } from '@/utils/operations'
+import { getOperationNodesForFieldAstBySchema } from '@/utils/operations'
+
+import DocSidebar from './components/side-bar/index'
+
+import type { FC } from 'react'
 
 interface IProps {}
 
 const SideContent: FC<IProps> = () => {
   const { id } = useParams<'id'>()
-  const { captureMessage, reloadOperations, isDisplaySidebar, typeDefs, setState } = useBearStore((state) => state)
+  const {
+    captureMessage,
+    reloadOperations,
+    isDisplaySidebar,
+    typeDefs,
+    setState,
+  } = useBearStore(state => state)
   const [loading, setLoading] = useState(false)
 
   useLayoutEffect(() => {
     captureMessage()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const operationObjList = useMemo(() => {
@@ -32,17 +41,15 @@ const SideContent: FC<IProps> = () => {
   const handleReload = useMemoizedFn(async () => {
     let timer: NodeJS.Timeout | undefined
     setLoading(true)
-    try {
-      await Promise.race([
-        reloadOperations(),
-        new Promise((_, reject) => {
-          timer = setTimeout(() => {
-            message.error('network timeout')
-            return reject(new Error('network timeout'))
-          }, 10000)
-        }),
-      ])
-    } catch {}
+    await Promise.race([
+      reloadOperations(),
+      new Promise((_, reject) => {
+        timer = setTimeout(() => {
+          message.error('network timeout')
+          return reject(new Error('network timeout'))
+        }, 10000)
+      }),
+    ])
     clearTimeout(timer)
     setLoading(false)
   })
@@ -56,7 +63,8 @@ const SideContent: FC<IProps> = () => {
 
   const firstOperationKey = useMemo(() => {
     return operationObjList.length
-      ? operationObjList[0]?.operationDefNodeAst?.operation + operationObjList[0]?.operationDefNodeAst?.name?.value
+      ? operationObjList[0]?.operationDefNodeAst?.operation +
+          operationObjList[0]?.operationDefNodeAst?.name?.value
       : ''
   }, [operationObjList])
 

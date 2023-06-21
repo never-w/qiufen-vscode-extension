@@ -1,6 +1,7 @@
-import * as vscode from 'vscode'
-import * as path from 'path'
 import fs from 'fs'
+import * as path from 'path'
+
+import * as vscode from 'vscode'
 
 /** 获取工作区qiufen配置 */
 async function getWorkspaceConfig(tryCatchCallback?: () => void) {
@@ -37,7 +38,14 @@ async function getWorkspaceConfig(tryCatchCallback?: () => void) {
     throw Error('The configuration was not read')
   }
 
-  return { workspaceRootPath, qiufenConfigPath, isExistConfigFile, port, url, qiufenConfig }
+  return {
+    workspaceRootPath,
+    qiufenConfigPath,
+    isExistConfigFile,
+    port,
+    url,
+    qiufenConfig,
+  }
 }
 
 export default getWorkspaceConfig

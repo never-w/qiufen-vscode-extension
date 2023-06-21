@@ -1,6 +1,6 @@
-import * as vscode from 'vscode'
 import { buildClientSchema, getIntrospectionQuery, printSchema } from 'graphql'
 import fetch from 'node-fetch'
+import * as vscode from 'vscode'
 
 async function fetchRemoteSchemaTypeDefs(url: string) {
   const jsonSettings = vscode.workspace.getConfiguration('graphql-qiufen-pro')
@@ -45,7 +45,9 @@ async function fetchRemoteSchemaTypeDefs(url: string) {
   const { data } = await (response as any).json()
 
   // 这里判断一下走的什么模式拿到的远程的schema 定义
-  const backendTypeDefs = isIntrospectionMode ? printSchema(buildClientSchema(data)) : (data._service.sdl as string)
+  const backendTypeDefs = isIntrospectionMode
+    ? printSchema(buildClientSchema(data))
+    : (data._service.sdl as string)
   return backendTypeDefs
 }
 

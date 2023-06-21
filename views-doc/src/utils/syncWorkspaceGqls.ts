@@ -1,20 +1,29 @@
-import * as vscode from 'vscode'
-import glob from 'glob'
 import fs from 'fs'
-import { workspace, window } from 'vscode'
 import path from 'path'
-import { DefinitionNode, FieldNode, OperationDefinitionNode, DocumentNode, ExecutableDefinitionNode } from 'graphql'
-import { updateWorkspaceDocument } from './updateWorkspaceDocument'
-import { transformCommentsToDescriptions as parse } from './parseGqlToAstWithComment'
-import { printWithComments as print } from './comment'
+
+import glob from 'glob'
 import _ from 'lodash'
+import { workspace, window } from 'vscode'
+import * as vscode from 'vscode'
+
+import { printWithComments as print } from './comment'
+import { transformCommentsToDescriptions as parse } from './parseGqlToAstWithComment'
+import { updateWorkspaceDocument } from './updateWorkspaceDocument'
+
+import type {
+  DefinitionNode,
+  FieldNode,
+  OperationDefinitionNode,
+  DocumentNode,
+  ExecutableDefinitionNode,
+} from 'graphql'
 
 /** 填充远程最新的operation到工作区对应文件里面 */
 export function fillOperationInWorkspace(
   filePath: string,
   gql: string,
   documentAst: DocumentNode,
-  isAllAddComment: boolean = false,
+  isAllAddComment = false,
 ) {
   const workspaceDocumentAst = _.cloneDeep(documentAst)
   const remoteDocumentAst = parse(gql)
@@ -23,17 +32,28 @@ export function fillOperationInWorkspace(
   const updatedWorkspaceAst: DocumentNode = {
     ...workspaceDocumentAst,
     definitions: workspaceDocumentAst.definitions
-      .map((workspaceDefinition) => {
-        const remoteDefinition = remoteDocumentAst.definitions.find((remoteDefinition) => {
-          const workspaceDefinitionSelections = (workspaceDefinition as ExecutableDefinitionNode).selectionSet
-            .selections as FieldNode[]
-          const remoteDefinitionSelections = (remoteDefinition as ExecutableDefinitionNode).selectionSet
-            .selections as FieldNode[]
-          const isTheWorkspaceDefinitionExist = workspaceDefinitionSelections.some(
-            (itemSelection) => itemSelection.name.value === remoteDefinitionSelections[0].name.value,
-          )
-          return remoteDefinition.kind === workspaceDefinition.kind && isTheWorkspaceDefinitionExist
-        })
+      .map(workspaceDefinition => {
+        const remoteDefinition = remoteDocumentAst.definitions.find(
+          // eslint-disable-next-line @typescript-eslint/no-shadow
+          remoteDefinition => {
+            const workspaceDefinitionSelections = (
+              workspaceDefinition as ExecutableDefinitionNode
+            ).selectionSet.selections as FieldNode[]
+            const remoteDefinitionSelections = (
+              remoteDefinition as ExecutableDefinitionNode
+            ).selectionSet.selections as FieldNode[]
+            const isTheWorkspaceDefinitionExist =
+              workspaceDefinitionSelections.some(
+                itemSelection =>
+                  itemSelection.name.value ===
+                  remoteDefinitionSelections[0].name.value,
+              )
+            return (
+              remoteDefinition.kind === workspaceDefinition.kind &&
+              isTheWorkspaceDefinitionExist
+            )
+          },
+        )
 
         if (!remoteDefinition) {
           return workspaceDefinition
@@ -52,7 +72,7 @@ export function fillOperationInWorkspace(
 export async function getWorkspaceGqls(gqlName: string) {
   const resolveGqlFiles = getWorkspaceAllGqlResolveFilePaths()
   const workspaceGqlFileInfo = getWorkspaceGqlFileInfo(resolveGqlFiles)
-  const filteredWorkspaceGqlFileInfo = workspaceGqlFileInfo.filter((gqlFileItm) =>
+  const filteredWorkspaceGqlFileInfo = workspaceGqlFileInfo.filter(gqlFileItm =>
     gqlFileItm.operationNames.includes(gqlName),
   )
 
@@ -70,12 +90,13 @@ export async function getWorkspaceGqls(gqlName: string) {
 
 /** 匹配工作区后缀 .gql 所有文件，返回文件绝对路径 */
 export function getWorkspaceAllGqlResolveFilePaths() {
-  const { patternRelativePath = '' } = vscode.workspace.getConfiguration('graphql-qiufen-pro')
+  const { patternRelativePath = '' } =
+    vscode.workspace.getConfiguration('graphql-qiufen-pro')
   const workspaceRootPath = workspace.workspaceFolders?.[0].uri.fsPath
   const cwdPath = path.join(workspaceRootPath!, patternRelativePath)
 
   const gqlFiles = glob.sync('**/*.gql', { cwd: cwdPath })
-  const resolveGqlFiles = gqlFiles.map((file) => path.join(cwdPath, file))
+  const resolveGqlFiles = gqlFiles.map(file => path.join(cwdPath, file))
   return resolveGqlFiles
 }
 
@@ -88,9 +109,11 @@ export type GetWorkspaceGqlFileInfoReturnType = {
   operationNames: string[]
 }
 
-export type ReturnTypeGetWorkspaceGqlFileInfo = ReturnType<typeof getWorkspaceGqlFileInfo>
+export type ReturnTypeGetWorkspaceGqlFileInfo = ReturnType<
+  typeof getWorkspaceGqlFileInfo
+>
 export function getWorkspaceGqlFileInfo(files: string[]) {
-  const result = files.map((file) => {
+  const result = files.map(file => {
     const content = fs.readFileSync(file, 'utf8')
 
     // 这里过滤一下空文件
@@ -121,8 +144,10 @@ export function getWorkspaceGqlFileInfo(files: string[]) {
 
     // 得到本地每个gql文件的operations names
     const fileItemOperationNames = workspaceDocumentAst.definitions
-      .map((operation) => {
-        return (operation as OperationDefinitionNode).selectionSet.selections.map((itm: any) => itm.name.value)
+      .map(operation => {
+        return (
+          operation as OperationDefinitionNode
+        ).selectionSet.selections.map((itm: any) => itm.name.value)
       })
       .flat(Infinity) as string[]
 

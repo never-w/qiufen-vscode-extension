@@ -1,4 +1,4 @@
-export function groupArray<T extends any>(arr: T[]): T[][] {
+export function groupArray<T>(arr: T[]): T[][] {
   const groups: T[][] = []
   let currentGroup: T[] = []
 

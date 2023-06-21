@@ -14,7 +14,7 @@ function updateChecked(node: NewFieldNodeType, checked: boolean) {
 /**
  * 用于table select选择时对 operation fieldNode ast tree操作格式化的函数，支持checkBox全选、半选、不选中.
  */
-export function dependOnSelectedAndKeyFieldAst(ast: NewFieldNodeType, checked: boolean = false, key: string = '') {
+export function dependOnSelectedAndKeyFieldAst(ast: NewFieldNodeType, checked = false, key = '') {
   const newAst = { ...ast }
 
   if (newAst.fieldKey === key) {

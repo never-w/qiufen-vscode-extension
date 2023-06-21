@@ -1,16 +1,15 @@
-import { Maybe } from '@graphql-tools/utils'
-import {
+import { visit, TokenKind, Kind } from 'graphql'
+
+import type { Maybe } from '@graphql-tools/utils'
+import type {
   StringValueNode,
   FieldDefinitionNode,
   ASTNode,
   NameNode,
   TypeNode,
-  visit,
   DefinitionNode,
   Location,
-  TokenKind,
   NamedTypeNode,
-  Kind,
 } from 'graphql'
 import type { ASTVisitor } from 'graphql/language/visitor'
 
@@ -61,7 +60,12 @@ export function collectComment(node: NamedDefinitionNode): void {
   }
 }
 
-export function pushComment(node: any, entity: string, field?: string, argument?: string): void {
+export function pushComment(
+  node: any,
+  entity: string,
+  field?: string,
+  argument?: string,
+): void {
   const comment = getComment(node)
 
   if (typeof comment !== 'string' || comment.length === 0) {
@@ -108,7 +112,7 @@ export function printComment(comment: string): string {
  * print all items together separated by separator if provided
  */
 function join(maybeArray?: readonly any[], separator?: string) {
-  return maybeArray ? maybeArray.filter((x) => x).join(separator || '') : ''
+  return maybeArray ? maybeArray.filter(x => x).join(separator || '') : ''
 }
 
 function hasMultilineItems(maybeArray: Maybe<ReadonlyArray<string>>): boolean {
@@ -116,14 +120,19 @@ function hasMultilineItems(maybeArray: Maybe<ReadonlyArray<string>>): boolean {
 }
 
 type VisitFn = (
-  node: { description?: StringValueNode; name?: NameNode; type?: TypeNode; kind: string },
+  node: {
+    description?: StringValueNode
+    name?: NameNode
+    type?: TypeNode
+    kind: string
+  },
   key: string,
   parent: NamedTypeNode,
   path: string[],
   ancestors: NamedTypeNode[],
 ) => any
 
-function addDescription(cb: VisitFn, isAllAddComment: boolean = false): VisitFn {
+function addDescription(cb: VisitFn, isAllAddComment = false): VisitFn {
   return (
     node: {
       description?: StringValueNode & { isNeedComment?: boolean }
@@ -157,7 +166,9 @@ function addDescription(cb: VisitFn, isAllAddComment: boolean = false): VisitFn 
       [
         ...items.map(printComment),
         // TODO: 判断头部还是每个字段展示备注
-        (isAllAddComment || node.kind === Kind.OPERATION_DEFINITION || node.description?.isNeedComment) &&
+        (isAllAddComment ||
+          node.kind === Kind.OPERATION_DEFINITION ||
+          node.description?.isNeedComment) &&
         node.description?.value
           ? addHashesToLines(node.description?.value)
           : '',
@@ -173,7 +184,7 @@ function addHashesToLines(str: string): string {
   const lines = str.split(/\r?\n/)
 
   // 在每行的开头添加 "#"
-  const hashedLines = lines.map((line) => `# ${line}`)
+  const hashedLines = lines.map(line => `# ${line}`)
 
   // 将处理后的字符串数组合并回一个字符串，每行之间用换行符连接
   return hashedLines.join('\n')
@@ -212,20 +223,27 @@ function printBlockString(value: string, isDescription = false) {
 }
 
 const printDocASTReducer: ASTVisitor = {
-  Name: { leave: (node) => node.value },
-  Variable: { leave: (node) => '$' + node.name },
+  Name: { leave: node => node.value },
+  Variable: { leave: node => '$' + node.name },
 
   // Document
   Document: {
-    leave: (node) => {
+    leave: node => {
       return join(node.definitions, '\n\n')
     },
   },
 
   OperationDefinition: {
-    leave: (node) => {
+    leave: node => {
       const varDefs = wrap('(', join(node.variableDefinitions, ', '), ')')
-      const prefix = join([node.operation, join([node.name, varDefs]), join(node.directives, ' ')], ' ')
+      const prefix = join(
+        [
+          node.operation,
+          join([node.name, varDefs]),
+          join(node.directives, ' '),
+        ],
+        ' ',
+      )
 
       // the query short form.
       return prefix + ' ' + node.selectionSet
@@ -234,7 +252,11 @@ const printDocASTReducer: ASTVisitor = {
 
   VariableDefinition: {
     leave: ({ variable, type, defaultValue, directives }) =>
-      variable + ': ' + type + wrap(' = ', defaultValue) + wrap(' ', join(directives, ' ')),
+      variable +
+      ': ' +
+      type +
+      wrap(' = ', defaultValue) +
+      wrap(' ', join(directives, ' ')),
   },
 
   SelectionSet: {
@@ -261,16 +283,31 @@ const printDocASTReducer: ASTVisitor = {
   // Fragments
 
   FragmentSpread: {
-    leave: ({ name, directives }) => '...' + name + wrap(' ', join(directives, ' ')),
+    leave: ({ name, directives }) =>
+      '...' + name + wrap(' ', join(directives, ' ')),
   },
 
   InlineFragment: {
     leave: ({ typeCondition, directives, selectionSet }) =>
-      join(['...', wrap('on ', typeCondition), join(directives, ' '), selectionSet], ' '),
+      join(
+        [
+          '...',
+          wrap('on ', typeCondition),
+          join(directives, ' '),
+          selectionSet,
+        ],
+        ' ',
+      ),
   },
 
   FragmentDefinition: {
-    leave: ({ name, typeCondition, variableDefinitions, directives, selectionSet }) =>
+    leave: ({
+      name,
+      typeCondition,
+      variableDefinitions,
+      directives,
+      selectionSet,
+    }) =>
       // Note: fragment variable definitions are experimental and may be changed
       // or removed in the future.
       `fragment ${name}${wrap('(', join(variableDefinitions, ', '), ')')} ` +
@@ -301,7 +338,8 @@ const printDocASTReducer: ASTVisitor = {
   // Directive
 
   Directive: {
-    leave: ({ name, arguments: args }) => '@' + name + wrap('(', join(args, ', '), ')'),
+    leave: ({ name, arguments: args }) =>
+      '@' + name + wrap('(', join(args, ', '), ')'),
   },
 
   // Type
@@ -313,7 +351,8 @@ const printDocASTReducer: ASTVisitor = {
   // Type System Definitions
 
   SchemaDefinition: {
-    leave: ({ directives, operationTypes }: any) => join(['schema', join(directives, ' '), block(operationTypes)], ' '),
+    leave: ({ directives, operationTypes }: any) =>
+      join(['schema', join(directives, ' '), block(operationTypes)], ' '),
   },
 
   OperationTypeDefinition: {
@@ -321,12 +360,22 @@ const printDocASTReducer: ASTVisitor = {
   },
 
   ScalarTypeDefinition: {
-    leave: ({ name, directives }) => join(['scalar', name, join(directives, ' ')], ' '),
+    leave: ({ name, directives }) =>
+      join(['scalar', name, join(directives, ' ')], ' '),
   },
 
   ObjectTypeDefinition: {
     leave: ({ name, interfaces, directives, fields }) =>
-      join(['type', name, wrap('implements ', join(interfaces, ' & ')), join(directives, ' '), block(fields)], ' '),
+      join(
+        [
+          'type',
+          name,
+          wrap('implements ', join(interfaces, ' & ')),
+          join(directives, ' '),
+          block(fields),
+        ],
+        ' ',
+      ),
   },
 
   FieldDefinition: {
@@ -342,24 +391,37 @@ const printDocASTReducer: ASTVisitor = {
 
   InputValueDefinition: {
     leave: ({ name, type, defaultValue, directives }) =>
-      join([name + ': ' + type, wrap('= ', defaultValue), join(directives, ' ')], ' '),
+      join(
+        [name + ': ' + type, wrap('= ', defaultValue), join(directives, ' ')],
+        ' ',
+      ),
   },
 
   InterfaceTypeDefinition: {
     leave: ({ name, interfaces, directives, fields }: any) =>
       join(
-        ['interface', name, wrap('implements ', join(interfaces, ' & ')), join(directives, ' '), block(fields)],
+        [
+          'interface',
+          name,
+          wrap('implements ', join(interfaces, ' & ')),
+          join(directives, ' '),
+          block(fields),
+        ],
         ' ',
       ),
   },
 
   UnionTypeDefinition: {
     leave: ({ name, directives, types }) =>
-      join(['union', name, join(directives, ' '), wrap('= ', join(types, ' | '))], ' '),
+      join(
+        ['union', name, join(directives, ' '), wrap('= ', join(types, ' | '))],
+        ' ',
+      ),
   },
 
   EnumTypeDefinition: {
-    leave: ({ name, directives, values }) => join(['enum', name, join(directives, ' '), block(values)], ' '),
+    leave: ({ name, directives, values }) =>
+      join(['enum', name, join(directives, ' '), block(values)], ' '),
   },
 
   EnumValueDefinition: {
@@ -367,7 +429,8 @@ const printDocASTReducer: ASTVisitor = {
   },
 
   InputObjectTypeDefinition: {
-    leave: ({ name, directives, fields }) => join(['input', name, join(directives, ' '), block(fields)], ' '),
+    leave: ({ name, directives, fields }) =>
+      join(['input', name, join(directives, ' '), block(fields)], ' '),
   },
 
   DirectiveDefinition: {
@@ -384,17 +447,27 @@ const printDocASTReducer: ASTVisitor = {
 
   SchemaExtension: {
     leave: ({ directives, operationTypes }) =>
-      join(['extend schema', join(directives, ' '), block(operationTypes)], ' '),
+      join(
+        ['extend schema', join(directives, ' '), block(operationTypes)],
+        ' ',
+      ),
   },
 
   ScalarTypeExtension: {
-    leave: ({ name, directives }) => join(['extend scalar', name, join(directives, ' ')], ' '),
+    leave: ({ name, directives }) =>
+      join(['extend scalar', name, join(directives, ' ')], ' '),
   },
 
   ObjectTypeExtension: {
     leave: ({ name, interfaces, directives, fields }) =>
       join(
-        ['extend type', name, wrap('implements ', join(interfaces, ' & ')), join(directives, ' '), block(fields)],
+        [
+          'extend type',
+          name,
+          wrap('implements ', join(interfaces, ' & ')),
+          join(directives, ' '),
+          block(fields),
+        ],
         ' ',
       ),
   },
@@ -402,26 +475,42 @@ const printDocASTReducer: ASTVisitor = {
   InterfaceTypeExtension: {
     leave: ({ name, interfaces, directives, fields }: any) =>
       join(
-        ['extend interface', name, wrap('implements ', join(interfaces, ' & ')), join(directives, ' '), block(fields)],
+        [
+          'extend interface',
+          name,
+          wrap('implements ', join(interfaces, ' & ')),
+          join(directives, ' '),
+          block(fields),
+        ],
         ' ',
       ),
   },
 
   UnionTypeExtension: {
     leave: ({ name, directives, types }) =>
-      join(['extend union', name, join(directives, ' '), wrap('= ', join(types, ' | '))], ' '),
+      join(
+        [
+          'extend union',
+          name,
+          join(directives, ' '),
+          wrap('= ', join(types, ' | ')),
+        ],
+        ' ',
+      ),
   },
 
   EnumTypeExtension: {
-    leave: ({ name, directives, values }) => join(['extend enum', name, join(directives, ' '), block(values)], ' '),
+    leave: ({ name, directives, values }) =>
+      join(['extend enum', name, join(directives, ' '), block(values)], ' '),
   },
 
   InputObjectTypeExtension: {
-    leave: ({ name, directives, fields }) => join(['extend input', name, join(directives, ' '), block(fields)], ' '),
+    leave: ({ name, directives, fields }) =>
+      join(['extend input', name, join(directives, ' '), block(fields)], ' '),
   },
 }
 
-const printDocASTReducerWithComments = (isAllAddComment: boolean = false) => {
+const printDocASTReducerWithComments = (isAllAddComment = false) => {
   return Object.keys(printDocASTReducer).reduce(
     (prev, key) => ({
       ...prev,
@@ -438,7 +527,10 @@ const printDocASTReducerWithComments = (isAllAddComment: boolean = false) => {
  * Converts an AST into a string, using one set of reasonable
  * formatting rules.
  */
-export function printWithComments(ast: ASTNode, isAllAddComment = false): string {
+export function printWithComments(
+  ast: ASTNode,
+  isAllAddComment = false,
+): string {
   return visit(ast, printDocASTReducerWithComments(isAllAddComment)) as any
 }
 
@@ -466,7 +558,9 @@ export function getComment(node: { loc?: Location }): undefined | string {
   }
 }
 
-export function getLeadingCommentBlock(node: { loc?: Location }): void | string {
+export function getLeadingCommentBlock(node: {
+  loc?: Location
+}): void | string {
   const loc = node.loc
 
   if (!loc) {
@@ -516,11 +610,14 @@ export function dedentBlockStringValue(rawString: string): string {
 /**
  * @internal
  */
-export function getBlockStringIndentation(lines: ReadonlyArray<string>): number {
+export function getBlockStringIndentation(
+  lines: ReadonlyArray<string>,
+): number {
   let commonIndent = null
 
   for (let i = 1; i < lines.length; i++) {
     const line = lines[i]
+    // eslint-disable-next-line @typescript-eslint/no-shadow
     const indent = leadingWhitespace(line)
     if (indent === line.length) {
       continue // skip empty lines

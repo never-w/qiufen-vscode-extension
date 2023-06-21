@@ -16,7 +16,10 @@ export interface ScalarTypeDef extends BaseTypeDef {
   kind: 'Scalar'
 }
 
-export type EnumValueTypeDef = Pick<GraphQLEnumValue, 'name' | 'description' | 'value' | 'deprecationReason'>
+export type EnumValueTypeDef = Pick<
+  GraphQLEnumValue,
+  'name' | 'description' | 'value' | 'deprecationReason'
+>
 
 export interface EnumTypeDef extends BaseTypeDef {
   kind: 'Enum'
@@ -38,17 +41,27 @@ export interface InputObjectTypeDef extends BaseTypeDef {
   fields: ArgTypeDef[]
 }
 
-export type OutputType = ScalarTypeDef | EnumTypeDef | ObjectTypeDef | UnionTypeDef
+export type OutputType =
+  | ScalarTypeDef
+  | EnumTypeDef
+  | ObjectTypeDef
+  | UnionTypeDef
 
 export type InputType = ScalarTypeDef | EnumTypeDef | InputObjectTypeDef
 
 export interface ArgTypeDef
-  extends Pick<GraphQLArgument, 'name' | 'description' | 'defaultValue' | 'deprecationReason'> {
+  extends Pick<
+    GraphQLArgument,
+    'name' | 'description' | 'defaultValue' | 'deprecationReason'
+  > {
   type: InputType
 }
 
 export interface ObjectFieldTypeDef
-  extends Pick<GraphQLField<unknown, unknown>, 'name' | 'description' | 'deprecationReason'> {
+  extends Pick<
+    GraphQLField<unknown, unknown>,
+    'name' | 'description' | 'deprecationReason'
+  > {
   directives?: ReadonlyArray<ConstDirectiveNode>
   args: ArgTypeDef[]
   output: OutputType

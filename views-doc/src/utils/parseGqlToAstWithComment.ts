@@ -1,17 +1,21 @@
 import {
-  DocumentNode,
   Kind,
-  ASTNode,
   parse,
   Source as GraphQLSource,
   visit,
   isTypeSystemDefinitionNode,
-  StringValueNode,
   print,
 } from 'graphql'
+
 import { dedentBlockStringValue, getLeadingCommentBlock } from './comment'
 
-export function parseGraphQLSDL(location: string | undefined, rawSDL: string, options: any = {}) {
+import type { DocumentNode, ASTNode, StringValueNode } from 'graphql'
+
+export function parseGraphQLSDL(
+  location: string | undefined,
+  rawSDL: string,
+  options: any = {},
+) {
   let document: DocumentNode
 
   try {
@@ -28,7 +32,11 @@ export function parseGraphQLSDL(location: string | undefined, rawSDL: string, op
       document = parse(new GraphQLSource(rawSDL, location), options)
     }
   } catch (e: any) {
-    if (e.message.includes('EOF') && rawSDL.replace(/(\#[^*]*)/g, '').trim() === '') {
+    if (
+      e.message.includes('EOF') &&
+      // eslint-disable-next-line no-useless-escape
+      rawSDL.replace(/(\#[^*]*)/g, '').trim() === ''
+    ) {
       document = {
         kind: Kind.DOCUMENT,
         definitions: [],
@@ -44,7 +52,10 @@ export function parseGraphQLSDL(location: string | undefined, rawSDL: string, op
   }
 }
 
-export function transformCommentsToDescriptions(sourceSdl: string, options: any = {}): DocumentNode {
+export function transformCommentsToDescriptions(
+  sourceSdl: string,
+  options: any = {},
+): DocumentNode {
   const parsedDoc = parse(sourceSdl, {
     ...options,
     noLocation: false,

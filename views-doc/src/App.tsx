@@ -1,7 +1,9 @@
-import { FC } from 'react'
 import React from 'react'
-import routes from './routes'
 import { useRoutes } from 'react-router-dom'
+
+import routes from './routes'
+
+import type { FC } from 'react'
 
 interface IProps {}
 

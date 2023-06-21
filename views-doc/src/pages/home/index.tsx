@@ -1,13 +1,20 @@
-import React, { FC, useMemo, useState } from 'react'
-import { Radio, RadioChangeEvent, Spin } from 'antd'
-import { GraphQLInterfaceType, buildSchema } from 'graphql'
-import useBearStore from '@/stores'
-import { BreakingChangeType, findBreakingChanges } from '@/utils/schemaDiff'
-import { OperationNodesForFieldAstBySchemaReturnType, getOperationNodesForFieldAstBySchema } from '@/utils/operations'
-import { useNavigate } from 'react-router-dom'
+import { Radio, Spin } from 'antd'
+import { buildSchema } from 'graphql'
 import _ from 'lodash'
+import React, { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+
+import useBearStore from '@/stores'
+import type { OperationNodesForFieldAstBySchemaReturnType } from '@/utils/operations'
+import { getOperationNodesForFieldAstBySchema } from '@/utils/operations'
+import { BreakingChangeType, findBreakingChanges } from '@/utils/schemaDiff'
+
 import styles from './index.module.less'
 import OperationItem from './operationItem'
+
+import type { RadioChangeEvent } from 'antd'
+import type { GraphQLInterfaceType } from 'graphql'
+import type { FC } from 'react'
 
 interface IProps {}
 
@@ -67,7 +74,7 @@ const radioOptions = [
 
 const Home: FC<IProps> = () => {
   const navigate = useNavigate()
-  const { fetchRemoteTypeDefs } = useBearStore((state) => state)
+  const { fetchRemoteTypeDefs } = useBearStore(state => state)
   const [loading, setLoading] = useState(false)
   const [radioValue, setRadioValue] = useState(OperationStatusTypeEnum.ALL)
   const [graphqlSdl, setGraphqlSdl] = useState({
@@ -86,14 +93,17 @@ const Home: FC<IProps> = () => {
     const result = []
 
     if (graphqlSdl.typeDefs && graphqlSdl.localTypeDefs) {
-      const [leftSchema, rightSchema] = [buildSchema(graphqlSdl.localTypeDefs), buildSchema(graphqlSdl.typeDefs)]
+      const [leftSchema, rightSchema] = [
+        buildSchema(graphqlSdl.localTypeDefs),
+        buildSchema(graphqlSdl.typeDefs),
+      ]
 
       const operationChangeList = findBreakingChanges(leftSchema, rightSchema)
 
       const operationFields: OperationNodesForFieldAstBySchemaReturnType =
         getOperationNodesForFieldAstBySchema(rightSchema)
 
-      const operationNamedTypeListInfo = operationFields.map((item) => ({
+      const operationNamedTypeListInfo = operationFields.map(item => ({
         // @ts-ignore
         operationComment: item?.operationDefNodeAst?.descriptionText,
         operationType: item?.operationDefNodeAst?.operation,
@@ -102,20 +112,23 @@ const Home: FC<IProps> = () => {
         variableTypeList: item?.operationDefNodeAst?.variableTypeList,
       }))
 
-      const routeTypes = operationNamedTypeListInfo.map((item) => {
+      const routeTypes = operationNamedTypeListInfo.map(item => {
         return {
           operationComment: item?.operationComment,
           operationType: item?.operationType,
           operationName: item?.operationName,
           routePath: item?.operationType + item?.operationName,
-          nameTypes: [...(item.namedTypeList || []), ...(item.variableTypeList || [])],
+          nameTypes: [
+            ...(item.namedTypeList || []),
+            ...(item.variableTypeList || []),
+          ],
         }
       })
 
       const changeList: ChangeListType[] = []
-      operationChangeList.forEach((item) => {
+      operationChangeList.forEach(item => {
         if (item?.routePath) {
-          const res = routeTypes.find((val) => {
+          const res = routeTypes.find(val => {
             return val?.routePath === item?.routePath
           })
 
@@ -127,7 +140,8 @@ const Home: FC<IProps> = () => {
             operationName: typeNameAndType?.operationName,
             type:
               // 这里其实还要算上 "!!item?.routePath" 条件
-              item.type === BreakingChangeType.FIELD_REMOVED || item.type === BreakingChangeType.FIELD_ADDED
+              item.type === BreakingChangeType.FIELD_REMOVED ||
+              item.type === BreakingChangeType.FIELD_ADDED
                 ? item.type
                 : undefined,
             description: item.description,
@@ -135,8 +149,10 @@ const Home: FC<IProps> = () => {
           })
         }
 
-        const existRoute = routeTypes.filter((itm) =>
-          itm.nameTypes.includes(item?.typeName as unknown as GraphQLInterfaceType),
+        const existRoute = routeTypes.filter(itm =>
+          itm.nameTypes.includes(
+            item?.typeName as unknown as GraphQLInterfaceType,
+          ),
         )
 
         if (existRoute.length === 1) {
@@ -148,7 +164,8 @@ const Home: FC<IProps> = () => {
             routePath: existRoute[0]?.routePath,
           })
         } else if (existRoute.length > 1) {
-          const result = existRoute.map((routeItem) => ({
+          // eslint-disable-next-line @typescript-eslint/no-shadow
+          const result = existRoute.map(routeItem => ({
             operationComment: routeItem?.operationComment,
             operationType: routeItem?.operationType,
             operationName: routeItem?.operationName,
@@ -169,13 +186,13 @@ const Home: FC<IProps> = () => {
           operationType: element[0]?.operationType,
           operationName: element[0]?.operationName,
           routePath: key,
-          type: element.find((ele) => ele?.type)?.type,
-          descriptionList: element?.map((val) => val?.description) || [],
+          type: element.find(ele => ele?.type)?.type,
+          descriptionList: element?.map(val => val?.description) || [],
         })
       }
     }
 
-    const tmpResult = result.map((operation) => {
+    const tmpResult = result.map(operation => {
       if (operation.type === BreakingChangeType.FIELD_REMOVED) {
         return {
           ...operation,
@@ -218,9 +235,17 @@ const Home: FC<IProps> = () => {
           {!!graphqlSdl.localTypeDefs && (
             <>
               {radioValue === OperationStatusTypeEnum.ALL && (
-                <div className={styles.flexLayout} attr-flex={changes.length >= 3 ? 'true' : 'false'}>
-                  {changes.map((change) => {
-                    return <OperationItem key={change.routePath} changeItem={change} navigate={navigate} />
+                <div
+                  className={styles.flexLayout}
+                  attr-flex={changes.length >= 3 ? 'true' : 'false'}>
+                  {changes.map(change => {
+                    return (
+                      <OperationItem
+                        key={change.routePath}
+                        changeItem={change}
+                        navigate={navigate}
+                      />
+                    )
                   })}
                 </div>
               )}
@@ -229,14 +254,21 @@ const Home: FC<IProps> = () => {
                 <div
                   className={styles.flexLayout}
                   attr-flex={
-                    changes.filter((change) => change.type === OperationStatusTypeEnum.DELETED).length >= 3
+                    changes.filter(
+                      change => change.type === OperationStatusTypeEnum.DELETED,
+                    ).length >= 3
                       ? 'true'
                       : 'false'
-                  }
-                >
-                  {changes.map((change) => {
+                  }>
+                  {changes.map(change => {
                     if (change.type === OperationStatusTypeEnum.DELETED) {
-                      return <OperationItem key={change.routePath} changeItem={change} navigate={navigate} />
+                      return (
+                        <OperationItem
+                          key={change.routePath}
+                          changeItem={change}
+                          navigate={navigate}
+                        />
+                      )
                     }
                     return null
                   })}
@@ -247,14 +279,21 @@ const Home: FC<IProps> = () => {
                 <div
                   className={styles.flexLayout}
                   attr-flex={
-                    changes.filter((change) => change.type === OperationStatusTypeEnum.EDITED).length >= 3
+                    changes.filter(
+                      change => change.type === OperationStatusTypeEnum.EDITED,
+                    ).length >= 3
                       ? 'true'
                       : 'false'
-                  }
-                >
-                  {changes.map((change) => {
+                  }>
+                  {changes.map(change => {
                     if (change.type === OperationStatusTypeEnum.EDITED) {
-                      return <OperationItem key={change.routePath} changeItem={change} navigate={navigate} />
+                      return (
+                        <OperationItem
+                          key={change.routePath}
+                          changeItem={change}
+                          navigate={navigate}
+                        />
+                      )
                     }
                     return null
                   })}
@@ -265,14 +304,21 @@ const Home: FC<IProps> = () => {
                 <div
                   className={styles.flexLayout}
                   attr-flex={
-                    changes.filter((change) => change.type === OperationStatusTypeEnum.ADDED).length >= 3
+                    changes.filter(
+                      change => change.type === OperationStatusTypeEnum.ADDED,
+                    ).length >= 3
                       ? 'true'
                       : 'false'
-                  }
-                >
-                  {changes.map((change) => {
+                  }>
+                  {changes.map(change => {
                     if (change.type === OperationStatusTypeEnum.ADDED) {
-                      return <OperationItem key={change.routePath} changeItem={change} navigate={navigate} />
+                      return (
+                        <OperationItem
+                          key={change.routePath}
+                          changeItem={change}
+                          navigate={navigate}
+                        />
+                      )
                     }
                     return null
                   })}

@@ -1,5 +1,8 @@
 export function memoize1<F extends (a1: any) => any>(fn: F): F {
-  const memoize1cache: WeakMap<Record<string, any>, WeakMap<Record<string, any>, any>> = new WeakMap()
+  const memoize1cache: WeakMap<
+    Record<string, any>,
+    WeakMap<Record<string, any>, any>
+  > = new WeakMap()
   return function memoized(a1: any): any {
     const cachedValue = memoize1cache.get(a1)
     if (cachedValue === undefined) {
@@ -13,7 +16,10 @@ export function memoize1<F extends (a1: any) => any>(fn: F): F {
 }
 
 export function memoize2<F extends (a1: any, a2: any) => any>(fn: F): F {
-  const memoize2cache: WeakMap<Record<string, any>, WeakMap<Record<string, any>, any>> = new WeakMap()
+  const memoize2cache: WeakMap<
+    Record<string, any>,
+    WeakMap<Record<string, any>, any>
+  > = new WeakMap()
   return function memoized(a1: any, a2: any): any {
     let cache2 = memoize2cache.get(a1)
     if (!cache2) {
@@ -35,8 +41,13 @@ export function memoize2<F extends (a1: any, a2: any) => any>(fn: F): F {
   } as F
 }
 
-export function memoize3<F extends (a1: any, a2: any, a3: any) => any>(fn: F): F {
-  const memoize3Cache: WeakMap<Record<string, any>, WeakMap<Record<string, any>, any>> = new WeakMap()
+export function memoize3<F extends (a1: any, a2: any, a3: any) => any>(
+  fn: F,
+): F {
+  const memoize3Cache: WeakMap<
+    Record<string, any>,
+    WeakMap<Record<string, any>, any>
+  > = new WeakMap()
   return function memoized(a1: any, a2: any, a3: any) {
     let cache2 = memoize3Cache.get(a1)
     if (!cache2) {
@@ -69,8 +80,13 @@ export function memoize3<F extends (a1: any, a2: any, a3: any) => any>(fn: F): F
   } as F
 }
 
-export function memoize4<F extends (a1: any, a2: any, a3: any, a4: any) => any>(fn: F): F {
-  const memoize4Cache: WeakMap<Record<string, any>, WeakMap<Record<string, any>, any>> = new WeakMap()
+export function memoize4<F extends (a1: any, a2: any, a3: any, a4: any) => any>(
+  fn: F,
+): F {
+  const memoize4Cache: WeakMap<
+    Record<string, any>,
+    WeakMap<Record<string, any>, any>
+  > = new WeakMap()
   return function memoized(a1: any, a2: any, a3: any, a4: any) {
     let cache2 = memoize4Cache.get(a1)
     if (!cache2) {
@@ -98,6 +114,7 @@ export function memoize4<F extends (a1: any, a2: any, a3: any, a4: any) => any>(
 
     const cache4 = cache3.get(a3)
     if (!cache4) {
+      // eslint-disable-next-line @typescript-eslint/no-shadow
       const cache4 = new WeakMap()
       cache3.set(a3, cache4)
       const newValue = fn(a1, a2, a3, a4)
@@ -116,8 +133,13 @@ export function memoize4<F extends (a1: any, a2: any, a3: any, a4: any) => any>(
   } as F
 }
 
-export function memoize5<F extends (a1: any, a2: any, a3: any, a4: any, a5: any) => any>(fn: F): F {
-  const memoize5Cache: WeakMap<Record<string, any>, WeakMap<Record<string, any>, any>> = new WeakMap()
+export function memoize5<
+  F extends (a1: any, a2: any, a3: any, a4: any, a5: any) => any,
+>(fn: F): F {
+  const memoize5Cache: WeakMap<
+    Record<string, any>,
+    WeakMap<Record<string, any>, any>
+  > = new WeakMap()
   return function memoized(a1: any, a2: any, a3: any, a4: any, a5: any) {
     let cache2 = memoize5Cache.get(a1)
     if (!cache2) {
@@ -178,8 +200,13 @@ export function memoize5<F extends (a1: any, a2: any, a3: any, a4: any, a5: any)
   } as F
 }
 
-export function memoize2of4<F extends (a1: any, a2: any, a3: any, a4: any) => any>(fn: F): F {
-  const memoize2of4cache: WeakMap<Record<string, any>, WeakMap<Record<string, any>, any>> = new WeakMap()
+export function memoize2of4<
+  F extends (a1: any, a2: any, a3: any, a4: any) => any,
+>(fn: F): F {
+  const memoize2of4cache: WeakMap<
+    Record<string, any>,
+    WeakMap<Record<string, any>, any>
+  > = new WeakMap()
   return function memoized(a1: any, a2: any, a3: any, a4: any): any {
     let cache2 = memoize2of4cache.get(a1)
     if (!cache2) {
@@ -201,8 +228,13 @@ export function memoize2of4<F extends (a1: any, a2: any, a3: any, a4: any) => an
   } as F
 }
 
-export function memoize2of5<F extends (a1: any, a2: any, a3: any, a4: any, a5: any) => any>(fn: F): F {
-  const memoize2of4cache: WeakMap<Record<string, any>, WeakMap<Record<string, any>, any>> = new WeakMap()
+export function memoize2of5<
+  F extends (a1: any, a2: any, a3: any, a4: any, a5: any) => any,
+>(fn: F): F {
+  const memoize2of4cache: WeakMap<
+    Record<string, any>,
+    WeakMap<Record<string, any>, any>
+  > = new WeakMap()
   return function memoized(a1: any, a2: any, a3: any, a4: any, a5: any): any {
     let cache2 = memoize2of4cache.get(a1)
     if (!cache2) {

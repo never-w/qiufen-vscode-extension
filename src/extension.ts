@@ -1,10 +1,14 @@
-import * as vscode from 'vscode'
-import { StatusBarItem } from 'vscode'
 import * as path from 'path'
-import type { Server } from 'http'
-import getWorkspaceConfig from './utils/getWorkspaceConfig'
-import { defaultQiufenConfig } from './config'
+
+import * as vscode from 'vscode'
+
 import { startServer } from '../mock_server/index'
+
+import { defaultQiufenConfig } from './config'
+import getWorkspaceConfig from './utils/getWorkspaceConfig'
+
+import type { Server } from 'http'
+import type { StatusBarItem } from 'vscode'
 
 let serverMock: Server
 let mockStatusBarItem: vscode.StatusBarItem
@@ -20,82 +24,124 @@ export function activate(context: vscode.ExtensionContext) {
       if (currentPanel) {
         currentPanel?.dispose()
       }
-      updateStatusBarItem(GraphqlQiufenProStartMockCommandId, `$(play) Qiufen Start`, mockStatusBarItem)
-    }),
-    vscode.commands.registerCommand(GraphqlQiufenProStartMockCommandId, async () => {
-      const { isExistConfigFile, url, port, qiufenConfig } = await getWorkspaceConfig(() => {
-        vscode.window.showErrorMessage('There is no configuration content.')
-      })
-      loadingStatusBarItem(mockStatusBarItem, 'Qiufen Loading')
-      if (isExistConfigFile) {
-        try {
-          serverMock = await startServer(qiufenConfig!)
-        } catch (err) {
-          vscode.window.showErrorMessage((err as Error).message)
-          updateStatusBarItem(GraphqlQiufenProStartMockCommandId, `$(play) Qiufen Start`, mockStatusBarItem)
-          throw err
-        }
-      } else {
-        try {
-          serverMock = await startServer({
-            port,
-            endpoint: {
-              url,
-            },
-            ...defaultQiufenConfig,
-          })
-        } catch (err) {
-          vscode.window.showErrorMessage((err as Error).message)
-          updateStatusBarItem(GraphqlQiufenProStartMockCommandId, `$(play) Qiufen Start`, mockStatusBarItem)
-          throw err
-        }
-      }
-
-      const res = await vscode.window.showInformationMessage(
-        '是否打开 Mock 网页Doc？',
-        {
-          modal: true,
-        },
-        '确定',
+      updateStatusBarItem(
+        GraphqlQiufenProStartMockCommandId,
+        `$(play) Qiufen Start`,
+        mockStatusBarItem,
       )
-
-      // 当点击确定时才打开网页
-      if (!!res) {
-        vscode.env.openExternal(vscode.Uri.parse(`http://localhost:${port}`))
-      } else {
-        // 打开vscode内置webview Doc
-        const columnToShowIn = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined
-        if (currentPanel) {
-          currentPanel.reveal(columnToShowIn)
-        }
-
-        if (!currentPanel) {
-          currentPanel = vscode.window.createWebviewPanel('graphql-qiufen-pro', 'Graphql Qiufen Pro', columnToShowIn!, {
-            retainContextWhenHidden: true, // 保证 Webview 所在页面进入后台时不被释放
-            enableScripts: true,
-          })
-          currentPanel.iconPath = vscode.Uri.file(path.join(context.extensionPath, 'assets/logo', 'qiufen-logo.png'))
-          currentPanel.webview.html = getWebviewContent(port)
-
-          // 当前面板被关闭后重置
-          currentPanel.onDidDispose(
-            () => {
-              currentPanel = undefined
-              vscode.commands.executeCommand(GraphqlQiufenProCloseMockCommandId)
-            },
-            null,
-            context.subscriptions,
-          )
-        }
-      }
-
-      updateStatusBarItem(GraphqlQiufenProCloseMockCommandId, `$(zap) Qiufen Closed`, mockStatusBarItem, 'yellow')
     }),
+    vscode.commands.registerCommand(
+      GraphqlQiufenProStartMockCommandId,
+      async () => {
+        const { isExistConfigFile, url, port, qiufenConfig } =
+          await getWorkspaceConfig(() => {
+            vscode.window.showErrorMessage('There is no configuration content.')
+          })
+        loadingStatusBarItem(mockStatusBarItem, 'Qiufen Loading')
+        if (isExistConfigFile) {
+          try {
+            serverMock = await startServer(qiufenConfig!)
+          } catch (err) {
+            vscode.window.showErrorMessage((err as Error).message)
+            updateStatusBarItem(
+              GraphqlQiufenProStartMockCommandId,
+              `$(play) Qiufen Start`,
+              mockStatusBarItem,
+            )
+            throw err
+          }
+        } else {
+          try {
+            serverMock = await startServer({
+              port,
+              endpoint: {
+                url,
+              },
+              ...defaultQiufenConfig,
+            })
+          } catch (err) {
+            vscode.window.showErrorMessage((err as Error).message)
+            updateStatusBarItem(
+              GraphqlQiufenProStartMockCommandId,
+              `$(play) Qiufen Start`,
+              mockStatusBarItem,
+            )
+            throw err
+          }
+        }
+
+        const res = await vscode.window.showInformationMessage(
+          '是否打开 Mock 网页Doc？',
+          {
+            modal: true,
+          },
+          '确定',
+        )
+
+        // 当点击确定时才打开网页
+        if (res) {
+          vscode.env.openExternal(vscode.Uri.parse(`http://localhost:${port}`))
+        } else {
+          // 打开vscode内置webview Doc
+          const columnToShowIn = vscode.window.activeTextEditor
+            ? vscode.window.activeTextEditor.viewColumn
+            : undefined
+          if (currentPanel) {
+            currentPanel.reveal(columnToShowIn)
+          }
+
+          if (!currentPanel) {
+            currentPanel = vscode.window.createWebviewPanel(
+              'graphql-qiufen-pro',
+              'Graphql Qiufen Pro',
+              columnToShowIn!,
+              {
+                retainContextWhenHidden: true, // 保证 Webview 所在页面进入后台时不被释放
+                enableScripts: true,
+              },
+            )
+            currentPanel.iconPath = vscode.Uri.file(
+              path.join(
+                context.extensionPath,
+                'assets/logo',
+                'qiufen-logo.png',
+              ),
+            )
+            currentPanel.webview.html = getWebviewContent(port)
+
+            // 当前面板被关闭后重置
+            currentPanel.onDidDispose(
+              () => {
+                currentPanel = undefined
+                vscode.commands.executeCommand(
+                  GraphqlQiufenProCloseMockCommandId,
+                )
+              },
+              null,
+              context.subscriptions,
+            )
+          }
+        }
+
+        updateStatusBarItem(
+          GraphqlQiufenProCloseMockCommandId,
+          `$(zap) Qiufen Closed`,
+          mockStatusBarItem,
+          'yellow',
+        )
+      },
+    ),
   )
 
   // 设置底部bar图标
-  mockStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left)
-  updateStatusBarItem(GraphqlQiufenProStartMockCommandId, `$(play) Qiufen Start`, mockStatusBarItem)
+  mockStatusBarItem = vscode.window.createStatusBarItem(
+    vscode.StatusBarAlignment.Left,
+  )
+  updateStatusBarItem(
+    GraphqlQiufenProStartMockCommandId,
+    `$(play) Qiufen Start`,
+    mockStatusBarItem,
+  )
   mockStatusBarItem.show()
 }
 
@@ -107,7 +153,12 @@ function loadingStatusBarItem(statusBarItem: StatusBarItem, text: string) {
   statusBarItem.show()
 }
 
-function updateStatusBarItem(commandId: string, text: string, statusBarItem: StatusBarItem, color?: string) {
+function updateStatusBarItem(
+  commandId: string,
+  text: string,
+  statusBarItem: StatusBarItem,
+  color?: string,
+) {
   statusBarItem.command = commandId
   statusBarItem.text = text
   statusBarItem.color = color
@@ -143,9 +194,3 @@ function getWebviewContent(port: number) {
           `
   return renderHtml
 }
-
-// TODO 暂时不删除以防后面记忆
-// const gqlDocSettingCommandId = "graphql-qiufen-pro.settings"
-// vscode.commands.registerCommand(gqlDocSettingCommandId, () => {
-//   vscode.commands.executeCommand("workbench.action.openSettings", "@ext:never-w.graphql-qiufen-pro")
-// }),

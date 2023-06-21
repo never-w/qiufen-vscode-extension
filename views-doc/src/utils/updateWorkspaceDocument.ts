@@ -1,6 +1,9 @@
-import {
+import { Kind } from 'graphql'
+
+import { capitalizeFirstLetter } from './dealWordFirstLetter'
+
+import type {
   DefinitionNode,
-  Kind,
   FieldNode,
   OperationDefinitionNode,
   VariableDefinitionNode,
@@ -10,7 +13,6 @@ import {
   InlineFragmentNode,
   ArgumentNode,
 } from 'graphql'
-import { capitalizeFirstLetter } from './dealWordFirstLetter'
 
 type CanWrite<T> = {
   -readonly [K in keyof T]: T[K]
@@ -31,7 +33,7 @@ function getArguments(
   }
 
   if (astNode.selectionSet) {
-    astNode.selectionSet!.selections.forEach((item) => {
+    astNode.selectionSet!.selections.forEach(item => {
       getArguments(item as FieldNode, args)
     })
   }
@@ -39,7 +41,7 @@ function getArguments(
   return args
     .filter(Boolean)
     .flat(Infinity)
-    .map((itm) => (itm?.value as VariableNode)?.name?.value) as string[]
+    .map(itm => (itm?.value as VariableNode)?.name?.value) as string[]
 }
 
 // 函数：检查参数名称冲突
@@ -47,10 +49,10 @@ function hasConflictingVariableDefinitions(
   filteredVars: ReadonlyArray<VariableDefinitionNode>,
   remoteVar: VariableDefinitionNode,
 ): boolean {
-  const filteredNames = filteredVars.map((v) => v.variable.name.value)
+  const filteredNames = filteredVars.map(v => v.variable.name.value)
   const remoteName = remoteVar.variable.name.value
 
-  return filteredNames.some((name) => remoteName === name)
+  return filteredNames.some(name => remoteName === name)
 }
 
 export function updateWorkspaceDocument(
@@ -58,12 +60,19 @@ export function updateWorkspaceDocument(
   remoteDefNode: DefinitionNode | FieldNode | InlineFragmentNode,
   remoteConflictingVariablesNames: ConflictingVariablesNames[] = [],
 ): DefinitionNode | null {
-  const localNode = workspaceDefNode as unknown as CanWrite<FieldNode> | ExecutableDefinitionNode
-  const remoteNode = remoteDefNode as unknown as FieldNode | ExecutableDefinitionNode
+  const localNode = workspaceDefNode as unknown as
+    | CanWrite<FieldNode>
+    | ExecutableDefinitionNode
+  const remoteNode = remoteDefNode as unknown as
+    | FieldNode
+    | ExecutableDefinitionNode
 
   let filteredNotUpdateField: FieldNode[] = []
 
-  if (localNode.kind === 'OperationDefinition' && remoteNode.kind === 'OperationDefinition') {
+  if (
+    localNode.kind === 'OperationDefinition' &&
+    remoteNode.kind === 'OperationDefinition'
+  ) {
     const localOperationNode = localNode as CanWrite<OperationDefinitionNode>
     const remoteOperationNode = remoteNode as OperationDefinitionNode
 
@@ -74,30 +83,40 @@ export function updateWorkspaceDocument(
         selectionSet: {
           ...localOperationNode.selectionSet,
           selections: localOperationNode.selectionSet!.selections.filter(
-            (selection) =>
+            selection =>
               (selection as FieldNode).name.value !==
-              (remoteOperationNode.selectionSet!.selections[0] as FieldNode).name.value,
+              (remoteOperationNode.selectionSet!.selections[0] as FieldNode)
+                .name.value,
           ),
         },
       })
 
       // 这里是得到聚合接口不需要更新的参数，是在 OperationDefinition层级上的参数
       const filterLocalOperationNodeVariables =
-        localOperationNode.variableDefinitions?.filter((varItm) => args.includes(varItm.variable.name.value)) || []
-      const filteredLocalOperationNodeVariablesNames = filterLocalOperationNodeVariables.map(
-        (v) => v.variable.name.value,
-      )
+        localOperationNode.variableDefinitions?.filter(varItm =>
+          args.includes(varItm.variable.name.value),
+        ) || []
+      const filteredLocalOperationNodeVariablesNames =
+        filterLocalOperationNodeVariables.map(v => v.variable.name.value)
       // 得到远程的 OperationDefinition层级上的参数，并解决名称冲突
       const remoteOperationNodeVariables =
-        remoteOperationNode.variableDefinitions?.map((varItm) => {
-          if (hasConflictingVariableDefinitions(filterLocalOperationNodeVariables, varItm)) {
-            const newNameValue = `${remoteOperationNode.name?.value}${capitalizeFirstLetter(
-              varItm.variable.name.value,
-            )}`
-            const isStillConflicting = filteredLocalOperationNodeVariablesNames.includes(newNameValue)
+        remoteOperationNode.variableDefinitions?.map(varItm => {
+          if (
+            hasConflictingVariableDefinitions(
+              filterLocalOperationNodeVariables,
+              varItm,
+            )
+          ) {
+            const newNameValue = `${
+              remoteOperationNode.name?.value
+            }${capitalizeFirstLetter(varItm.variable.name.value)}`
+            const isStillConflicting =
+              filteredLocalOperationNodeVariablesNames.includes(newNameValue)
             // 如果还是冲突就加上时间戳后缀
             const nameDate = +new Date()
-            const value = isStillConflicting ? `${newNameValue}${nameDate}` : newNameValue
+            const value = isStillConflicting
+              ? `${newNameValue}${nameDate}`
+              : newNameValue
 
             remoteConflictingVariablesNames.push({
               variableName: varItm.variable.name.value,
@@ -119,16 +138,22 @@ export function updateWorkspaceDocument(
           return varItm
         }) || []
 
-      localOperationNode.variableDefinitions = [...remoteOperationNodeVariables, ...filterLocalOperationNodeVariables]
+      localOperationNode.variableDefinitions = [
+        ...remoteOperationNodeVariables,
+        ...filterLocalOperationNodeVariables,
+      ]
     } else {
       // 普通接口
-      localOperationNode.variableDefinitions = remoteOperationNode.variableDefinitions
+      localOperationNode.variableDefinitions =
+        remoteOperationNode.variableDefinitions
     }
 
     // 聚合接口式，过滤出来不需要更新的 Field
     filteredNotUpdateField =
       (localNode.selectionSet!.selections.filter(
-        (itm) => (itm as FieldNode).name.value !== (remoteNode.selectionSet!.selections[0] as FieldNode).name.value,
+        itm =>
+          (itm as FieldNode).name.value !==
+          (remoteNode.selectionSet!.selections[0] as FieldNode).name.value,
       ) as unknown as FieldNode[]) || []
   }
 
@@ -139,9 +164,9 @@ export function updateWorkspaceDocument(
     }
 
     // 这里是为了解决参数冲突时，改掉FieldNode上对应位置的参数
-    localNode.arguments = remoteNode.arguments?.map((arg) => {
+    localNode.arguments = remoteNode.arguments?.map(arg => {
       const conflictingArg = remoteConflictingVariablesNames.find(
-        (itm) => itm.variableName === (arg.value as VariableNode).name.value,
+        itm => itm.variableName === (arg.value as VariableNode).name.value,
       )
 
       if (conflictingArg) {
@@ -192,52 +217,70 @@ export function updateWorkspaceDocument(
     // 根据selectionSet 递归条件
     // 更新已有字段
     localNode.selectionSet.selections = localNode.selectionSet.selections
-      .map((localSelection) => {
+      .map(localSelection => {
         if (localSelection.kind === Kind.INLINE_FRAGMENT) {
           const remoteSelection = remoteNode.selectionSet!.selections.find(
-            (remoteSelection) =>
-              (remoteSelection as InlineFragmentNode).typeCondition?.name.value ===
-              localSelection.typeCondition?.name.value,
+            // eslint-disable-next-line @typescript-eslint/no-shadow
+            remoteSelection =>
+              (remoteSelection as InlineFragmentNode).typeCondition?.name
+                .value === localSelection.typeCondition?.name.value,
           )
           if (!remoteSelection) {
             return null
           }
-          return updateWorkspaceDocument(localSelection, remoteSelection as FieldNode, remoteConflictingVariablesNames)
+          return updateWorkspaceDocument(
+            localSelection,
+            remoteSelection as FieldNode,
+            remoteConflictingVariablesNames,
+          )
         } else if (localSelection.kind === Kind.FRAGMENT_SPREAD) {
           // TODO 这种类型暂时没有涉及到
         } else {
           const remoteSelection = remoteNode.selectionSet!.selections.find(
-            (remoteSelection) => (remoteSelection as FieldNode).name?.value === localSelection.name.value,
+            // eslint-disable-next-line @typescript-eslint/no-shadow
+            remoteSelection =>
+              (remoteSelection as FieldNode).name?.value ===
+              localSelection.name.value,
           )
           if (!remoteSelection) {
             return null
           }
-          return updateWorkspaceDocument(localSelection, remoteSelection as FieldNode, remoteConflictingVariablesNames)
+          return updateWorkspaceDocument(
+            localSelection,
+            remoteSelection as FieldNode,
+            remoteConflictingVariablesNames,
+          )
         }
       })
       .filter(Boolean) as unknown as SelectionNode[]
 
     // 添加新字段
-    remoteNode.selectionSet.selections.forEach((remoteSelection) => {
+    remoteNode.selectionSet.selections.forEach(remoteSelection => {
       if (remoteSelection.kind === Kind.INLINE_FRAGMENT) {
         if (
           !localNode.selectionSet!.selections.some(
-            (localSelection) =>
-              (localSelection as InlineFragmentNode).typeCondition?.name.value ===
-              remoteSelection.typeCondition?.name.value,
+            localSelection =>
+              (localSelection as InlineFragmentNode).typeCondition?.name
+                .value === remoteSelection.typeCondition?.name.value,
           )
         ) {
-          ;(localNode.selectionSet!.selections as SelectionNode[]).push(remoteSelection)
+          ;(localNode.selectionSet!.selections as SelectionNode[]).push(
+            remoteSelection,
+          )
         }
       } else if (remoteSelection.kind === Kind.FRAGMENT_SPREAD) {
         // TODO 这种类型暂时没有涉及到
       } else {
         if (
           !localNode.selectionSet!.selections.some(
-            (localSelection) => (localSelection as FieldNode).name?.value === remoteSelection.name.value,
+            localSelection =>
+              (localSelection as FieldNode).name?.value ===
+              remoteSelection.name.value,
           )
         ) {
-          ;(localNode.selectionSet!.selections as SelectionNode[]).push(remoteSelection)
+          ;(localNode.selectionSet!.selections as SelectionNode[]).push(
+            remoteSelection,
+          )
         }
       }
     })
@@ -253,7 +296,10 @@ export function updateWorkspaceDocument(
       ...localNode,
       selectionSet: {
         ...localNode.selectionSet,
-        selections: [...localNode.selectionSet.selections, ...makeFieldNodeDescriptionComment(filteredNotUpdateField)],
+        selections: [
+          ...localNode.selectionSet.selections,
+          ...makeFieldNodeDescriptionComment(filteredNotUpdateField),
+        ],
       },
     } as DefinitionNode
   } else {
@@ -282,7 +328,7 @@ function traverseField(filed: FieldNode) {
   }
 
   if (filed?.selectionSet?.selections) {
-    filed.selectionSet.selections = filed.selectionSet.selections.map((node) =>
+    filed.selectionSet.selections = filed.selectionSet.selections.map(node =>
       traverseField(node as FieldNode),
     ) as unknown as SelectionNode[]
   }
@@ -292,7 +338,7 @@ function traverseField(filed: FieldNode) {
 
 function makeFieldNodeDescriptionComment(Fields: FieldNode[]) {
   return (
-    Fields.map((field) => {
+    Fields.map(field => {
       return traverseField(field)
     }) || []
   )
