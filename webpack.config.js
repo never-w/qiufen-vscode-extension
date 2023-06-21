@@ -9,7 +9,7 @@ const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 /** @type WebpackConfig */
 const extensionConfig = {
   target: 'node',
-  mode: 'development',
+  mode: 'production',
   entry: {
     mock_server: './mock_server/index.ts',
     extension: './src/extension.ts',
