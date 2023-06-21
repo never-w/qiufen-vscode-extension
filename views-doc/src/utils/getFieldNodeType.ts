@@ -1,6 +1,9 @@
-import { GraphQLField, Kind } from 'graphql'
-import { ArgTypeDef } from './interface'
-import { ArgColumnRecord } from '@/pages/doc-content/components/field-table'
+import { Kind } from 'graphql'
+
+import type { ArgColumnRecord } from '@/pages/doc-content/components/field-table'
+
+import type { ArgTypeDef } from '@fruits-chain/qiufen-pro-helpers'
+import type { GraphQLField } from 'graphql'
 
 function dfs(filedType: any): string {
   if (filedType.kind === Kind.LIST_TYPE) {
@@ -28,7 +31,11 @@ export function getFieldNodeType(field: GraphQLField<any, any, any>) {
   return filedType?.name?.value
 }
 
-export const getArgsTreeDataTypeList = (args: ArgTypeDef[], keyPrefix = '', variablesTypeList: any[] = []) => {
+export const getArgsTreeDataTypeList = (
+  args: ArgTypeDef[],
+  keyPrefix = '',
+  variablesTypeList: any[] = [],
+) => {
   const result: ArgColumnRecord[] = args.map(({ type, ...originData }) => {
     const key = `${keyPrefix}${originData.name}`
     let children: ArgColumnRecord['children'] = []

@@ -1,7 +1,12 @@
-import { Kind, OperationDefinitionNode, parse, visit } from 'graphql'
-import { NewFieldNodeType } from './interface'
-import { OperationDefinitionNodeGroupType } from './operations'
+import { Kind, parse, visit } from 'graphql'
+
 import { printOneOperation } from './printBatchOperations'
+
+import type {
+  NewFieldNodeType,
+  OperationDefinitionNodeGroupType,
+} from '@fruits-chain/qiufen-pro-helpers'
+import type { OperationDefinitionNode } from 'graphql'
 
 export function relyOnKeysPrintOperation(
   operationDefAst: OperationDefinitionNodeGroupType | OperationDefinitionNode,
@@ -20,7 +25,10 @@ export function relyOnKeysPrintOperation(
   })
 
   try {
-    const operationStr = printOneOperation(updateOperationDefAst, isAllAddComment)
+    const operationStr = printOneOperation(
+      updateOperationDefAst,
+      isAllAddComment,
+    )
     parse(operationStr)
     return Promise.resolve(operationStr)
   } catch {
