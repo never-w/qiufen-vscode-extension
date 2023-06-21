@@ -1,4 +1,5 @@
 const path = require('path')
+
 const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 
 //@ts-check
@@ -18,6 +19,7 @@ const extensionConfig = {
     filename: '[name].js',
     libraryTarget: 'commonjs-module',
   },
+  // eslint-disable-next-line no-dupe-keys
   externals: {
     vscode: 'commonjs vscode',
   },

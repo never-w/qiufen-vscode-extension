@@ -166,6 +166,7 @@ export async function startServer(config: GraphqlKitConfig) {
   try {
     await portscanner.findAPortNotInUse([port])
     const expressServer = app.listen(port, () => {
+      // eslint-disable-next-line no-console
       console.log(`Server listening on port http://localhost:${port}/graphql`)
     })
 
