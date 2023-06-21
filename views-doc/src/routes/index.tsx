@@ -1,10 +1,12 @@
 import React from 'react'
-import NoMatch from '@/pages/no-match'
-import { RouteObject } from 'react-router-dom'
+
 import Layout from '@/layout'
-import SideContent from '@/pages/side-content'
 import DocContent from '@/pages/doc-content'
 import Home from '@/pages/home'
+import NoMatch from '@/pages/no-match'
+import SideContent from '@/pages/side-content'
+
+import type { RouteObject } from 'react-router-dom'
 
 const routes: RouteObject[] = [
   {

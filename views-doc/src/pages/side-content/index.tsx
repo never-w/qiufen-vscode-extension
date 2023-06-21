@@ -27,7 +27,7 @@ const SideContent: FC<IProps> = () => {
 
   useLayoutEffect(() => {
     captureMessage()
-  }, [])
+  }, [captureMessage])
 
   const operationObjList = useMemo(() => {
     let result: OperationNodesForFieldAstBySchemaReturnType[] = []

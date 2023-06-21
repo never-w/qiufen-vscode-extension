@@ -6,13 +6,16 @@ import {
   dependOnSelectedAndKeyFieldAst,
   getFieldNodeAstCheckedIsTrueKeys,
 } from '@/utils/dependOnSelectedAndKeyFieldAst'
-import type { ArgTypeDef, NewFieldNodeType } from '@/utils/interface'
 import type { OperationDefsForFieldNodeTreeReturnType } from '@/utils/resolveOperationDefsForFieldNodeTree'
 import { getOperationDefsForFieldNodeTreeDepthKeys } from '@/utils/resolveOperationDefsForFieldNodeTree'
 
 import styles from './index.module.less'
 
-import type { OperationDefinitionNodeGroupType } from '@fruits-chain/qiufen-pro-helpers'
+import type {
+  ArgTypeDef,
+  NewFieldNodeType,
+  OperationDefinitionNodeGroupType,
+} from '@fruits-chain/qiufen-pro-helpers'
 import type { ColumnsType } from 'antd/es/table'
 import type { ConstDirectiveNode } from 'graphql'
 import type { FC } from 'react'

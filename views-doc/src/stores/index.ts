@@ -1,5 +1,7 @@
-import { DefinitionNode } from 'graphql'
-import create, { SetState } from 'zustand'
+import create from 'zustand'
+
+import type { DefinitionNode } from 'graphql'
+import type { SetState } from 'zustand'
 
 export enum MessageEnum {
   FETCH = 'FETCH',
@@ -39,7 +41,7 @@ interface BearState extends MessageEvent {
   setState: SetState<BearState>
 }
 
-const useBearStore = create<BearState>((set) => {
+const useBearStore = create<BearState>(set => {
   return {
     port: 9400,
     maxDepth: 2,
@@ -53,19 +55,22 @@ const useBearStore = create<BearState>((set) => {
     workspaceGqlFileInfo: [],
     isDisplaySidebar: true,
     fetchRemoteTypeDefs() {
-      return new Promise((resolve) => {
+      return new Promise(resolve => {
         fetch(`/operations`)
-          .then((response) => response.json())
-          .then((data) => {
-            resolve({ typeDefs: data.typeDefs, localTypeDefs: data.localTypeDefs })
+          .then(response => response.json())
+          .then(data => {
+            resolve({
+              typeDefs: data.typeDefs,
+              localTypeDefs: data.localTypeDefs,
+            })
           })
       })
     },
     captureMessage() {
-      return new Promise((resolve) => {
+      return new Promise(resolve => {
         fetch(`/operations`)
-          .then((response) => response.json())
-          .then((data) => {
+          .then(response => response.json())
+          .then(data => {
             set(data)
             resolve(true)
           })
@@ -73,10 +78,10 @@ const useBearStore = create<BearState>((set) => {
     },
     setState: set,
     reloadOperations() {
-      return new Promise((resolve) => {
+      return new Promise(resolve => {
         fetch(`/reload/operations`)
-          .then((response) => response.json())
-          .then((data) => {
+          .then(response => response.json())
+          .then(data => {
             set(data)
             resolve(true)
           })

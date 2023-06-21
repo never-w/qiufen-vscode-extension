@@ -2,10 +2,10 @@ import { Form, Modal, Select, message } from 'antd'
 import React, { memo, useCallback } from 'react'
 
 import useBearStore from '@/stores'
-import type { OperationDefinitionNodeGroupType } from '@/utils/operations'
 import { relyOnKeysPrintOperation } from '@/utils/relyOnKeysPrintOperation'
 
 import type { GetWorkspaceGqlFileInfoReturnType } from '../operation-doc'
+import type { OperationDefinitionNodeGroupType } from '@fruits-chain/qiufen-pro-helpers'
 import type { FC } from 'react'
 
 interface IProps {

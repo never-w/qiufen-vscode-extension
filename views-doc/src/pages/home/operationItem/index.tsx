@@ -10,7 +10,7 @@ import type { NavigateFunction } from 'react-router-dom'
 interface IProps {
   changeItem: {
     type: OperationStatusTypeEnum
-    operationComment?: any
+    operationComment?: string
     operationType?: string | undefined
     operationName?: string | undefined
     routePath: string

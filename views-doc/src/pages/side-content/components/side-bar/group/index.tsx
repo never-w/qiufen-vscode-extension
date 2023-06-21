@@ -7,11 +7,11 @@ import React, { useEffect, useRef, memo } from 'react'
 import { Link } from 'react-router-dom'
 
 import useBearStore from '@/stores'
-import type { OperationDefinitionNodeGroupType } from '@/utils/operations'
 import { printBatchOperations } from '@/utils/printBatchOperations'
 
 import styles from './index.module.less'
 
+import type { OperationDefinitionNodeGroupType } from '@fruits-chain/qiufen-pro-helpers'
 import type { ListRef } from 'rc-virtual-list'
 import type { FC } from 'react'
 
@@ -116,6 +116,7 @@ const copy = (selector: string) => {
 }
 
 const getOperationNameValue = (name = '') => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_, val] = name.split(':')
   return val
 }

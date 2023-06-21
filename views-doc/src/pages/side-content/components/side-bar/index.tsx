@@ -10,14 +10,16 @@ import classnames from 'classnames'
 import React, { memo, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import type { NewFieldNodeType } from '@/utils/interface'
-import type { OperationDefinitionNodeGroupType } from '@/utils/operations'
 import { groupOperations as groupOperationsCopy } from '@/utils/operations'
 
 import SiderGroup from './group'
 import styles from './index.module.less'
 
-import type { OperationNodesForFieldAstBySchemaReturnType } from '@fruits-chain/qiufen-pro-helpers'
+import type {
+  NewFieldNodeType,
+  OperationDefinitionNodeGroupType,
+  OperationNodesForFieldAstBySchemaReturnType,
+} from '@fruits-chain/qiufen-pro-helpers'
 import type { CollapseProps } from 'antd'
 import type { FC } from 'react'
 
@@ -72,6 +74,7 @@ const DocSidebar: FC<IProps> = ({
     ][]
     if (newKeyword) {
       exactGroupedOperationsEntries = groupedOperationsEntries.filter(
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         ([groupName, operationData]) => {
           const names = operationData.map(i => i.name?.value)
           return names.includes(newKeyword)
