@@ -3,6 +3,8 @@ import * as path from 'path'
 
 import * as vscode from 'vscode'
 
+import type { GraphqlKitConfig } from '@fruits-chain/qiufen-pro-graphql-mock'
+
 /** 获取工作区qiufen配置 */
 async function getWorkspaceConfig(tryCatchCallback?: () => void) {
   const workspaceRootPath = vscode.workspace.workspaceFolders?.[0].uri.fsPath // 工作区根目录

@@ -1,25 +1,31 @@
-import * as vscode from 'vscode'
+import path from 'path'
+
 import { ApolloServer } from '@apollo/server'
+import { expressMiddleware } from '@apollo/server/express4'
+import { fetchTypeDefs } from '@fruits-chain/qiufen-pro-helpers'
 import { addMocksToSchema } from '@graphql-tools/mock'
 import { makeExecutableSchema } from '@graphql-tools/schema'
-import { expressMiddleware } from '@apollo/server/express4'
-import cors from 'cors'
 import { json } from 'body-parser'
+import cors from 'cors'
 import express from 'express'
-import path from 'path'
-import fetchRemoteSchemaTypeDefs from '../views-doc/src/utils/fetchRemoteSchemaTypeDefs'
+import { buildSchema, printSchema, lexicographicSortSchema } from 'graphql'
+import portscanner from 'portscanner'
+import * as vscode from 'vscode'
+
+import getIpAddress from './utils/getIpAddress'
+import readLocalSchemaTypeDefs from './utils/readLocalSchemaTypeDefs'
 import {
   getWorkspaceAllGqlResolveFilePaths,
   getWorkspaceGqlFileInfo,
   getWorkspaceGqls,
   fillOperationInWorkspace,
+} from './utils/syncWorkspaceGqls'
+
+import type {
   GetWorkspaceGqlFileInfoReturnType,
   ReturnTypeGetWorkspaceGqlFileInfo,
-} from '../views-doc/src/utils/syncWorkspaceGqls'
-import readLocalSchemaTypeDefs from '../views-doc/src/utils/readLocalSchemaTypeDefs'
-import getIpAddress from '../views-doc/src/utils/getIpAddress'
-import portscanner from 'portscanner'
-import { buildSchema, printSchema, lexicographicSortSchema, GraphQLSchema } from 'graphql'
+} from './utils/syncWorkspaceGqls'
+import type { GraphQLSchema } from 'graphql'
 
 export async function startServer(config: GraphqlKitConfig) {
   const { endpoint, port, mock } = config
@@ -27,7 +33,7 @@ export async function startServer(config: GraphqlKitConfig) {
 
   const app = express()
 
-  let backendTypeDefs = await fetchRemoteSchemaTypeDefs(endpoint.url)
+  let backendTypeDefs = await fetchTypeDefs(endpoint.url)
 
   const server = new ApolloServer({
     schema: addMocksToSchema({
@@ -40,16 +46,20 @@ export async function startServer(config: GraphqlKitConfig) {
   let resolveGqlFiles: string[] = []
   let workspaceGqlFileInfo: ReturnTypeGetWorkspaceGqlFileInfo = []
   let workspaceGqlNames: string[] = []
-  let localTypeDefs: string = ''
+  let localTypeDefs = ''
   let sortLocalSchema: GraphQLSchema
   let sortRemoteSchema: GraphQLSchema
-  let newLocalTypeDefs: string = ''
-  let newRemoteTypeDefs: string = ''
+  let newLocalTypeDefs = ''
+  let newRemoteTypeDefs = ''
 
   resolveGqlFiles = getWorkspaceAllGqlResolveFilePaths()
   workspaceGqlFileInfo = getWorkspaceGqlFileInfo(resolveGqlFiles)
-  workspaceGqlNames = workspaceGqlFileInfo.map((itm) => itm.operationNames).flat(Infinity) as string[]
-  localTypeDefs = readLocalSchemaTypeDefs(jsonSettings.patternSchemaRelativePath)
+  workspaceGqlNames = workspaceGqlFileInfo
+    .map(itm => itm.operationNames)
+    .flat(Infinity) as string[]
+  localTypeDefs = readLocalSchemaTypeDefs(
+    jsonSettings.patternSchemaRelativePath,
+  )
   // 排序
   sortLocalSchema = lexicographicSortSchema(buildSchema(localTypeDefs))
   sortRemoteSchema = lexicographicSortSchema(buildSchema(backendTypeDefs))
@@ -59,7 +69,12 @@ export async function startServer(config: GraphqlKitConfig) {
 
   // 启动服务
   await server.start()
-  app.use('/graphql', cors<cors.CorsRequest>(), json(), expressMiddleware(server))
+  app.use(
+    '/graphql',
+    cors<cors.CorsRequest>(),
+    json(),
+    expressMiddleware(server),
+  )
   app.use(cors())
   app.use(json({ limit: Infinity }))
 
@@ -79,11 +94,15 @@ export async function startServer(config: GraphqlKitConfig) {
 
   app.get('/reload/operations', async (req, res) => {
     // 这里再次获取后端sdl，是因为web网页在reload时要及时更新
-    backendTypeDefs = await fetchRemoteSchemaTypeDefs(endpoint.url)
+    backendTypeDefs = await fetchTypeDefs(endpoint.url)
     resolveGqlFiles = getWorkspaceAllGqlResolveFilePaths()
     workspaceGqlFileInfo = getWorkspaceGqlFileInfo(resolveGqlFiles)
-    workspaceGqlNames = workspaceGqlFileInfo.map((itm) => itm.operationNames).flat(Infinity) as string[]
-    localTypeDefs = readLocalSchemaTypeDefs(jsonSettings.patternSchemaRelativePath)
+    workspaceGqlNames = workspaceGqlFileInfo
+      .map(itm => itm.operationNames)
+      .flat(Infinity) as string[]
+    localTypeDefs = readLocalSchemaTypeDefs(
+      jsonSettings.patternSchemaRelativePath,
+    )
     // 排序
     sortLocalSchema = lexicographicSortSchema(buildSchema(localTypeDefs))
     sortRemoteSchema = lexicographicSortSchema(buildSchema(backendTypeDefs))
@@ -113,7 +132,12 @@ export async function startServer(config: GraphqlKitConfig) {
         res.send({ message: workspaceRes })
       } else {
         // 本地更新时需要全字段comment ---> true，所以传入 true
-        fillOperationInWorkspace(workspaceRes[0].filename, operationStr, workspaceRes[0].document, true)
+        fillOperationInWorkspace(
+          workspaceRes[0].filename,
+          operationStr,
+          workspaceRes[0].document,
+          true,
+        )
         res.send({ message: '一键填入成功' })
       }
     } catch (error) {

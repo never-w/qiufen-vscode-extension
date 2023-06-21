@@ -1,14 +1,15 @@
 import fs from 'fs'
 import path from 'path'
 
+import {
+  parseOperationWithDescriptions,
+  printWithComments,
+  updateOperationDefAst,
+} from '@fruits-chain/qiufen-pro-helpers'
 import glob from 'glob'
 import _ from 'lodash'
 import { workspace, window } from 'vscode'
 import * as vscode from 'vscode'
-
-import { printWithComments as print } from './comment'
-import { transformCommentsToDescriptions as parse } from './parseGqlToAstWithComment'
-import { updateWorkspaceDocument } from './updateWorkspaceDocument'
 
 import type {
   DefinitionNode,
@@ -26,7 +27,7 @@ export function fillOperationInWorkspace(
   isAllAddComment = false,
 ) {
   const workspaceDocumentAst = _.cloneDeep(documentAst)
-  const remoteDocumentAst = parse(gql)
+  const remoteDocumentAst = parseOperationWithDescriptions(gql)
 
   // 更新本地AST
   const updatedWorkspaceAst: DocumentNode = {
@@ -58,13 +59,16 @@ export function fillOperationInWorkspace(
         if (!remoteDefinition) {
           return workspaceDefinition
         }
-        return updateWorkspaceDocument(workspaceDefinition, remoteDefinition)
+        return updateOperationDefAst(workspaceDefinition, remoteDefinition)
       })
       .filter(Boolean) as DefinitionNode[],
   }
 
   // 将AST转换回查询字符串
-  const updateWorkspaceDocumentStr = print(updatedWorkspaceAst, isAllAddComment)
+  const updateWorkspaceDocumentStr = printWithComments(
+    updatedWorkspaceAst,
+    isAllAddComment,
+  )
   fs.writeFileSync(filePath, updateWorkspaceDocumentStr)
 }
 
@@ -130,7 +134,7 @@ export function getWorkspaceGqlFileInfo(files: string[]) {
     let workspaceDocumentAst: DocumentNode
     try {
       // 这里验证一下本地 gql 接口语法错误没有
-      workspaceDocumentAst = parse(content)
+      workspaceDocumentAst = parseOperationWithDescriptions(content)
     } catch {
       window.showErrorMessage(`${file}: GraphQL Syntax Error`)
       return {

@@ -1,6 +1,7 @@
-import { window, workspace } from 'vscode'
-import * as path from 'path'
 import fs from 'fs'
+import * as path from 'path'
+
+import { window, workspace } from 'vscode'
 
 function readLocalSchemaTypeDefs(filePath: string) {
   const workspaceRootPath = workspace.workspaceFolders?.[0].uri.fsPath // 工作区根目录
