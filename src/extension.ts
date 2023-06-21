@@ -164,8 +164,6 @@ function updateStatusBarItem(
   statusBarItem.color = color
 }
 
-export function deactivate(context: vscode.ExtensionContext) {}
-
 function getWebviewContent(port: number) {
   const renderHtml = `
     <!DOCTYPE html>
