@@ -1,4 +1,6 @@
-import React, { FC } from 'react'
+import React from 'react'
+
+import type { FC } from 'react'
 
 interface IProps {}
 
@@ -13,8 +15,7 @@ const NoMatch: FC<IProps> = () => {
         height: 'calc(100vh - 200px)',
         backgroundColor: '#fff',
         fontWeight: 'bold',
-      }}
-    >
+      }}>
       报错啦 404...
     </div>
   )

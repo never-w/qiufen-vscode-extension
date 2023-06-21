@@ -1,9 +1,12 @@
-import useBearStore from '@/stores'
-import { OperationDefinitionNodeGroupType } from '@/utils/operations'
-import { relyOnKeysPrintOperation } from '@/utils/relyOnKeysPrintOperation'
-import { GetWorkspaceGqlFileInfoReturnType } from '@/utils/syncWorkspaceGqls'
 import { Form, Modal, Select, message } from 'antd'
-import React, { FC, memo, useCallback } from 'react'
+import React, { memo, useCallback } from 'react'
+
+import useBearStore from '@/stores'
+import type { OperationDefinitionNodeGroupType } from '@/utils/operations'
+import { relyOnKeysPrintOperation } from '@/utils/relyOnKeysPrintOperation'
+
+import type { GetWorkspaceGqlFileInfoReturnType } from '../operation-doc'
+import type { FC } from 'react'
 
 interface IProps {
   isModalOpen: boolean
@@ -20,22 +23,28 @@ const InSetModal: FC<IProps> = ({
   isModalOpen,
   onCancel,
 }) => {
-  const { isAllAddComment } = useBearStore((ste) => ste)
+  const { isAllAddComment } = useBearStore(ste => ste)
 
   const [form] = Form.useForm()
 
   const onOk = useCallback(() => {
-    form.validateFields().then(async (res) => {
+    form.validateFields().then(async res => {
       let operationStr: string | undefined
       try {
-        operationStr = await relyOnKeysPrintOperation(operationDefNode, selectedKeys, isAllAddComment)
+        operationStr = await relyOnKeysPrintOperation(
+          operationDefNode,
+          selectedKeys,
+          isAllAddComment,
+        )
       } catch (error) {
         message.error(error)
       }
 
       if (operationStr) {
         const { filenameList } = res
-        const info = filteredWorkspaceGqlFileInfo.filter((itm) => filenameList.includes(itm.filename))
+        const info = filteredWorkspaceGqlFileInfo.filter(itm =>
+          filenameList.includes(itm.filename),
+        )
 
         // TODO: 查看参数 多少kb
         // const json = JSON.stringify({ info, gql: operationStr })
@@ -50,11 +59,11 @@ const InSetModal: FC<IProps> = ({
           },
           body: JSON.stringify({ info, gql: operationStr }),
         })
-          .then((response) => response.json())
-          .then((data) => {
+          .then(response => response.json())
+          .then(data => {
             message.success(data.message)
           })
-          .catch((error) => {
+          .catch(error => {
             message.error(error.message)
           })
           .finally(() => {
@@ -62,16 +71,25 @@ const InSetModal: FC<IProps> = ({
           })
       }
     })
-  }, [filteredWorkspaceGqlFileInfo, form, isAllAddComment, onCancel, operationDefNode, selectedKeys])
+  }, [
+    filteredWorkspaceGqlFileInfo,
+    form,
+    isAllAddComment,
+    onCancel,
+    operationDefNode,
+    selectedKeys,
+  ])
 
   return (
     <Modal title="路径选择" open={isModalOpen} onOk={onOk} onCancel={onCancel}>
       <Form form={form}>
-        <Form.Item name="filenameList" rules={[{ message: '请选择路径', required: true }]}>
+        <Form.Item
+          name="filenameList"
+          rules={[{ message: '请选择路径', required: true }]}>
           <Select
             mode="tags"
             options={
-              filteredWorkspaceGqlFileInfo?.map((val) => ({
+              filteredWorkspaceGqlFileInfo?.map(val => ({
                 value: val.filename,
                 label: val.filename,
               })) || []

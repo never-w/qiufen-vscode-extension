@@ -22,11 +22,8 @@ import {
   dependOnSelectedAndKeyFieldAst,
 } from '@/utils/dependOnSelectedAndKeyFieldAst'
 import { getWorkspaceOperationsExistFieldKeys } from '@/utils/getWorkspaceOperationsExistFieldKeys'
-import type { NewFieldNodeType } from '@/utils/interface'
-import type { OperationNodesForFieldAstBySchemaReturnType } from '@/utils/operations'
 import { relyOnKeysPrintOperation } from '@/utils/relyOnKeysPrintOperation'
 import { resolveOperationDefsForFieldNodeTree } from '@/utils/resolveOperationDefsForFieldNodeTree'
-import type { GetWorkspaceGqlFileInfoReturnType } from '@/utils/syncWorkspaceGqls'
 
 import DiffViewer from '../diff-viewer'
 import FieldTable from '../field-table'
@@ -35,11 +32,28 @@ import OperationStructure from '../operation-structure'
 
 import styles from './index.module.less'
 
-import type { FieldNode, OperationDefinitionNode } from 'graphql'
+import type {
+  NewFieldNodeType,
+  OperationNodesForFieldAstBySchemaReturnType,
+} from '@fruits-chain/qiufen-pro-helpers'
+import type {
+  DefinitionNode,
+  DocumentNode,
+  FieldNode,
+  OperationDefinitionNode,
+} from 'graphql'
 import type { FC } from 'react'
 
 interface IProps {
-  operationObj: OperationNodesForFieldAstBySchemaReturnType[number]
+  operationObj: OperationNodesForFieldAstBySchemaReturnType
+}
+
+export type GetWorkspaceGqlFileInfoReturnType = {
+  filename: string
+  content: string
+  document: DocumentNode
+  operationsAsts: DefinitionNode[]
+  operationNames: string[]
 }
 
 export enum SwitchToggleEnum {

@@ -1,19 +1,21 @@
 import { Divider, Table, Tag } from 'antd'
-import { ColumnsType } from 'antd/es/table'
-import React, { FC, useMemo } from 'react'
-import { ArgTypeDef, NewFieldNodeType } from '@/utils/interface'
-import { OperationDefinitionNodeGroupType } from '@/utils/operations'
-import styles from './index.module.less'
-import { ConstDirectiveNode } from 'graphql'
+import React, { useMemo } from 'react'
+
+import useBearStore from '@/stores'
 import {
   dependOnSelectedAndKeyFieldAst,
   getFieldNodeAstCheckedIsTrueKeys,
 } from '@/utils/dependOnSelectedAndKeyFieldAst'
-import {
-  OperationDefsForFieldNodeTreeReturnType,
-  getOperationDefsForFieldNodeTreeDepthKeys,
-} from '@/utils/resolveOperationDefsForFieldNodeTree'
-import useBearStore from '@/stores'
+import type { ArgTypeDef, NewFieldNodeType } from '@/utils/interface'
+import type { OperationDefsForFieldNodeTreeReturnType } from '@/utils/resolveOperationDefsForFieldNodeTree'
+import { getOperationDefsForFieldNodeTreeDepthKeys } from '@/utils/resolveOperationDefsForFieldNodeTree'
+
+import styles from './index.module.less'
+
+import type { OperationDefinitionNodeGroupType } from '@fruits-chain/qiufen-pro-helpers'
+import type { ColumnsType } from 'antd/es/table'
+import type { ConstDirectiveNode } from 'graphql'
+import type { FC } from 'react'
 
 interface IProps {
   isShow: boolean
@@ -90,7 +92,7 @@ const getArgsTreeData = (args: ArgTypeDef[], keyPrefix = '') => {
         children = getArgsTreeData(type.fields, key)
         break
       case 'Enum':
-        children = type.values.map((item) => ({
+        children = type.values.map(item => ({
           key: key + item.value,
           name: item.name,
           type: '',
@@ -138,13 +140,16 @@ const FieldTable: FC<IProps> = ({
   setSelectedKeys,
   fieldNodeAstTreeTmp,
 }) => {
-  const { maxDepth } = useBearStore((ste) => ste)
+  const { maxDepth } = useBearStore(ste => ste)
 
   const argsTreeData = useMemo(() => {
     return getArgsTreeData(operationDefNode.args)
   }, [operationDefNode.args])
 
-  const defaultExpandedRowKeys = getOperationDefsForFieldNodeTreeDepthKeys(fieldNodeAstTreeTmp, maxDepth)
+  const defaultExpandedRowKeys = getOperationDefsForFieldNodeTreeDepthKeys(
+    fieldNodeAstTreeTmp,
+    maxDepth,
+  )
 
   return (
     <>
@@ -192,7 +197,11 @@ const FieldTable: FC<IProps> = ({
             hideSelectAll: true,
             onSelect: (record, selected) => {
               const key = record.fieldKey
-              const newFieldNodeAstTree = dependOnSelectedAndKeyFieldAst(fieldNodeAstTree, selected, key)
+              const newFieldNodeAstTree = dependOnSelectedAndKeyFieldAst(
+                fieldNodeAstTree,
+                selected,
+                key,
+              )
               const keys = getFieldNodeAstCheckedIsTrueKeys(newFieldNodeAstTree)
 
               setFieldNodeAstTree(newFieldNodeAstTree)

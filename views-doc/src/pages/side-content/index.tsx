@@ -1,3 +1,4 @@
+import { getOperationNodesForFieldAstBySchema } from '@fruits-chain/qiufen-pro-helpers'
 import { useMemoizedFn } from 'ahooks'
 import { Spin, message } from 'antd'
 import { buildSchema } from 'graphql'
@@ -5,11 +6,10 @@ import React, { useEffect, useLayoutEffect, useMemo, useState } from 'react'
 import { Outlet, useParams } from 'react-router-dom'
 
 import useBearStore from '@/stores'
-import type { OperationNodesForFieldAstBySchemaReturnType } from '@/utils/operations'
-import { getOperationNodesForFieldAstBySchema } from '@/utils/operations'
 
 import DocSidebar from './components/side-bar/index'
 
+import type { OperationNodesForFieldAstBySchemaReturnType } from '@fruits-chain/qiufen-pro-helpers'
 import type { FC } from 'react'
 
 interface IProps {}
@@ -30,7 +30,7 @@ const SideContent: FC<IProps> = () => {
   }, [])
 
   const operationObjList = useMemo(() => {
-    let result: OperationNodesForFieldAstBySchemaReturnType = []
+    let result: OperationNodesForFieldAstBySchemaReturnType[] = []
     if (typeDefs) {
       const schema = buildSchema(typeDefs)
       result = getOperationNodesForFieldAstBySchema(schema)

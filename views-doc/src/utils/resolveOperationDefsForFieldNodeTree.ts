@@ -1,12 +1,17 @@
-import { NewFieldNodeType } from './interface'
+import type { NewFieldNodeType } from '@fruits-chain/qiufen-pro-helpers'
 
-export type OperationDefsForFieldNodeTreeReturnType = ReturnType<typeof resolveOperationDefsForFieldNodeTree>
+export type OperationDefsForFieldNodeTreeReturnType = ReturnType<
+  typeof resolveOperationDefsForFieldNodeTree
+>
 
-export function resolveOperationDefsForFieldNodeTree(fieldNode: NewFieldNodeType, depth = 0) {
+export function resolveOperationDefsForFieldNodeTree(
+  fieldNode: NewFieldNodeType,
+  depth = 0,
+) {
   const newFieldNode = { ...fieldNode, depth }
 
   if (newFieldNode?.selectionSet) {
-    newFieldNode.children = newFieldNode?.selectionSet?.selections.map((itm) =>
+    newFieldNode.children = newFieldNode?.selectionSet?.selections.map(itm =>
       resolveOperationDefsForFieldNodeTree(itm as NewFieldNodeType, depth + 1),
     ) as NewFieldNodeType[]
     delete newFieldNode?.selectionSet
@@ -25,7 +30,7 @@ export function getOperationDefsForFieldNodeTreeDepthKeys(
   }
 
   if (fieldNode?.children?.length) {
-    fieldNode.children.forEach((child) => {
+    fieldNode.children.forEach(child => {
       getOperationDefsForFieldNodeTreeDepthKeys(child, maxDepth, keys)
     })
   }

@@ -1,14 +1,20 @@
+import { buildOperationNodeForField } from '@fruits-chain/qiufen-pro-helpers'
 import { Space, message } from 'antd'
-import React, { FC, useMemo } from 'react'
+import { buildSchema } from 'graphql'
+import React, { useMemo } from 'react'
 import ReactDiffViewer, { DiffMethod } from 'react-diff-viewer'
-import useBearStore from '@/stores'
-import { GraphQLSchema, buildSchema } from 'graphql'
-import { defaultLocalTypeDefs } from '@/config/const'
-import { OperationDefinitionNodeGroupType, genArgsExample } from '@/utils/operations'
-import { buildOperationNodeForField } from '@/utils/buildOperationNodeForField'
 import obj2str from 'stringify-object'
+
+import { defaultLocalTypeDefs } from '@/config/const'
+import useBearStore from '@/stores'
+import { genArgsExample } from '@/utils/operations'
 import { printOneOperation } from '@/utils/printBatchOperations'
+
 import styles from './index.module.less'
+
+import type { OperationDefinitionNodeGroupType } from '@fruits-chain/qiufen-pro-helpers'
+import type { GraphQLSchema } from 'graphql'
+import type { FC } from 'react'
 
 interface IProps {
   isShow: boolean
@@ -16,7 +22,7 @@ interface IProps {
 }
 
 const DiffViewer: FC<IProps> = ({ isShow, operationDefNode }) => {
-  const { localTypeDefs, isAllAddComment } = useBearStore((ste) => ste)
+  const { localTypeDefs, isAllAddComment } = useBearStore(ste => ste)
 
   const workspaceSchema = useMemo(() => {
     let localSchema: GraphQLSchema | undefined
@@ -64,7 +70,12 @@ const DiffViewer: FC<IProps> = ({ isShow, operationDefNode }) => {
     }
 
     return operation
-  }, [isAllAddComment, operationDefNode?.name, operationDefNode?.operation, workspaceSchema])
+  }, [
+    isAllAddComment,
+    operationDefNode?.name,
+    operationDefNode?.operation,
+    workspaceSchema,
+  ])
 
   const remoteOperationStr = useMemo(() => {
     return printOneOperation(operationDefNode, isAllAddComment)
@@ -84,7 +95,7 @@ const DiffViewer: FC<IProps> = ({ isShow, operationDefNode }) => {
             hideLineNumbers
             leftTitle="Old"
             rightTitle="New"
-            renderContent={(codeStr) => {
+            renderContent={codeStr => {
               return <div className={styles.diff_viewer_div}>{codeStr}</div>
             }}
           />
@@ -102,7 +113,7 @@ const DiffViewer: FC<IProps> = ({ isShow, operationDefNode }) => {
             hideLineNumbers
             leftTitle="Old"
             rightTitle="New"
-            renderContent={(codeStr) => {
+            renderContent={codeStr => {
               return <div className={styles.diff_viewer_div}>{codeStr}</div>
             }}
           />

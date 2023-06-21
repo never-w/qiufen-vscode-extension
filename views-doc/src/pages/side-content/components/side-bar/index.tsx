@@ -11,20 +11,18 @@ import React, { memo, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import type { NewFieldNodeType } from '@/utils/interface'
-import type {
-  OperationDefinitionNodeGroupType,
-  OperationNodesForFieldAstBySchemaReturnType,
-} from '@/utils/operations'
+import type { OperationDefinitionNodeGroupType } from '@/utils/operations'
 import { groupOperations as groupOperationsCopy } from '@/utils/operations'
 
 import SiderGroup from './group'
 import styles from './index.module.less'
 
+import type { OperationNodesForFieldAstBySchemaReturnType } from '@fruits-chain/qiufen-pro-helpers'
 import type { CollapseProps } from 'antd'
 import type { FC } from 'react'
 
 export interface IProps {
-  operationsDefNodeObjList: OperationNodesForFieldAstBySchemaReturnType
+  operationsDefNodeObjList: OperationNodesForFieldAstBySchemaReturnType[]
   activeItemKey: string
   handleReload: () => void
 }

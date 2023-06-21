@@ -1,10 +1,15 @@
-import React, { FC, useMemo } from 'react'
+import React, { useMemo } from 'react'
 import AceEditor from 'react-ace'
 import obj2str from 'stringify-object'
-import styles from './index.module.less'
-import { OperationDefinitionNodeGroupType, genArgsExample } from '@/utils/operations'
+
 import useBearStore from '@/stores'
+import type { OperationDefinitionNodeGroupType } from '@/utils/operations'
+import { genArgsExample } from '@/utils/operations'
 import { printOneOperation } from '@/utils/printBatchOperations'
+
+import styles from './index.module.less'
+
+import type { FC } from 'react'
 
 interface IProps {
   isShow: boolean
@@ -12,7 +17,7 @@ interface IProps {
 }
 
 const OperationStructure: FC<IProps> = ({ isShow, operationDefNode }) => {
-  const { isAllAddComment } = useBearStore((ste) => ste)
+  const { isAllAddComment } = useBearStore(ste => ste)
 
   const remoteOperationArgsStr = useMemo(() => {
     return obj2str(genArgsExample(operationDefNode.args))
