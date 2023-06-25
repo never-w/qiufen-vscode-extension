@@ -1,6 +1,11 @@
+import {
+  buildSchema,
+  lexicographicSortSchema,
+  type DefinitionNode,
+  printSchema,
+} from 'graphql'
 import create from 'zustand'
 
-import type { DefinitionNode } from 'graphql'
 import type { SetState } from 'zustand'
 
 export enum MessageEnum {
@@ -71,7 +76,15 @@ const useBearStore = create<BearState>(set => {
         fetch(`/operations`)
           .then(response => response.json())
           .then(data => {
-            set(data)
+            set({
+              ...data,
+              typeDefs: printSchema(
+                lexicographicSortSchema(buildSchema(data.typeDefs)),
+              ),
+              localTypeDefs: printSchema(
+                lexicographicSortSchema(buildSchema(data.localTypeDefs)),
+              ),
+            })
             resolve(true)
           })
       })
@@ -82,7 +95,15 @@ const useBearStore = create<BearState>(set => {
         fetch(`/reload/operations`)
           .then(response => response.json())
           .then(data => {
-            set(data)
+            set({
+              ...data,
+              typeDefs: printSchema(
+                lexicographicSortSchema(buildSchema(data.typeDefs)),
+              ),
+              localTypeDefs: printSchema(
+                lexicographicSortSchema(buildSchema(data.localTypeDefs)),
+              ),
+            })
             resolve(true)
           })
       })

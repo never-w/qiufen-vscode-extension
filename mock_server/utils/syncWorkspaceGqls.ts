@@ -106,19 +106,17 @@ export function getWorkspaceAllGqlsResolveFilePaths() {
   return resolveGqlFiles
 }
 
-/** 获取本每个gql文件的对应信息 */
-export type GetWorkspaceGqlFileInfoReturnType = {
+export type ReturnTypeGetWorkspaceGqlFileInfo = {
   filename: string
   content: string
   document: DocumentNode
-  operationsAsts: DefinitionNode[]
+  operationsAsts: readonly DefinitionNode[]
   operationNames: string[]
-}
+}[]
 
-export type ReturnTypeGetWorkspaceGqlFileInfo = ReturnType<
-  typeof getWorkspaceGqlFileInfo
->
-export function getWorkspaceGqlFileInfo(files: string[]) {
+export function getWorkspaceGqlFileInfo(
+  files: string[],
+): ReturnTypeGetWorkspaceGqlFileInfo {
   const result = files.map(file => {
     const content = fs.readFileSync(file, 'utf8')
 
@@ -149,13 +147,14 @@ export function getWorkspaceGqlFileInfo(files: string[]) {
     }
 
     // 得到本地每个gql文件的operations names
-    const fileItemOperationNames = workspaceDocumentAst.definitions
-      .map(operation => {
-        return (
-          operation as OperationDefinitionNode
-        ).selectionSet.selections.map((itm: any) => itm.name.value)
+    const fileItemOperationNames: string[] = []
+    workspaceDocumentAst.definitions.forEach(operationDefNode => {
+      const newOperationDefNode = operationDefNode as OperationDefinitionNode
+      newOperationDefNode.selectionSet.selections.forEach(selectionNode => {
+        const newSelectionNode = selectionNode as FieldNode
+        fileItemOperationNames.push(newSelectionNode.name.value)
       })
-      .flat(Infinity) as string[]
+    })
 
     return {
       filename: file,
@@ -167,4 +166,17 @@ export function getWorkspaceGqlFileInfo(files: string[]) {
   })
 
   return result
+}
+
+export function getWorkspaceAllGqlsNameAndData() {
+  const resolveGqlFiles = getWorkspaceAllGqlsResolveFilePaths()
+  const workspaceGqlFileInfo = getWorkspaceGqlFileInfo(resolveGqlFiles)
+  const workspaceGqlNames = workspaceGqlFileInfo
+    .map(itm => itm.operationNames)
+    .flat(Infinity) as string[]
+
+  return {
+    workspaceGqlNames,
+    workspaceGqlFileInfo,
+  }
 }

@@ -42,7 +42,6 @@ export function activate(context: vscode.ExtensionContext) {
           try {
             serverMock = await startServer(qiufenConfig!)
           } catch (err) {
-            vscode.window.showErrorMessage((err as Error).message)
             updateStatusBarItem(
               GraphqlQiufenProStartMockCommandId,
               `$(play) Qiufen Start`,
