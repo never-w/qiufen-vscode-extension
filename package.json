@@ -38,7 +38,7 @@
         "graphql-qiufen-pro.endpointUrl": {
           "type": "string",
           "default": "",
-          "description": "backend service endpointUrl"
+          "description": "gets the remote address of the schema"
         },
         "graphql-qiufen-pro.port": {
           "type": "number",
@@ -53,17 +53,12 @@
         "graphql-qiufen-pro.patternRelativePath": {
           "type": "string",
           "default": "src/graphql/operations",
-          "description": "pattern relative path"
+          "description": "pattern relative path of operations"
         },
         "graphql-qiufen-pro.patternSchemaRelativePath": {
           "type": "string",
           "default": "src/graphql/generated/schema.graphql",
-          "description": "pattern schema relative path"
-        },
-        "graphql-qiufen-pro.isIntrospection": {
-          "type": "boolean",
-          "default": true,
-          "description": "whether to enable introspection"
+          "description": "pattern relative path of schema"
         },
         "graphql-qiufen-pro.maxDepth": {
           "type": "number",
@@ -127,8 +122,8 @@
   "dependencies": {
     "@apollo/server": "^4.4.1",
     "@fruits-chain/hooks-laba": "^1.0.2",
-    "@fruits-chain/qiufen-pro-graphql-mock": "^0.0.4-beta",
-    "@fruits-chain/qiufen-pro-helpers": "^0.0.4-beta",
+    "@fruits-chain/qiufen-pro-graphql-mock": "^0.0.6-beta",
+    "@fruits-chain/qiufen-pro-helpers": "^0.0.6-beta",
     "body-parser": "^1.19.1",
     "cors": "^2.8.5",
     "express": "^4.17.2",

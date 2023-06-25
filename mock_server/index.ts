@@ -1,10 +1,8 @@
 import path from 'path'
 
-import { ApolloServer } from '@apollo/server'
 import { expressMiddleware } from '@apollo/server/express4'
+import { startMockingServer } from '@fruits-chain/qiufen-pro-graphql-mock'
 import { fetchTypeDefs } from '@fruits-chain/qiufen-pro-helpers'
-import { addMocksToSchema } from '@graphql-tools/mock'
-import { makeExecutableSchema } from '@graphql-tools/schema'
 import { json } from 'body-parser'
 import cors from 'cors'
 import express from 'express'
@@ -15,7 +13,7 @@ import * as vscode from 'vscode'
 import getIpAddress from './utils/getIpAddress'
 import readLocalSchemaTypeDefs from './utils/readLocalSchemaTypeDefs'
 import {
-  getWorkspaceAllGqlResolveFilePaths,
+  getWorkspaceAllGqlsResolveFilePaths,
   getWorkspaceGqlFileInfo,
   getWorkspaceGqls,
   fillOperationInWorkspace,
@@ -29,21 +27,16 @@ import type { GraphqlKitConfig } from '@fruits-chain/qiufen-pro-graphql-mock'
 import type { GraphQLSchema } from 'graphql'
 
 export async function startServer(config: GraphqlKitConfig) {
-  const { endpoint, port, mock } = config
+  const { endpoint, port } = config
   const jsonSettings = vscode.workspace.getConfiguration('graphql-qiufen-pro')
 
   const app = express()
 
   let backendTypeDefs = await fetchTypeDefs(endpoint.url)
 
-  const server = new ApolloServer({
-    schema: addMocksToSchema({
-      schema: makeExecutableSchema({ typeDefs: backendTypeDefs }),
-      mocks: mock?.scalarMap,
-    }),
-  })
+  // const { server } = await startMockingServer(config)
 
-  // 获取响应时的相关数据
+  // 获取响应时的相关数据变量声明
   let resolveGqlFiles: string[] = []
   let workspaceGqlFileInfo: ReturnTypeGetWorkspaceGqlFileInfo = []
   let workspaceGqlNames: string[] = []
@@ -53,7 +46,7 @@ export async function startServer(config: GraphqlKitConfig) {
   let newLocalTypeDefs = ''
   let newRemoteTypeDefs = ''
 
-  resolveGqlFiles = getWorkspaceAllGqlResolveFilePaths()
+  resolveGqlFiles = getWorkspaceAllGqlsResolveFilePaths()
   workspaceGqlFileInfo = getWorkspaceGqlFileInfo(resolveGqlFiles)
   workspaceGqlNames = workspaceGqlFileInfo
     .map(itm => itm.operationNames)
@@ -69,13 +62,13 @@ export async function startServer(config: GraphqlKitConfig) {
   newRemoteTypeDefs = printSchema(sortRemoteSchema)
 
   // 启动服务
-  await server.start()
-  app.use(
-    '/graphql',
-    cors<cors.CorsRequest>(),
-    json(),
-    expressMiddleware(server),
-  )
+  // await server.start()
+  // app.use(
+  //   '/graphql',
+  //   cors<cors.CorsRequest>(),
+  //   json(),
+  //   expressMiddleware(server),
+  // )
   app.use(cors())
   app.use(json({ limit: Infinity }))
 
@@ -96,7 +89,7 @@ export async function startServer(config: GraphqlKitConfig) {
   app.get('/reload/operations', async (req, res) => {
     // 这里再次获取后端sdl，是因为web网页在reload时要及时更新
     backendTypeDefs = await fetchTypeDefs(endpoint.url)
-    resolveGqlFiles = getWorkspaceAllGqlResolveFilePaths()
+    resolveGqlFiles = getWorkspaceAllGqlsResolveFilePaths()
     workspaceGqlFileInfo = getWorkspaceGqlFileInfo(resolveGqlFiles)
     workspaceGqlNames = workspaceGqlFileInfo
       .map(itm => itm.operationNames)
@@ -172,6 +165,6 @@ export async function startServer(config: GraphqlKitConfig) {
 
     return expressServer
   } catch (error) {
-    throw new Error(`Port ${port} is already in use.`)
+    throw new Error(`Port ${port} is already in use...`)
   }
 }

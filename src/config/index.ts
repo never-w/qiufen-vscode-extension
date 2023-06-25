@@ -2,17 +2,7 @@ import Mock from 'mockjs'
 const { Random } = Mock
 
 export const defaultQiufenConfig = {
-  playground: {
-    headers: {
-      Authorization: '',
-      appversioncode: '33',
-      'app-version': '33',
-      platform: 'ios',
-    },
-  },
   mock: {
-    enable: true,
-    mockDirectiveDefaultEnableValue: true,
     scalarMap: {
       Int: () => Random.integer(0, 100),
       String: () => Random.ctitle(2, 4),

@@ -54,6 +54,7 @@ export function activate(context: vscode.ExtensionContext) {
           try {
             serverMock = await startServer({
               port,
+              schemaPolicy: 'remote',
               endpoint: {
                 url,
               },

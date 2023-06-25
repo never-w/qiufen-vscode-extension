@@ -74,7 +74,7 @@ export function fillOperationInWorkspace(
 
 // 入口函数
 export async function getWorkspaceGqls(gqlName: string) {
-  const resolveGqlFiles = getWorkspaceAllGqlResolveFilePaths()
+  const resolveGqlFiles = getWorkspaceAllGqlsResolveFilePaths()
   const workspaceGqlFileInfo = getWorkspaceGqlFileInfo(resolveGqlFiles)
   const filteredWorkspaceGqlFileInfo = workspaceGqlFileInfo.filter(gqlFileItm =>
     gqlFileItm.operationNames.includes(gqlName),
@@ -92,8 +92,10 @@ export async function getWorkspaceGqls(gqlName: string) {
   }
 }
 
-/** 匹配工作区后缀 .gql 所有文件，返回文件绝对路径 */
-export function getWorkspaceAllGqlResolveFilePaths() {
+/**
+ * 匹配工作区后缀 *.gql 所有文件，返回文件绝对路径
+ */
+export function getWorkspaceAllGqlsResolveFilePaths() {
   const { patternRelativePath = '' } =
     vscode.workspace.getConfiguration('graphql-qiufen-pro')
   const workspaceRootPath = workspace.workspaceFolders?.[0].uri.fsPath
