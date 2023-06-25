@@ -1,8 +1,5 @@
-export const defaultLocalTypeDefs = `
-  schema {
-    query: Query
-  }
+export const defaultLocalTypeDefs = `#graphql
   type Query {
-    qiufenquery: String
+    qiufenNeverW: Int 
   }
   `

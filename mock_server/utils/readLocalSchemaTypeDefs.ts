@@ -11,21 +11,28 @@ function readLocalSchemaTypeDefs(filePath: string) {
     type Query {
        qiufenNeverW: Int 
     }
-    schema {
-    query: Query
-    }
     `
 
   try {
     localTypeDefs = fs.readFileSync(qiufenConfigPath).toString()
   } catch (err) {
     window.showWarningMessage('read local schema failed')
+    localTypeDefs = `#graphql 
+    type Query {
+       qiufenNeverW: Int 
+    }
+    `
   }
 
   try {
     buildSchema(localTypeDefs)
   } catch (error) {
     window.showWarningMessage((error as any).message)
+    localTypeDefs = `#graphql 
+    type Query {
+       qiufenNeverW: Int 
+    }
+    `
   }
 
   return localTypeDefs
