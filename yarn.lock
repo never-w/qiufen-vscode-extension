@@ -210,20 +210,20 @@
   resolved "https://registry.npmjs.org/@fruits-chain/hooks-laba/-/hooks-laba-1.0.2.tgz#15912cf62d77d439233500106ca33b240af89fe7"
   integrity sha512-6UR6UvnRFW1XfRrcPszucDLGvv7Z3LwjynDV0t7lLfhVdnb5/ih3cnxCWL3QLhRUbZ8zBDZWINQLs4ey7BuQjg==
 
-"@fruits-chain/qiufen-pro-graphql-mock@^0.0.7-beta":
-  version "0.0.7-beta"
-  resolved "https://registry.npmjs.org/@fruits-chain/qiufen-pro-graphql-mock/-/qiufen-pro-graphql-mock-0.0.7-beta.tgz#726435ed6b33a0c7071541d336663d6608309fe1"
-  integrity sha512-jDhvulmk9UrswLWNpTz8TcCXluhlnJ6avFLi4MmWhlDFmyj+hi8HyQ59vCdfqmgcuJQA9zCJxdgwtiEVYA3esg==
+"@fruits-chain/qiufen-pro-graphql-mock@^0.0.8-beta":
+  version "0.0.8-beta"
+  resolved "https://registry.npmjs.org/@fruits-chain/qiufen-pro-graphql-mock/-/qiufen-pro-graphql-mock-0.0.8-beta.tgz#cc2bfa295d0d96254c96850ed8698b6468f0ee02"
+  integrity sha512-6jHmaANsluS5L5PaE0llpoU2mJx086EROqiG0pegE1R7gHBowAbfGXY1fhGwcRykSXyYTQ1+tffGwxooXnZBlQ==
   dependencies:
     "@apollo/server" "^4.7.4"
-    "@fruits-chain/qiufen-pro-helpers" "^0.0.7beta"
+    "@fruits-chain/qiufen-pro-helpers" "^0.0.8beta"
     "@graphql-tools/mock" "^9.0.0"
     "@graphql-tools/schema" "^10.0.0"
 
-"@fruits-chain/qiufen-pro-helpers@^0.0.7-beta", "@fruits-chain/qiufen-pro-helpers@^0.0.7beta":
-  version "0.0.7-beta"
-  resolved "https://registry.npmjs.org/@fruits-chain/qiufen-pro-helpers/-/qiufen-pro-helpers-0.0.7-beta.tgz#543a9f51fd7bd2274662a902a64877274856f13b"
-  integrity sha512-7fm3OxsmKOExNkipnOWBhzTDNY6zKzntcpe40sAZpXbyW7ZVG2rNVWMe2x4+2WOleicaIpakto6Cpm3UogWy4A==
+"@fruits-chain/qiufen-pro-helpers@^0.0.8-beta", "@fruits-chain/qiufen-pro-helpers@^0.0.8beta":
+  version "0.0.8-beta"
+  resolved "https://registry.npmjs.org/@fruits-chain/qiufen-pro-helpers/-/qiufen-pro-helpers-0.0.8-beta.tgz#4e8cfa09b9cac008fce8346a9fc9617f8d289aa9"
+  integrity sha512-3JKChcPQOUlQ7Py6W0gXGy4MavsCE/F1+aM1llaSiujZSwqDdJteTj2ZIvN5Cq0nK2qlD0lMf6HZQd6P+0XkZw==
   dependencies:
     lodash "^4.17.21"
     node-fetch "2"

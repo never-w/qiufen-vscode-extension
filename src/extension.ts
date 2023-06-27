@@ -45,7 +45,10 @@ export function activate(context: vscode.ExtensionContext) {
 
         if (isExistConfigFile) {
           try {
-            mockServer = await startMockServer(qiufenConfig!)
+            mockServer = await startMockServer(
+              qiufenConfig!,
+              qiufenConfig!.localSchemaFile!,
+            )
           } catch (err) {
             updateStatusBarItem(
               GraphqlQiufenProStartMockCommandId,
@@ -57,14 +60,17 @@ export function activate(context: vscode.ExtensionContext) {
           }
         } else {
           try {
-            mockServer = await startMockServer({
-              port,
-              schemaPolicy: 'remote',
-              endpoint: {
-                url,
+            mockServer = await startMockServer(
+              {
+                port,
+                schemaPolicy: 'remote',
+                endpoint: {
+                  url,
+                },
+                ...defaultQiufenConfig,
               },
-              ...defaultQiufenConfig,
-            })
+              qiufenConfig!.localSchemaFile!,
+            )
           } catch (err) {
             vscode.window.showErrorMessage((err as Error).message)
             updateStatusBarItem(
