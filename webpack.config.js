@@ -11,15 +11,14 @@ const extensionConfig = {
   mode: 'production',
   entry: {
     mock_server: './mock_server/index.ts',
+    doc_server: './doc_server/index.ts',
     extension: './src/extension.ts',
   },
-  externals: {},
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: '[name].js',
     libraryTarget: 'commonjs-module',
   },
-  // eslint-disable-next-line no-dupe-keys
   externals: {
     vscode: 'commonjs vscode',
   },
@@ -41,7 +40,7 @@ const extensionConfig = {
   },
   devtool: 'inline-source-map',
   infrastructureLogging: {
-    level: 'log', // enables logging required for problem matchers
+    level: 'log',
   },
 }
 

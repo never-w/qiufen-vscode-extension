@@ -4,6 +4,7 @@ out/**
 node_modules/**
 src/**
 mock_server/**
+doc_server/**
 views-doc/**
 .gitignore
 .yarnrc

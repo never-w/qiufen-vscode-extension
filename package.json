@@ -24,12 +24,22 @@
     "commands": [
       {
         "command": "graphql-qiufen-pro.qiufenStart",
-        "title": "start mocking graphql-qiufen-pro operations",
+        "title": "start doc graphql-qiufen-pro operations",
         "category": "Graphql Qiufen Pro"
       },
       {
         "command": "graphql-qiufen-pro.qiufenClosed",
-        "title": "close mocking graphql-qiufen-pro operations",
+        "title": "close doc graphql-qiufen-pro operations",
+        "category": "Graphql Qiufen Pro"
+      },
+      {
+        "command": "graphql-qiufen-pro.qiufenMockStart",
+        "title": "start mocking graphql-qiufen-pro all operations data",
+        "category": "Graphql Qiufen Pro"
+      },
+      {
+        "command": "graphql-qiufen-pro.qiufenMockClosed",
+        "title": "close mocking graphql-qiufen-pro all operations data",
         "category": "Graphql Qiufen Pro"
       }
     ],
@@ -122,12 +132,13 @@
   "dependencies": {
     "@apollo/server": "^4.4.1",
     "@fruits-chain/hooks-laba": "^1.0.2",
-    "@fruits-chain/qiufen-pro-graphql-mock": "^0.0.6-beta",
-    "@fruits-chain/qiufen-pro-helpers": "^0.0.6-beta",
+    "@fruits-chain/qiufen-pro-graphql-mock": "^0.0.7-beta",
+    "@fruits-chain/qiufen-pro-helpers": "^0.0.7-beta",
     "body-parser": "^1.19.1",
     "cors": "^2.8.5",
     "express": "^4.17.2",
     "express-graphql": "^0.12.0",
+    "get-port": "^7.0.0",
     "graphql": "^16.6.0",
     "graphql-tools": "^8.2.0",
     "http-proxy-middleware": "^2.0.1",

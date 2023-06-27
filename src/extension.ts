@@ -2,56 +2,62 @@ import * as path from 'path'
 
 import * as vscode from 'vscode'
 
-import { startServer } from '../mock_server/index'
+import { startDocServer } from '../doc_server/index'
+import { startMockServer } from '../mock_server/index'
 
 import { defaultQiufenConfig } from './config'
 import getWorkspaceConfig from './utils/getWorkspaceConfig'
 
+import type { ApolloServer, BaseContext } from '@apollo/server'
 import type { Server } from 'http'
 import type { StatusBarItem } from 'vscode'
 
-let serverMock: Server
+let docServer: Server
+let mockServer: ApolloServer<BaseContext>
+let docStatusBarItem: vscode.StatusBarItem
 let mockStatusBarItem: vscode.StatusBarItem
 let currentPanel: vscode.WebviewPanel | undefined
 
-const GraphqlQiufenProCloseMockCommandId = 'graphql-qiufen-pro.qiufenClosed'
-const GraphqlQiufenProStartMockCommandId = 'graphql-qiufen-pro.qiufenStart'
+const GraphqlQiufenProCloseDocCommandId = 'graphql-qiufen-pro.qiufenClosed'
+const GraphqlQiufenProStartDocCommandId = 'graphql-qiufen-pro.qiufenStart'
+const GraphqlQiufenProCloseMockCommandId = 'graphql-qiufen-pro.qiufenMockClosed'
+const GraphqlQiufenProStartMockCommandId = 'graphql-qiufen-pro.qiufenMockStart'
 
 export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand(GraphqlQiufenProCloseMockCommandId, () => {
-      serverMock.close()
-      if (currentPanel) {
-        currentPanel?.dispose()
-      }
+      mockServer.stop()
       updateStatusBarItem(
         GraphqlQiufenProStartMockCommandId,
-        `$(play) Qiufen Start`,
+        `$(play) Mock`,
         mockStatusBarItem,
+        'Open Qiufen Mock Server',
       )
     }),
     vscode.commands.registerCommand(
       GraphqlQiufenProStartMockCommandId,
       async () => {
-        const { isExistConfigFile, url, port, qiufenConfig } =
+        const { qiufenConfig, isExistConfigFile, url, port } =
           await getWorkspaceConfig(() => {
             vscode.window.showErrorMessage('There is no configuration content.')
           })
-        loadingStatusBarItem(mockStatusBarItem, 'Qiufen Loading')
+        loadingStatusBarItem(mockStatusBarItem, 'Loading', 'Mocking loading')
+
         if (isExistConfigFile) {
           try {
-            serverMock = await startServer(qiufenConfig!)
+            mockServer = await startMockServer(qiufenConfig!)
           } catch (err) {
             updateStatusBarItem(
               GraphqlQiufenProStartMockCommandId,
-              `$(play) Qiufen Start`,
+              `$(play) Mock`,
               mockStatusBarItem,
+              'Open Qiufen Mock Server',
             )
             throw err
           }
         } else {
           try {
-            serverMock = await startServer({
+            mockServer = await startMockServer({
               port,
               schemaPolicy: 'remote',
               endpoint: {
@@ -63,8 +69,80 @@ export function activate(context: vscode.ExtensionContext) {
             vscode.window.showErrorMessage((err as Error).message)
             updateStatusBarItem(
               GraphqlQiufenProStartMockCommandId,
-              `$(play) Qiufen Start`,
+              `$(play) Mock`,
               mockStatusBarItem,
+              'Open Qiufen Mock Server',
+            )
+            throw err
+          }
+        }
+
+        updateStatusBarItem(
+          GraphqlQiufenProCloseMockCommandId,
+          `$(zap) Mock Closed`,
+          mockStatusBarItem,
+          'Close Qiufen Mock Server',
+          'yellow',
+        )
+      },
+    ),
+
+    vscode.commands.registerCommand(GraphqlQiufenProCloseDocCommandId, () => {
+      docServer.close()
+      if (currentPanel) {
+        currentPanel?.dispose()
+      }
+      updateStatusBarItem(
+        GraphqlQiufenProStartDocCommandId,
+        `$(play) Qiufen Start`,
+        docStatusBarItem,
+        'Open Qiufen Doc Server',
+      )
+    }),
+    vscode.commands.registerCommand(
+      GraphqlQiufenProStartDocCommandId,
+      async () => {
+        let serverPort
+        const { isExistConfigFile, url, port, qiufenConfig } =
+          await getWorkspaceConfig(() => {
+            vscode.window.showErrorMessage('There is no configuration content.')
+          })
+        loadingStatusBarItem(docStatusBarItem, 'Qiufen Loading', 'Doc loading')
+        if (isExistConfigFile) {
+          try {
+            const { expressServer, resPort } = await startDocServer(
+              qiufenConfig!,
+            )
+            docServer = expressServer
+            serverPort = resPort
+          } catch (err) {
+            updateStatusBarItem(
+              GraphqlQiufenProStartDocCommandId,
+              `$(play) Qiufen Start`,
+              docStatusBarItem,
+              'Open Qiufen Doc Server',
+            )
+            throw err
+          }
+        } else {
+          try {
+            const { expressServer, resPort } = await startDocServer({
+              port,
+              schemaPolicy: 'remote',
+              endpoint: {
+                url,
+              },
+              ...defaultQiufenConfig,
+            })
+            docServer = expressServer
+            serverPort = resPort
+          } catch (err) {
+            vscode.window.showErrorMessage((err as Error).message)
+            updateStatusBarItem(
+              GraphqlQiufenProStartDocCommandId,
+              `$(play) Qiufen Start`,
+              docStatusBarItem,
+              'Open Qiufen Doc Server',
             )
             throw err
           }
@@ -80,7 +158,9 @@ export function activate(context: vscode.ExtensionContext) {
 
         // 当点击确定时才打开网页
         if (res) {
-          vscode.env.openExternal(vscode.Uri.parse(`http://localhost:${port}`))
+          vscode.env.openExternal(
+            vscode.Uri.parse(`http://localhost:${serverPort}`),
+          )
         } else {
           // 打开vscode内置webview Doc
           const columnToShowIn = vscode.window.activeTextEditor
@@ -107,14 +187,14 @@ export function activate(context: vscode.ExtensionContext) {
                 'qiufen-logo.png',
               ),
             )
-            currentPanel.webview.html = getWebviewContent(port)
+            currentPanel.webview.html = getWebviewContent(serverPort)
 
             // 当前面板被关闭后重置
             currentPanel.onDidDispose(
               () => {
                 currentPanel = undefined
                 vscode.commands.executeCommand(
-                  GraphqlQiufenProCloseMockCommandId,
+                  GraphqlQiufenProCloseDocCommandId,
                 )
               },
               null,
@@ -124,9 +204,10 @@ export function activate(context: vscode.ExtensionContext) {
         }
 
         updateStatusBarItem(
-          GraphqlQiufenProCloseMockCommandId,
+          GraphqlQiufenProCloseDocCommandId,
           `$(zap) Qiufen Closed`,
-          mockStatusBarItem,
+          docStatusBarItem,
+          'Close Qiufen Doc Server',
           'yellow',
         )
       },
@@ -134,20 +215,37 @@ export function activate(context: vscode.ExtensionContext) {
   )
 
   // 设置底部bar图标
+  docStatusBarItem = vscode.window.createStatusBarItem(
+    vscode.StatusBarAlignment.Left,
+  )
   mockStatusBarItem = vscode.window.createStatusBarItem(
     vscode.StatusBarAlignment.Left,
   )
+
+  updateStatusBarItem(
+    GraphqlQiufenProStartDocCommandId,
+    `$(play) Qiufen Start`,
+    docStatusBarItem,
+    'Open Qiufen Doc Server',
+  )
+  docStatusBarItem.show()
+
   updateStatusBarItem(
     GraphqlQiufenProStartMockCommandId,
-    `$(play) Qiufen Start`,
+    `$(play) Mock`,
     mockStatusBarItem,
+    'Open Qiufen Mock Server',
   )
   mockStatusBarItem.show()
 }
 
-function loadingStatusBarItem(statusBarItem: StatusBarItem, text: string) {
+function loadingStatusBarItem(
+  statusBarItem: StatusBarItem,
+  text: string,
+  tooltip: string,
+) {
   statusBarItem.text = `$(sync~spin) ${text}...`
-  statusBarItem.tooltip = 'Loading Doc'
+  statusBarItem.tooltip = tooltip
   statusBarItem.color = undefined
   statusBarItem.command = undefined
   statusBarItem.show()
@@ -157,10 +255,12 @@ function updateStatusBarItem(
   commandId: string,
   text: string,
   statusBarItem: StatusBarItem,
+  tooltip: string,
   color?: string,
 ) {
   statusBarItem.command = commandId
   statusBarItem.text = text
+  statusBarItem.tooltip = tooltip
   statusBarItem.color = color
 }
 
