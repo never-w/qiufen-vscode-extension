@@ -29,7 +29,7 @@ export function activate(context: vscode.ExtensionContext) {
       mockServer.stop()
       updateStatusBarItem(
         GraphqlQiufenProStartMockCommandId,
-        `$(play) Mock`,
+        `$(lightbulb) Mock`,
         mockStatusBarItem,
         'Open Qiufen Mock Server',
       )
@@ -52,7 +52,7 @@ export function activate(context: vscode.ExtensionContext) {
           } catch (err) {
             updateStatusBarItem(
               GraphqlQiufenProStartMockCommandId,
-              `$(play) Mock`,
+              `$(lightbulb) Mock`,
               mockStatusBarItem,
               'Open Qiufen Mock Server',
             )
@@ -75,7 +75,7 @@ export function activate(context: vscode.ExtensionContext) {
             vscode.window.showErrorMessage((err as Error).message)
             updateStatusBarItem(
               GraphqlQiufenProStartMockCommandId,
-              `$(play) Mock`,
+              `$(lightbulb) Mock`,
               mockStatusBarItem,
               'Open Qiufen Mock Server',
             )
@@ -238,7 +238,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   updateStatusBarItem(
     GraphqlQiufenProStartMockCommandId,
-    `$(play) Mock`,
+    `$(lightbulb) Mock`,
     mockStatusBarItem,
     'Open Qiufen Mock Server',
   )
