@@ -32,6 +32,6 @@ export function relyOnKeysPrintOperation(
     parse(operationStr)
     return Promise.resolve(operationStr)
   } catch {
-    return Promise.reject('Please select the operation fields')
+    return Promise.reject('请选择接口相应的字段')
   }
 }

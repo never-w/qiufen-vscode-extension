@@ -41,17 +41,20 @@ const SideContent: FC<IProps> = () => {
   const handleReload = useMemoizedFn(async () => {
     let timer: NodeJS.Timeout | undefined
     setLoading(true)
-    await Promise.race([
-      reloadOperations(),
-      new Promise((_, reject) => {
-        timer = setTimeout(() => {
-          message.error('network timeout')
-          return reject(new Error('network timeout'))
-        }, 10000)
-      }),
-    ])
-    clearTimeout(timer)
+    try {
+      await Promise.race([
+        reloadOperations(),
+        new Promise((_, reject) => {
+          timer = setTimeout(() => {
+            return reject(new Error('网络异常'))
+          }, 20000)
+        }),
+      ])
+    } catch (error) {
+      message.error('网络异常')
+    }
     setLoading(false)
+    clearTimeout(timer)
   })
 
   useEffect(() => {

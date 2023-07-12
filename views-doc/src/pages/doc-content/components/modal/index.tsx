@@ -94,7 +94,7 @@ const InSetModal: FC<IProps> = ({
                 label: val.filename,
               })) || []
             }
-            placeholder="请选择一键填入路径"
+            placeholder="请选择一键更新路径"
             style={{ width: '100%' }}
           />
         </Form.Item>

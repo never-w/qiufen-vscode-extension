@@ -49,7 +49,7 @@ export async function startDocServer(config: GraphqlKitConfig) {
 
   app.get('/reload/operations', async (req, res) => {
     // 这里再次获取后端sdl，是因为web网页在reload时要及时更新
-    const newBackendTypeDefs = await fetchTypeDefs(endpoint.url)
+    const newBackendTypeDefs = await fetchTypeDefs(endpoint.url, 20000)
     const newLocalTypeDefs = readLocalSchemaTypeDefs(
       jsonSettings.patternSchemaRelativePath,
     )
@@ -86,7 +86,7 @@ export async function startDocServer(config: GraphqlKitConfig) {
           workspaceRes[0].document,
           true,
         )
-        res.send({ message: '一键填入成功' })
+        res.send({ message: '一键更新成功' })
       }
     } catch (error) {
       res.status(406).send({ message: error })
@@ -110,7 +110,7 @@ export async function startDocServer(config: GraphqlKitConfig) {
   })
 
   try {
-    const tmpPort = await getPort()
+    const tmpPort = await getPort({ port: [6100, 6101, 6102] })
     const expressServer = app.listen(tmpPort, () => {
       // eslint-disable-next-line no-console
       console.log(

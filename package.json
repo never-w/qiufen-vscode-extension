@@ -131,9 +131,8 @@
   },
   "dependencies": {
     "@apollo/server": "^4.4.1",
-    "@fruits-chain/hooks-laba": "^1.0.2",
-    "@fruits-chain/qiufen-pro-graphql-mock": "^0.0.8-beta",
-    "@fruits-chain/qiufen-pro-helpers": "^0.0.8-beta",
+    "@fruits-chain/qiufen-pro-graphql-mock": "^0.0.9-beta",
+    "@fruits-chain/qiufen-pro-helpers": "^0.0.9-beta",
     "body-parser": "^1.19.1",
     "cors": "^2.8.5",
     "express": "^4.17.2",

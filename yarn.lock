@@ -205,25 +205,20 @@
   resolved "https://registry.npmjs.org/@eslint/js/-/js-8.43.0.tgz#559ca3d9ddbd6bf907ad524320a0d14b85586af0"
   integrity sha512-s2UHCoiXfxMvmfzqoN+vrQ84ahUSYde9qNO1MdxmoEhyHWsfmwOpFlwYV+ePJEVc7gFnATGUi376WowX1N7tFg==
 
-"@fruits-chain/hooks-laba@^1.0.2":
-  version "1.0.2"
-  resolved "https://registry.npmjs.org/@fruits-chain/hooks-laba/-/hooks-laba-1.0.2.tgz#15912cf62d77d439233500106ca33b240af89fe7"
-  integrity sha512-6UR6UvnRFW1XfRrcPszucDLGvv7Z3LwjynDV0t7lLfhVdnb5/ih3cnxCWL3QLhRUbZ8zBDZWINQLs4ey7BuQjg==
-
-"@fruits-chain/qiufen-pro-graphql-mock@^0.0.8-beta":
-  version "0.0.8-beta"
-  resolved "https://registry.npmjs.org/@fruits-chain/qiufen-pro-graphql-mock/-/qiufen-pro-graphql-mock-0.0.8-beta.tgz#cc2bfa295d0d96254c96850ed8698b6468f0ee02"
-  integrity sha512-6jHmaANsluS5L5PaE0llpoU2mJx086EROqiG0pegE1R7gHBowAbfGXY1fhGwcRykSXyYTQ1+tffGwxooXnZBlQ==
+"@fruits-chain/qiufen-pro-graphql-mock@^0.0.9-beta":
+  version "0.0.9-beta"
+  resolved "https://registry.npmjs.org/@fruits-chain/qiufen-pro-graphql-mock/-/qiufen-pro-graphql-mock-0.0.9-beta.tgz#029b59a7eb0a3d5092ab9599715dc0d6c491047d"
+  integrity sha512-ysfJ+4xPoFpK9pIG1yCjKSwBbBCI6hlttk7qtFPib854uWb1jjRzkOY4fCAdaS637hGFqOgrIrKQ/6g4gvo9Qg==
   dependencies:
     "@apollo/server" "^4.7.4"
-    "@fruits-chain/qiufen-pro-helpers" "^0.0.8beta"
+    "@fruits-chain/qiufen-pro-helpers" "^0.0.9beta"
     "@graphql-tools/mock" "^9.0.0"
     "@graphql-tools/schema" "^10.0.0"
 
-"@fruits-chain/qiufen-pro-helpers@^0.0.8-beta", "@fruits-chain/qiufen-pro-helpers@^0.0.8beta":
-  version "0.0.8-beta"
-  resolved "https://registry.npmjs.org/@fruits-chain/qiufen-pro-helpers/-/qiufen-pro-helpers-0.0.8-beta.tgz#4e8cfa09b9cac008fce8346a9fc9617f8d289aa9"
-  integrity sha512-3JKChcPQOUlQ7Py6W0gXGy4MavsCE/F1+aM1llaSiujZSwqDdJteTj2ZIvN5Cq0nK2qlD0lMf6HZQd6P+0XkZw==
+"@fruits-chain/qiufen-pro-helpers@^0.0.9-beta", "@fruits-chain/qiufen-pro-helpers@^0.0.9beta":
+  version "0.0.9-beta"
+  resolved "https://registry.npmjs.org/@fruits-chain/qiufen-pro-helpers/-/qiufen-pro-helpers-0.0.9-beta.tgz#ecca570ecdd51d04da00f921521ece962f4a4638"
+  integrity sha512-uCint+gArV/blTwDSK5xl5Y8X1aWcfEdIRv8GaC7vr0T362MtL/8VgkgfIImgShVavIOyLXR+qNNx2I5hZZkYQ==
   dependencies:
     lodash "^4.17.21"
     node-fetch "2"

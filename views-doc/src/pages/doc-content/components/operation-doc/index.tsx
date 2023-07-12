@@ -133,10 +133,10 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
           } else {
             if (response.status === 406) {
               // 处理错误响应
-              throw new Error('The operation does not exist in a local file')
+              throw new Error('接口不存在于本地文件')
             } else {
               // 处理错误响应
-              throw new Error('一键填入失败')
+              throw new Error('一键更新失败')
             }
           }
         })
@@ -268,7 +268,7 @@ const OperationDoc: FC<IProps> = ({ operationObj }) => {
             <Tooltip title="一键填入">
               <Space className={styles.copyBtn} onClick={handleOneKeyFillEvent}>
                 {!spinIcon ? <EditOutlined /> : <LoadingOutlined />}
-                <span className={styles.text}>一键填入</span>
+                <span className={styles.text}>一键更新</span>
               </Space>
             </Tooltip>
             <Tooltip title="Copy GQL">
