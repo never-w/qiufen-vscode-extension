@@ -110,15 +110,13 @@ export async function startDocServer(config: GraphqlKitConfig) {
   })
 
   try {
-    const tmpPort = await getPort({ port: [6100, 6101, 6102] })
-    const expressServer = app.listen(tmpPort, () => {
+    // const tmpPort = await getPort({ port: [6100, 6101, 6102] })
+    const expressServer = app.listen(6100, () => {
       // eslint-disable-next-line no-console
-      console.log(
-        `Server listening on port http://localhost:${tmpPort}/graphql`,
-      )
+      console.log(`Server listening on port http://localhost:${6100}/graphql`)
     })
 
-    return { expressServer, resPort: tmpPort }
+    return { expressServer, resPort: 6100 }
   } catch (error: any) {
     throw new Error(error)
   }
