@@ -1,6 +1,5 @@
 import * as path from 'path'
 
-import open from 'open'
 import * as vscode from 'vscode'
 
 import { startDocServer } from '../doc_server/index'
@@ -165,10 +164,9 @@ export function activate(context: vscode.ExtensionContext) {
 
         // 当点击确定时才打开网页
         if (res) {
-          await open(`http://localhost:${serverPort}`)
-          // vscode.env.openExternal(
-          //   vscode.Uri.parse(`http://localhost:${serverPort}`),
-          // )
+          vscode.env.openExternal(
+            vscode.Uri.parse(`http://localhost:${serverPort}`),
+          )
         } else {
           // 打开vscode内置webview Doc
           const columnToShowIn = vscode.window.activeTextEditor
