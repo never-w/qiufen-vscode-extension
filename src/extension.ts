@@ -47,7 +47,7 @@ export function activate(context: vscode.ExtensionContext) {
           try {
             mockServer = await startMockServer(
               qiufenConfig!,
-              qiufenConfig!.localSchemaFile!,
+              qiufenConfig?.localSchemaFile || '',
             )
           } catch (err) {
             updateStatusBarItem(
@@ -64,6 +64,7 @@ export function activate(context: vscode.ExtensionContext) {
               {
                 port,
                 schemaPolicy: 'remote',
+                localSchemaFile: '',
                 endpoint: {
                   url,
                 },
