@@ -4,6 +4,7 @@ import * as vscode from 'vscode'
 
 import { startDocServer } from '../doc_server/index'
 import { startMockServer } from '../mock_server/index'
+
 import { defaultQiufenConfig } from './config'
 import getWorkspaceConfig from './utils/getWorkspaceConfig'
 
@@ -12,7 +13,7 @@ import type { Server } from 'http'
 import type { StatusBarItem } from 'vscode'
 
 let docServer: Server
-let mockServer: ApolloServer<any>
+let mockServer: ApolloServer
 let docStatusBarItem: vscode.StatusBarItem
 let mockStatusBarItem: vscode.StatusBarItem
 let currentPanel: vscode.WebviewPanel | undefined
