@@ -18,7 +18,10 @@ export async function startMockServer(
 
   try {
     const workspaceRootPath = vscode.workspace.workspaceFolders?.[0].uri.fsPath // 工作区根目录
-    const localSchemaFile = path.join(workspaceRootPath!, localSchemaFilePath) // 工作区根目录
+    const localSchemaFile = path.join(
+      workspaceRootPath!,
+      localSchemaFilePath || '',
+    ) // 工作区根目录
     const { startStandaloneServer: startStandaloneServer1, server } =
       await startMockingServer(qiufenConfigs, localSchemaFile)
     const url = await startStandaloneServer1()

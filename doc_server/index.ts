@@ -6,6 +6,7 @@ import cors from 'cors'
 import express from 'express'
 import getPort from 'get-port'
 import * as vscode from 'vscode'
+import portscanner from 'portscanner'
 
 import getIpAddress from './utils/getIpAddress'
 import readLocalSchemaTypeDefs from './utils/readLocalSchemaTypeDefs'
@@ -110,15 +111,20 @@ export async function startDocServer(config: GraphqlKitConfig) {
   })
 
   try {
-    const tmpPort = await getPort()
-    const expressServer = app.listen(tmpPort, () => {
+    const newPort = await portscanner.findAPortNotInUse([
+      port + 1,
+      port + 2,
+      5567,
+    ])
+
+    const expressServer = app.listen(newPort, () => {
       // eslint-disable-next-line no-console
       console.log(
-        `Server listening on port http://localhost:${tmpPort}/graphql`,
+        `Server listening on port http://localhost:${newPort}/graphql`,
       )
     })
 
-    return { expressServer, resPort: tmpPort }
+    return { expressServer, resPort: newPort }
   } catch (error: any) {
     throw new Error(error)
   }
