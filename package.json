@@ -4,7 +4,7 @@
   "description": "Graphql Graphql-tool Graphql-Doc schema Operations Ast",
   "author": "never-w",
   "publisher": "never-w",
-  "version": "1.4.3",
+  "version": "1.4.4",
   "engines": {
     "vscode": "^1.62.0"
   },
@@ -131,8 +131,8 @@
   },
   "dependencies": {
     "@apollo/server": "^4.4.1",
-    "@fruits-chain/qiufen-pro-graphql-mock": "^0.1.1-beta",
-    "@fruits-chain/qiufen-pro-helpers": "^0.1.1-beta",
+    "@fruits-chain/qiufen-pro-graphql-mock": "^0.1.2-beta",
+    "@fruits-chain/qiufen-pro-helpers": "^0.1.2-beta",
     "body-parser": "^1.19.1",
     "cors": "^2.8.5",
     "express": "^4.17.2",
