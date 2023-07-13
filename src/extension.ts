@@ -70,7 +70,7 @@ export function activate(context: vscode.ExtensionContext) {
                 },
                 ...defaultQiufenConfig,
               },
-              qiufenConfig!.localSchemaFile!,
+              qiufenConfig?.localSchemaFile || '',
             )
           } catch (err) {
             vscode.window.showErrorMessage((err as Error).message)

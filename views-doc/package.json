@@ -1,6 +1,6 @@
 {
-  "name": "react-ts-vite",
-  "version": "1.4.1",
+  "name": "qiufen-pro-doc",
+  "version": "1.4.2",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
