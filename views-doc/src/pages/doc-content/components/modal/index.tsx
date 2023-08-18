@@ -52,7 +52,7 @@ const InSetModal: FC<IProps> = ({
         // const sizeInKB = byteSize / 1024
         // console.log(`请求参数大小：${sizeInKB.toFixed(2)} KB`)
 
-        fetch('http://localhost:4100/multiple', {
+        fetch('/multiple', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

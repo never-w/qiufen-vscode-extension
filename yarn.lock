@@ -205,21 +205,22 @@
   resolved "https://registry.npmjs.org/@eslint/js/-/js-8.43.0.tgz#559ca3d9ddbd6bf907ad524320a0d14b85586af0"
   integrity sha512-s2UHCoiXfxMvmfzqoN+vrQ84ahUSYde9qNO1MdxmoEhyHWsfmwOpFlwYV+ePJEVc7gFnATGUi376WowX1N7tFg==
 
-"@fruits-chain/qiufen-pro-graphql-mock@^0.1.2-beta":
-  version "0.1.2-beta"
-  resolved "https://registry.npmjs.org/@fruits-chain/qiufen-pro-graphql-mock/-/qiufen-pro-graphql-mock-0.1.2-beta.tgz#5b8b4e10b05d1be2a78b11d67a124aeacf886e09"
-  integrity sha512-qfDaPhWdCP68I6uLxlZXX48ot8hLyiEjqodcIPm8j/1xgmIrpagtqfunqA5kT89gzRWotmQC6vtzuS6r9gSN7A==
+"@fruits-chain/qiufen-pro-graphql-mock@^0.1.2":
+  version "0.1.2"
+  resolved "https://registry.npmjs.org/@fruits-chain/qiufen-pro-graphql-mock/-/qiufen-pro-graphql-mock-0.1.2.tgz#98592b9ee6ea6ecda1996f7303140c6d25d4749d"
+  integrity sha512-EXnReQn2PNnWBsEGULmI3ZtJv/gY5tctv2qu1igYAKj1BtxdSXNBONfbACtAtVlyonPy9ZxvoaddjhThLVQvQg==
   dependencies:
     "@apollo/server" "^4.7.4"
-    "@fruits-chain/qiufen-pro-helpers" "^0.1.2beta"
+    "@fruits-chain/qiufen-pro-helpers" "^0.1.2"
     "@graphql-tools/mock" "^9.0.0"
     "@graphql-tools/schema" "^10.0.0"
 
-"@fruits-chain/qiufen-pro-helpers@^0.1.2-beta", "@fruits-chain/qiufen-pro-helpers@^0.1.2beta":
-  version "0.1.2-beta"
-  resolved "https://registry.npmjs.org/@fruits-chain/qiufen-pro-helpers/-/qiufen-pro-helpers-0.1.2-beta.tgz#b95264cd3a7efdcfd2f6e406cc18d328d6629b21"
-  integrity sha512-viqywGq2lsLHX5/LKZ5zNgq3gv1ZBzTfA2BgMHH9tQBgVzY4tOqueuo1QJzSaNwpMphvlbL7Uy8tJI70ryIv7g==
+"@fruits-chain/qiufen-pro-helpers@^0.1.2":
+  version "0.1.2"
+  resolved "https://registry.npmjs.org/@fruits-chain/qiufen-pro-helpers/-/qiufen-pro-helpers-0.1.2.tgz#2e228bc0b4c021f847f6b2056a0ed4c65b50521c"
+  integrity sha512-TqBePlv+XJbcJwM3hrS+cQMYW5Xkt4p+h7lvRLyLoV+9OV2BSVmBWq17rPPAZYsMxrJWVcKLIHGg9pol26/qyQ==
   dependencies:
+    cross-fetch "^4.0.0"
     lodash "^4.17.21"
 
 "@graphql-tools/merge@^8.4.1":
@@ -1489,6 +1490,13 @@ cors@^2.8.5:
   dependencies:
     object-assign "^4"
     vary "^1"
+
+cross-fetch@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.npmjs.org/cross-fetch/-/cross-fetch-4.0.0.tgz#f037aef1580bb3a1a35164ea2a848ba81b445983"
+  integrity sha512-e4a5N8lVvuLgAWgnCrLr2PP0YyDOTHa9H/Rj54dirp61qXnNq46m82bRhNqIA5VccJtWBvPTFRV3TtvHUKPB1g==
+  dependencies:
+    node-fetch "^2.6.12"
 
 cross-spawn@^7.0.2, cross-spawn@^7.0.3:
   version "7.0.3"
@@ -3318,7 +3326,21 @@ node-addon-api@^4.3.0:
   resolved "https://registry.npmjs.org/node-addon-api/-/node-addon-api-4.3.0.tgz#52a1a0b475193e0928e98e0426a0d1254782b77f"
   integrity sha512-73sE9+3UaLYYFmDsFZnqCInzPyh3MqIwZO9cw58yIqAZhONrrabrYyYe3TuIqtIiOuTXVhsGau8hcrhhwSsDIQ==
 
-node-fetch@2, node-fetch@^2.6.7:
+node-fetch@2.6.9:
+  version "2.6.9"
+  resolved "https://registry.npmjs.org/node-fetch/-/node-fetch-2.6.9.tgz#7c7f744b5cc6eb5fd404e0c7a9fec630a55657e6"
+  integrity sha512-DJm/CJkZkRjKKj4Zi4BsKVZh3ValV5IR5s7LVZnW+6YMh0W1BfNA8XSs6DLMGYlId5F3KnA70uu2qepcR08Qqg==
+  dependencies:
+    whatwg-url "^5.0.0"
+
+node-fetch@^2.6.12:
+  version "2.6.12"
+  resolved "https://registry.npmjs.org/node-fetch/-/node-fetch-2.6.12.tgz#02eb8e22074018e3d5a83016649d04df0e348fba"
+  integrity sha512-C/fGU2E8ToujUivIO0H+tpQ6HWo4eEmchoPIoXtxCrVghxdKq+QOHqEZW7tuP3KlV3bC8FRMO5nMCC7Zm1VP6g==
+  dependencies:
+    whatwg-url "^5.0.0"
+
+node-fetch@^2.6.7:
   version "2.6.11"
   resolved "https://registry.npmjs.org/node-fetch/-/node-fetch-2.6.11.tgz#cde7fc71deef3131ef80a738919f999e6edfff25"
   integrity sha512-4I6pdBY1EthSqDmJkiNk3JIT8cswwR9nfeW/cPdUagJYEQG7R95WRH74wpz7ma8Gh/9dI9FP+OU+0E4FvtA55w==
