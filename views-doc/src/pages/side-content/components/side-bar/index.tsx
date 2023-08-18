@@ -7,7 +7,7 @@ import {
 } from '@ant-design/icons'
 import { Input, Collapse, Tooltip } from 'antd'
 import classnames from 'classnames'
-import React, { memo, useEffect, useMemo, useState } from 'react'
+import React, { memo, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { groupOperations as groupOperationsCopy } from '@/utils/operations'
@@ -60,8 +60,12 @@ const DocSidebar: FC<IProps> = ({
   }, [groupedOperations, activeItemKey])
 
   const navigate = useNavigate()
+  const initPageRef = useRef(false)
   useEffect(() => {
-    navigate(`/docs/${activeItemKey}`)
+    if (activeItemKey && !initPageRef.current) {
+      navigate(`/docs/${activeItemKey}`)
+      initPageRef.current = true
+    }
   }, [activeItemKey, navigate])
 
   const contentJSX = useMemo(() => {
