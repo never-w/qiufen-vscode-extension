@@ -118,7 +118,10 @@ const DocSidebar: FC<IProps> = ({
       return groupedOperationsEntries.map(([groupName, operationData]) => {
         let operationList = operationData
 
-        const pattern = new RegExp(keyword, 'i')
+        // 这行代码是防止输入一些不正规内容导致页面报错白屏
+        const escapedInput = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+        const pattern = new RegExp(escapedInput, 'i')
+
         // search by group name
         if (pattern.test(groupName)) {
           // break
