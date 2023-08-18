@@ -5,9 +5,9 @@ import * as vscode from 'vscode'
 import { startDocServer } from '../doc_server/index'
 import { startMockServer } from '../mock_server/index'
 
-import { defaultQiufenConfig } from './config'
-import getWorkspaceConfig from './utils/getWorkspaceConfig'
+import getConfiguration from './utils/getWorkspaceConfig'
 
+import type { JsonSettingsType } from './utils/getWorkspaceConfig'
 import type { ApolloServer } from '@apollo/server'
 import type { Server } from 'http'
 import type { StatusBarItem } from 'vscode'
@@ -37,51 +37,22 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand(
       GraphqlQiufenProStartMockCommandId,
       async () => {
-        const { qiufenConfig, isExistConfigFile, url, port } =
-          await getWorkspaceConfig(() => {
-            vscode.window.showErrorMessage('There is no configuration content.')
-          })
+        const qiufenConfigRes = await getConfiguration()
         loadingStatusBarItem(mockStatusBarItem, 'Loading', 'Mocking loading')
 
-        if (isExistConfigFile) {
-          try {
-            mockServer = await startMockServer(
-              qiufenConfig!,
-              qiufenConfig?.localSchemaFile || '',
-            )
-          } catch (err) {
-            updateStatusBarItem(
-              GraphqlQiufenProStartMockCommandId,
-              `$(lightbulb) Mock`,
-              mockStatusBarItem,
-              'Open Qiufen Mock Server',
-            )
-            throw err
-          }
-        } else {
-          try {
-            mockServer = await startMockServer(
-              {
-                port,
-                schemaPolicy: 'remote',
-                localSchemaFile: '',
-                endpoint: {
-                  url,
-                },
-                ...defaultQiufenConfig,
-              },
-              qiufenConfig?.localSchemaFile || '',
-            )
-          } catch (err) {
-            vscode.window.showErrorMessage((err as Error).message)
-            updateStatusBarItem(
-              GraphqlQiufenProStartMockCommandId,
-              `$(lightbulb) Mock`,
-              mockStatusBarItem,
-              'Open Qiufen Mock Server',
-            )
-            throw err
-          }
+        try {
+          mockServer = await startMockServer(
+            qiufenConfigRes,
+            qiufenConfigRes.localSchemaFile,
+          )
+        } catch (err) {
+          updateStatusBarItem(
+            GraphqlQiufenProStartMockCommandId,
+            `$(lightbulb) Mock`,
+            mockStatusBarItem,
+            'Open Qiufen Mock Server',
+          )
+          throw err
         }
 
         updateStatusBarItem(
@@ -110,63 +81,31 @@ export function activate(context: vscode.ExtensionContext) {
       GraphqlQiufenProStartDocCommandId,
       async () => {
         let serverPort
-        const { isExistConfigFile, url, port, qiufenConfig } =
-          await getWorkspaceConfig(() => {
-            vscode.window.showErrorMessage('There is no configuration content.')
-          })
+        const jsonSettings = vscode.workspace.getConfiguration(
+          'graphql-qiufen-pro',
+        ) as unknown as JsonSettingsType
+        const qiufenConfigRes = await getConfiguration()
         loadingStatusBarItem(docStatusBarItem, 'Qiufen Loading', 'Doc loading')
-        if (isExistConfigFile) {
-          try {
-            const { expressServer, resPort } = await startDocServer(
-              qiufenConfig!,
-            )
-            docServer = expressServer
-            serverPort = resPort
-          } catch (err) {
-            updateStatusBarItem(
-              GraphqlQiufenProStartDocCommandId,
-              `$(play) Qiufen Start`,
-              docStatusBarItem,
-              'Open Qiufen Doc Server',
-            )
-            throw err
-          }
-        } else {
-          try {
-            const { expressServer, resPort } = await startDocServer({
-              port,
-              schemaPolicy: 'remote',
-              endpoint: {
-                url,
-              },
-              ...defaultQiufenConfig,
-            })
-            docServer = expressServer
-            serverPort = resPort
-          } catch (err) {
-            vscode.window.showErrorMessage((err as Error).message)
-            updateStatusBarItem(
-              GraphqlQiufenProStartDocCommandId,
-              `$(play) Qiufen Start`,
-              docStatusBarItem,
-              'Open Qiufen Doc Server',
-            )
-            throw err
-          }
+
+        try {
+          const { expressServer, resPort } = await startDocServer(
+            qiufenConfigRes,
+          )
+          docServer = expressServer
+          serverPort = resPort
+        } catch (err) {
+          updateStatusBarItem(
+            GraphqlQiufenProStartDocCommandId,
+            `$(play) Qiufen Start`,
+            docStatusBarItem,
+            'Open Qiufen Doc Server',
+          )
+          throw err
         }
 
-        const res = await vscode.window.showInformationMessage(
-          '是否打开 Mock 网页Doc？',
-          {
-            modal: true,
-          },
-          '确定',
-        )
-
-        // 当点击确定时才打开网页
-        if (res) {
+        if (jsonSettings.isBrowser) {
           vscode.env.openExternal(
-            vscode.Uri.parse(`http://localhost:${serverPort}`),
+            vscode.Uri.parse(`http:localhost:${serverPort}`),
           )
         } else {
           // 打开vscode内置webview Doc

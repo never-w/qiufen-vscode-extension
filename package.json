@@ -79,6 +79,11 @@
           "type": "boolean",
           "default": false,
           "description": "inserting comment"
+        },
+        "graphql-qiufen-pro.isBrowser": {
+          "type": "boolean",
+          "default": true,
+          "description": "Graphql-Doc opens in the browser or vscode webview"
         }
       }
     }
